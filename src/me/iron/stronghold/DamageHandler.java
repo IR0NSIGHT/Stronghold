@@ -3,9 +3,13 @@ package me.iron.stronghold;
 import api.listener.Listener;
 import api.listener.events.systems.ShieldHitEvent;
 import api.mod.StarLoader;
+import org.hsqldb.Server;
+import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.data.GameServerState;
+import org.schema.schine.common.language.Lng;
+import org.schema.schine.network.server.ServerMessage;
 
 import java.io.IOException;
 
@@ -27,16 +31,13 @@ public class DamageHandler {
                 try {
                     Vector3i system = shieldHitEvent.getHitController().getSystem(new Vector3i());
                     int owners = GameServerState.instance.getUniverse().getStellarSystemFromStellarPos(system).getOwnerFaction();
-                    boolean isStation = shieldHitEvent.getHitController().getType().equals(SimpleTransformableSendableObject.EntityType.SPACE_STATION),
-                            factionMatchesSystem = shieldHitEvent.getHitController().getFactionId()==owners,
-                            systemIsOwned = owners != 0,
-                            isVoidShielded = SystemController.getInstance()!=null && SystemController.getInstance().isSystemProtected(system);
-                    //abort if: station thats owned by systemowners in a protected system
-                    if (    isStation && factionMatchesSystem  && systemIsOwned && isVoidShielded) {
+                    //abort if: controller says this object in that system with those system owners is protected.
+                    if (SystemController.getInstance()!=null&&SystemController.getInstance().isObjectProtected(shieldHitEvent.getHitController(), system, owners)) {
                         ModMain.log("cancel hit");
                         shieldHitEvent.setDamage(0);
                         shieldHitEvent.getShieldHit().hasHit=false;
                         shieldHitEvent.getShieldHit().setDamage(0);
+                        shieldHitEvent.getShieldHit().damager.sendServerMessage(Lng.astr("system is voidshielded."), ServerMessage.MESSAGE_TYPE_ERROR);
                     }
 
                 } catch (IOException e) {

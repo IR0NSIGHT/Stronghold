@@ -1,13 +1,13 @@
 {
   "name": "Stronghold",
   "author": "IR0NSIGHT",
-  "description": "system-wide protection of stations and capture-strongpoints-combat",
-  "version": "0.0",
+  "description": "system-wide protection of stations, capture-and-defend-combat",
+  "version": "0.1",
   "starmade_version": "0.202.110",
   "client_mod": false,
   "server_mod": false,
   "main_class": "me.iron.stronghold.ModMain",
-  "smd_resource_id": 420,
+  "smd_resource_id": 8356,
   "dependencies": [
     -1
   ],

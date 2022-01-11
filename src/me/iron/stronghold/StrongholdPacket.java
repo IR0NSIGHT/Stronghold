@@ -44,13 +44,13 @@ public class StrongholdPacket extends Packet {
 
     @Override
     public void processPacketOnClient() {
-
         SystemController.getInstance().synchFromServer(systems);
     }
 
     @Override
     public void processPacketOnServer(PlayerState playerState) {
-
+        //this client requested to receive a synch for all stations.
+        SystemController.getInstance().synchClientFull(playerState);
     }
 
     public void sendToAll() {

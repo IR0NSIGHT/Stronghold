@@ -3,12 +3,20 @@ package me.iron.stronghold;
 import api.mod.config.SimpleSerializerWrapper;
 import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
+import com.google.common.base.Verify;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.common.data.player.faction.Faction;
+import org.schema.game.common.data.world.Sector;
+import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.common.data.world.VoidSystem;
+import org.schema.game.server.data.GameServerState;
 
+import javax.vecmath.Vector3f;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.Vector;
 
 /**
  * STARMADE MOD
@@ -26,12 +34,19 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
     private HashMap<Vector3i, Integer> stronghold_owners;
     private int ownedBySysOwner;
     private int ownedByNoone;
-    private long lastUpdate;
+    protected long lastUpdate;
     private boolean flagDelete;
+    public StrongholdSystem(Vector3i system) {
+        init();
+    }
 
     public StrongholdSystem(Vector3i stellarPos, int owner) {
         this.stellarPos = stellarPos;
         this.owner = owner;
+    }
+
+    public void init() {
+        setPoints(StrongholdSystem.generatePoints(this.stellarPos));
     }
 
     public StrongholdSystem(PacketReadBuffer buffer) {
@@ -53,48 +68,23 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
         if (lastUpdate == 0)
             lastUpdate = timeUnits;
 
+        try {
+            int cOwner =GameServerState.instance.getUniverse().getStellarSystemFromStellarPosIfLoaded(stellarPos).getOwnerFaction();
+            if (cOwner != owner)
+                setOwner(cOwner);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        updateLoadedPoints(stronghold_owners);
         int diff = Math.max (1,(int) (timeUnits-lastUpdate));
         adjustPoints(ownedByNoone, ownedBySysOwner,stronghold_owners.size(),diff);
 
         lastUpdate = timeUnits;
-    }
-
-    /**
-     * adjust points based on how much time passed since last update and the owned vs total stronghold count.
-     * @param owned
-     * @param exist
-     * @param timeUnits
-     */
-    private void adjustPoints(int neutral, int owned, int exist, int timeUnits) {
-        int diff = owned-(exist-neutral-owned); //own vs all that are not mine/neutral
-        if (neutral==exist)
-            diff=-1;
-        hp += diff*timeUnits*SystemController.changePerTimeUnit; //-2 diff x 5 timeUnits = -10 points
-        hp = Math.min(SystemController.hpRange[2],Math.max(SystemController.hpRange[0],hp));
-        System.out.println(String.format("strongholds factor:%s, timeUnits: %s, totalChange: %s",diff,timeUnits,diff*timeUnits));
-        setSynchFlag();
-    }
-
-
-    public static void main(String[] args) {
-        StrongholdSystem s = new StrongholdSystem(new Vector3i(2,2,2),10001);
-        Vector3i[] points = new Vector3i[8];
-        for (int i = 0; i < points.length; i++) {
-            points[i] = new Vector3i(i,i,i);
+        if (hp<=SystemController.hpRange[0]) {
+            //hp are minimal after update -> wont change until a strongpoint changes owner
+            setFlagDelete(true);
         }
-        s.setPoints(points);
-
-        for (Vector3i pos: points) {
-            s.setPointOwner(10001,pos);
-        }
-        s.update(1);
-
-        //  System.out.println(s.toString());
-        s.update(1400);
-        //System.out.println(s.toString());
-        s.update(2);
-        System.out.println(s.toString());
-        System.out.println("is protected: " + s.isProtected());
     }
 
     public void setPointOwner(int faction, Vector3i pos) {
@@ -117,6 +107,65 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
         }
     }
 
+    public boolean isProtected() {
+        return (float)hp/SystemController.hpRange[1]>=0.5f;
+    }
+
+    private void updateLoadedPoints(HashMap<Vector3i, Integer> point_to_owner) {
+        if (GameServerState.instance==null)
+            return;
+
+        Sector point;
+        for (Map.Entry<Vector3i,Integer> e: point_to_owner.entrySet()) {
+            if (GameServerState.instance.getUniverse().isSectorLoaded(e.getKey())) {
+                try {
+                    point = GameServerState.instance.getUniverse().getSector(e.getKey());
+                    updatePoint(point);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * update this sector
+     * @param sector
+     */
+    public void updatePoint(Sector sector) {
+        assert stronghold_owners.containsKey(sector.pos); //sector is a strongpoint
+        boolean isStation, notHb;
+        for (SimpleTransformableSendableObject s: sector.getEntities()) {
+            isStation = s.getType().equals(SimpleTransformableSendableObject.EntityType.SPACE_STATION);
+            notHb = !s.isHomeBase();
+            if (isStation && notHb) {
+                setPointOwner(s.getFactionId(), sector.pos);
+                return;
+            }
+        }
+        setPointOwner(0,sector.pos);
+    }
+
+    /**
+     * adjust points based on how much time passed since last update and the owned vs total stronghold count.
+     * @param owned
+     * @param exist
+     * @param timeUnits
+     */
+    private void adjustPoints(int neutral, int owned, int exist, int timeUnits) {
+        int diff = owned-(exist-neutral-owned); //own vs all that are not mine/neutral
+        if (neutral==exist)
+            diff=-1;
+        hp += diff*timeUnits*SystemController.changePerTimeUnit; //-2 diff x 5 timeUnits = -10 points
+        hp = Math.min(SystemController.hpRange[2],Math.max(SystemController.hpRange[0],hp));
+        System.out.println(String.format("strongholds factor:%s, timeUnits: %s, totalChange: %s",diff,timeUnits,diff*timeUnits));
+        setSynchFlag();
+    }
+
+    /**
+     * updates internal counters
+     * @return
+     */
     private int countOwnedBySysOwner() {
         ownedBySysOwner = 0;
         ownedByNoone = 0;
@@ -129,10 +178,7 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
         return ownedBySysOwner;
     }
 
-
-    public boolean isProtected() {
-        return (float)hp/SystemController.hpRange[1]>=0.5f;
-    }
+//serialization
 
     @Override
     public void onDeserialize(PacketReadBuffer buffer) {
@@ -140,7 +186,6 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
             owner = buffer.readInt();
             stellarPos = buffer.readVector();
             hp = buffer.readInt();
-            lastUpdate = buffer.readLong();
             int strongholds = buffer.readInt();
             stronghold_owners = new HashMap<>(strongholds);
             for (int i = 0; i < strongholds; i++) {
@@ -159,7 +204,6 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
             buffer.writeInt(owner);
             buffer.writeVector(stellarPos);
             buffer.writeInt(hp);
-            buffer.writeLong(lastUpdate);
             buffer.writeInt(stronghold_owners.size());
             for (Map.Entry<Vector3i,Integer> entry: stronghold_owners.entrySet()) {
                 buffer.writeVector(entry.getKey());
@@ -171,6 +215,8 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
         }
     }
 
+    //to string stuff
+
     @Override
     public String toString() {
         return String.format("owner: %s, pos:%s, hp: %s\n" +
@@ -179,13 +225,25 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
                 "strongholds: %s",owner,stellarPos,hp,ownedBySysOwner,(stronghold_owners.size()-ownedByNoone-ownedBySysOwner),ownedByNoone,stronghold_owners.size(),isProtected(),lastUpdate,strongholdsToString());
     }
 
+    public static String tryGetFactionName(int faction) {
+        Faction owners = GameServerState.instance.getFactionManager().getFaction(faction);
+        String name;
+        if (owners!=null) {
+            name ="'"+ owners.getName()+"'";
+        } else
+            name = "neutral";
+        return name;
+    }
+
     public String strongholdsToString() {
-        StringBuilder b = new StringBuilder("strongholds:\n");
+        StringBuilder b = new StringBuilder();
         for (Map.Entry<Vector3i,Integer> entry: stronghold_owners.entrySet()) {
-            b.append(String.format("%s [%s]\n",entry.getKey(),entry.getValue()));
+            b.append(String.format("%s [%s]\n",entry.getKey(),tryGetFactionName(entry.getValue())));
         }
         return b.toString();
     }
+
+//getter and setter
 
     public Vector3i getStellarPos() {
         return stellarPos;
@@ -202,6 +260,8 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
 
     public void setOwner(int owner) {
         this.owner = owner;
+        setHp(SystemController.hpRange[0]); //changing ownership resets the stronghold.
+        countOwnedBySysOwner();
         setSynchFlag();
     }
 
@@ -214,49 +274,71 @@ public class StrongholdSystem extends SimpleSerializerWrapper {
         setSynchFlag();
     }
 
+//flags for synch and deletion after sync
+
     public boolean isSynchFlag() {
         return synchFlag;
     }
 
+    /**
+     * synch this system to all clients on the next update
+     */
     public void setSynchFlag() {
         this.synchFlag = true;
-    }
-
-    //just for debugging
-    private static Vector3i[] points = {new Vector3i(0,0,0),new Vector3i(1,1,1)};
-
-    //TODO write procedural method
-    public static boolean isStrongpoint(Vector3i sector) {
-        //get system:
-        sector = new Vector3i(sector);
-        sector.x = sector.x % VoidSystem.SYSTEM_SIZE;
-        sector.y = sector.y % VoidSystem.SYSTEM_SIZE;
-        sector.z = sector.z % VoidSystem.SYSTEM_SIZE;
-        for (Vector3i pos: points) {
-            if (sector.equals(pos))
-                return true;
-        }
-        return false;
-    }
-
-    public static Vector3i[] generatePoints(Vector3i system) {
-        system = new Vector3i(system);
-        system.scale(VoidSystem.SYSTEM_SIZE);
-        Vector3i[] points = new Vector3i[]{
-                new Vector3i(0,0,0),
-                new Vector3i(1,1,1)
-        };
-        for (Vector3i p: points) {
-            p.add(system);
-        }
-        return points;
     }
 
     public boolean isFlagDelete() {
         return flagDelete;
     }
 
+    /**
+     * sets a flag so the client deletes this system after a synch
+     */
     public void setFlagDelete(boolean flagDelete) {
         this.flagDelete = flagDelete;
     }
+
+    //just for debugging
+    private static Vector3i[] points = {
+            new Vector3i(2,2,2),
+            new Vector3i(VoidSystem.SYSTEM_SIZE-2,VoidSystem.SYSTEM_SIZE-2,VoidSystem.SYSTEM_SIZE-2)};
+
+    //TODO write procedural method
+    public static boolean isStrongpoint(Vector3i sector) {
+        Vector3i system = new Vector3i(sector);
+        sector.x = sector.x%VoidSystem.SYSTEM_SIZE;
+        sector.y = sector.y%VoidSystem.SYSTEM_SIZE;
+        sector.z = sector.z%VoidSystem.SYSTEM_SIZE;
+
+        StrongholdSystem s = SystemController.getInstance().getSystem(system);
+        if (s!=null) {
+            return s.stronghold_owners.containsKey(sector);
+        } else {
+            Vector3i[] points = generatePoints(system);
+            for (Vector3i p: points) {
+                if (p.equals(sector))
+                    return true;
+            }
+            return false;
+        }
+    }
+
+    public static Vector3i[] generatePoints(Vector3i system) {
+        system = new Vector3i(system);
+        Random r = new Random(system.code());
+        system.scale(VoidSystem.SYSTEM_SIZE); //convert to sector pos
+        system.add(VoidSystem.SYSTEM_SIZE_HALF,VoidSystem.SYSTEM_SIZE_HALF,VoidSystem.SYSTEM_SIZE_HALF); //center pos of system
+        int amout = 3 + r.nextInt(4);
+        amout = (amout/2)*2+1; //always uneven
+        Vector3i[] points = new Vector3i[amout];
+        for (int i = 0; i < amout; i++) {
+            Vector3f dir = new Vector3f(r.nextFloat()*(r.nextBoolean()?1:-1),r.nextFloat()*(r.nextBoolean()?1:-1),r.nextFloat()*(r.nextBoolean()?1:-1));
+            dir.normalize(); dir.scale(VoidSystem.SYSTEM_SIZE_HALF-2);
+            points[i] = new Vector3i(system);
+            points[i].add((int)dir.x,(int)dir.y,(int)(dir.z));
+        }
+        return points;
+    }
+
+
 }
