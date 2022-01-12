@@ -6,11 +6,18 @@ import api.mod.StarLoader;
 import api.utils.StarRunnable;
 import api.utils.sound.AudioUtils;
 import me.iron.stronghold.ModMain;
+import me.iron.stronghold.Strongpoint;
+import me.iron.stronghold.events.GenericEvent;
+import me.iron.stronghold.events.StrongpointOwnerChangedEvent;
 import org.apache.commons.io.IOUtils;
+import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.client.data.GameClientState;
+import org.schema.game.common.data.world.VoidSystem;
 import org.schema.schine.graphicsengine.core.Controller;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Vector;
 
 /**
  * STARMADE MOD
@@ -35,11 +42,11 @@ public class SoundManager {
         initSounds();
         initDebug();
         initLoop();
-
+        initEH();
     }
 
     /**
-     *
+     * add sound to internal library for runtime use.
      * @param name name of sound
      * @param file
      */
@@ -70,6 +77,9 @@ public class SoundManager {
         },ModMain.instance);
     }
 
+    /**
+     * will add sounds and install soundfiles to the client if they dont already exist.
+     */
     private void initSounds() {
         String folderPath = ModMain.instance.getSkeleton().getResourcesFolder().getPath().replace("\\","/")+"/resources/sounds/"; //in moddata
         File dir = new File(folderPath);
@@ -119,6 +129,11 @@ public class SoundManager {
         }
     }
 
+    /**
+     * make a sound play once all other queued sounds were played.
+     * @param s
+     * @return
+     */
     public boolean queueSound(Sound s) {
         if (soundQueue.size() > 5)
             return false;
@@ -141,8 +156,35 @@ public class SoundManager {
             }
         }.runTimer(ModMain.instance,10);
     }
+
+    private void initEH() {
+        GenericEvent.addListener(StrongpointOwnerChangedEvent.class, new me.iron.stronghold.events.Listener(){
+            @Override
+            public void run(GenericEvent e) {
+                super.run(e);
+                ModMain.log("listener was run with: "+e.toString());
+                if (e instanceof StrongpointOwnerChangedEvent) {
+                    Strongpoint p = ((StrongpointOwnerChangedEvent)e).getStrongpoint();
+                    int newOwner = ((StrongpointOwnerChangedEvent)e).getNewOwner();
+                    Vector3i system = new Vector3i(p.getSector());
+                    system.scale(1/ VoidSystem.SYSTEM_SIZE);
+                    int playerFaction = GameClientState.instance.getPlayer().getFactionId();
+                    if (GameClientState.instance.getPlayer().getCurrentSystem().equals(system)) {
+                        if (playerFaction == newOwner) {
+                            queueSound(Sound.strongpoint_captured);
+                        } else if (playerFaction == p.getOwner()) {
+                            queueSound(Sound.strongpoint_lost);
+                        } else {
+                            queueSound(Sound.strongpoint_contested);
+                        }
+                    }
+
+                }
+            }
+        });
+    }
     public enum Sound {
-        system_shielded(            "01-system_shielded"),
+        system_shielded(            "01-system_shielded"), //soundfile name without the .ogg end
         voidshield_active(          "02-voidshield_active"),
         voidshield_acivated(        "03-voidshield_activated"),
         voidshield_deactivated(     "04-voidshield_deactivated"),
