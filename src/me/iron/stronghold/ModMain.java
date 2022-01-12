@@ -10,6 +10,7 @@ import api.network.packets.PacketUtil;
 import glossar.GlossarCategory;
 import glossar.GlossarEntry;
 import glossar.GlossarInit;
+import me.iron.stronghold.effects.sounds.SoundManager;
 import org.schema.game.server.data.GameServerState;
 
 /**
@@ -36,6 +37,7 @@ public class ModMain extends StarMod {
         if (SystemController.getInstance()==null) //on SP, this is taken up by the server one
             new SystemController().init(); //clientside controller, 98% passive, just receives synchs from server
         initGlossar();
+        new SoundManager();
     }
 
     @Override

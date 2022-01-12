@@ -227,7 +227,7 @@ public class SystemController extends SimpleSerializerWrapper {
                 systemIsOwned = sysOwner != 0,
                 isVoidShielded = isSystemProtected(system),
                 notHB = !obj.isHomeBase(),
-                notStrongPointSector = StrongholdSystem.isStrongpoint(obj.getSector(new Vector3i()));
+                notStrongPointSector = !StrongholdSystem.isStrongpoint(obj.getSector(new Vector3i()));
         if (isStation && factionMatchesSystem && systemIsOwned && isVoidShielded && notHB && notStrongPointSector)
             return true;
         return false;

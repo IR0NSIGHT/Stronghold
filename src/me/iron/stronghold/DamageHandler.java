@@ -33,7 +33,7 @@ public class DamageHandler {
                     int owners = GameServerState.instance.getUniverse().getStellarSystemFromStellarPos(system).getOwnerFaction();
                     //abort if: controller says this object in that system with those system owners is protected.
                     if (SystemController.getInstance()!=null&&SystemController.getInstance().isObjectProtected(shieldHitEvent.getHitController(), system, owners)) {
-                        ModMain.log("cancel hit");
+                    //    ModMain.log("cancel hit");
                         shieldHitEvent.setDamage(0);
                         shieldHitEvent.getShieldHit().hasHit=false;
                         shieldHitEvent.getShieldHit().setDamage(0);
