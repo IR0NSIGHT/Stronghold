@@ -9,6 +9,7 @@ import org.schema.game.server.data.GameServerState;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.UUID;
 
 /**
  * STARMADE MOD
@@ -30,7 +31,8 @@ public class StrongholdPacket extends Packet {
     public void readPacketData(PacketReadBuffer b) throws IOException {
         int size = b.readInt();
         for (int i = 0; i < size; i++) {
-            systems.add(new Stronghold(b));
+            UUID uuid = b.readObject(UUID.class);
+            StrongholdController.getInstance().updateStronghold(uuid, b);
         }
     }
 
@@ -44,7 +46,7 @@ public class StrongholdPacket extends Packet {
 
     @Override
     public void processPacketOnClient() {
-        StrongholdController.getInstance().synchFromServer(systems);
+    //    StrongholdController.getInstance().synchFromServer(systems);
     }
 
     @Override

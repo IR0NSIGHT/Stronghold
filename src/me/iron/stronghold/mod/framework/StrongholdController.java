@@ -12,6 +12,7 @@ import api.network.PacketWriteBuffer;
 import api.network.packets.PacketUtil;
 import api.utils.StarRunnable;
 import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.effects.sounds.SoundManager;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
 import org.schema.game.common.data.player.PlayerState;
@@ -75,7 +76,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
     }
 
     private void initClient() {
-        new StarRunnable(){
+    /*    new StarRunnable(){
             @Override
             public void run() {
                 try {
@@ -94,10 +95,9 @@ public class StrongholdController extends SimpleSerializerWrapper {
                     );
                     cancel();
                 } catch (NullPointerException ignored) {
-
                 }
             }
-        }.runTimer(ModMain.instance,5);
+        }.runTimer(ModMain.instance,5); */
         new StarRunnable(){
             @Override
             public void run() {
@@ -209,7 +209,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
     public void updateStronghold(Vector3i system, int ownerFaction) {
         Stronghold sys = strongholdHashMap.get(system);
         if (sys==null) {
-            sys = new Stronghold(system, ownerFaction);
+            sys = new Stronghold(this, system, ownerFaction);
             sys.init();
         }
         sys.update(System.currentTimeMillis()/1000);
@@ -242,7 +242,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
         if (stronghold == null) {
             try {
                 int owners = GameServerState.instance.getUniverse().getStellarSystemFromStellarPosIfLoaded(s).getOwnerFaction();
-                stronghold = new Stronghold(s, owners);
+                stronghold = new Stronghold(this, s, owners);
                 stronghold.init();
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -252,13 +252,70 @@ public class StrongholdController extends SimpleSerializerWrapper {
         return stronghold;
     }
 
+    public void updateStronghold(UUID uuid, PacketReadBuffer buffer) {
+        for (Stronghold x: strongholdHashMap.values()) {
+            if (x.getUuid()!=null && uuid.equals(x.getUuid()))
+                x.onDeserialize(buffer);
+                return;
+        }
+        Stronghold s = new Stronghold(this, buffer);
+        s.setUuid(uuid);
+        strongholdHashMap.put(s.getStellarPos(),s);
+    }
+
+    //event stuff
+    protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
+        if (GameServerState.instance != null) {
+            String s = null;
+            if (p.getOwner()!=0 && newOwner == 0) {
+                s = Stronghold.tryGetFactionName(p.getOwner())+"has lost Strongpoint "+p.getSector();
+            }
+            if (p.getOwner()==0 && newOwner != 0) {
+                s = Stronghold.tryGetFactionName(newOwner) + " captured Strongpoint " + p.getSector();
+            }
+            if (p.getOwner()!=0 && newOwner != 0) {
+                s = Stronghold.tryGetFactionName(newOwner) + " took Strongpoint " + p.getSector() + " from " + Stronghold.tryGetFactionName(p.getOwner())+"!";
+            }
+            if (s != null)
+                ModMain.log(s);
+        }
+
+        if (GameClientState.instance!= null) {
+            SoundManager.Sound s = null;
+            int playerF = GameClientState.instance.getPlayer().getFactionId();
+            Vector3i playerPos = GameClientState.instance.getPlayer().getCurrentSystem();
+            Vector3i pointPos = new Vector3i(p.getSector());
+            mutateSectorToSystem(pointPos);
+            if (p.getOwner()==playerF) {
+                s = SoundManager.Sound.strongpoint_lost;
+            }
+            else if (newOwner == playerF) {
+                s = SoundManager.Sound.strongpoint_captured;
+            }
+            else if (pointPos.equals(playerPos)) {
+                s = SoundManager.Sound.strongpoint_contested;
+            }
+            if (s != null) {
+                SoundManager.instance.queueSound(s);
+            }
+        }
+    }
+
+    protected void onDefensePointsChanged(Stronghold h, int newPoints) {
+        if (GameClientState.instance!= null) {
+            SoundManager.instance.queueSound(SoundManager.Sound.strongpoint_captured);
+        }
+    }
+
     @Override
     public void onDeserialize(PacketReadBuffer packetReadBuffer) {
         try {
             //read systems and their health
             int systems = packetReadBuffer.readInt();
             for (int i = 0; i < systems; i++) {
-                Stronghold s = new Stronghold(packetReadBuffer);
+                UUID uuid = packetReadBuffer.readObject(UUID.class);
+                Stronghold s = new Stronghold(this, packetReadBuffer);
+                s.setUuid(uuid);
                 strongholdHashMap.put(s.getStellarPos(),s);
             }
         } catch (IOException e) {
@@ -296,7 +353,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
         }
     }
 
-    private void mutateSectorToSystem(Vector3i sector) {
+    public static void mutateSectorToSystem(Vector3i sector) {
         sector.x = sector.x/VoidSystem.SYSTEM_SIZE;
         sector.y = sector.y/VoidSystem.SYSTEM_SIZE;
         sector.z = sector.z/VoidSystem.SYSTEM_SIZE;

@@ -6,6 +6,7 @@ import api.mod.StarLoader;
 import api.utils.StarRunnable;
 import api.utils.sound.AudioUtils;
 import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.framework.StrongholdController;
 import me.iron.stronghold.mod.framework.Strongpoint;
 import me.iron.stronghold.mod.events.GenericEvent;
 import me.iron.stronghold.mod.events.StrongpointOwnerChangedEvent;
@@ -17,6 +18,7 @@ import org.schema.schine.graphicsengine.core.Controller;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Vector;
 
 /**
  * STARMADE MOD
@@ -166,8 +168,9 @@ public class SoundManager {
                     Strongpoint p = ((StrongpointOwnerChangedEvent)e).getStrongpoint();
                     int newOwner = ((StrongpointOwnerChangedEvent)e).getNewOwner();
                     Vector3i system = new Vector3i(p.getSector());
-                    system.scale(1/ VoidSystem.SYSTEM_SIZE);
+                    StrongholdController.mutateSectorToSystem(system);
                     int playerFaction = GameClientState.instance.getPlayer().getFactionId();
+                    Vector3i clientSystem = GameClientState.instance.getPlayer().getCurrentSystem();
                     if (GameClientState.instance.getPlayer().getCurrentSystem().equals(system)) {
                         if (playerFaction == newOwner) {
                             queueSound(Sound.strongpoint_captured);

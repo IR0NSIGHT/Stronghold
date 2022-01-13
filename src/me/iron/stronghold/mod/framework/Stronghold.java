@@ -12,9 +12,7 @@ import org.schema.game.server.data.GameServerState;
 
 import javax.vecmath.Vector3f;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * STARMADE MOD
@@ -29,36 +27,38 @@ public class Stronghold extends SimpleSerializerWrapper {
     private int hp = StrongholdController.hpRange[0]; //healthpoints
     private boolean synchFlag;
 
-    private transient HashMap<Vector3i, Strongpoint> stroingpoint_sectors = new HashMap<>();
+    private transient HashMap<Vector3i, Strongpoint> strongpointHashMap = new HashMap<>();
     private int ownedBySysOwner;
     private int ownedByNoone;
+    private UUID uuid;
+
     protected long lastUpdate;
     private boolean flagDelete;
-    public Stronghold(Vector3i system) {
-        init();
-    }
-
-    protected Stronghold(Vector3i stellarPos, int owner) {
+    private StrongholdController c;
+    protected Stronghold(StrongholdController c, Vector3i stellarPos, int owner) {
+        this.uuid = UUID.randomUUID();
         this.stellarPos = stellarPos;
         this.owner = owner;
+        this.c = c;
+    }
+
+    public Stronghold(StrongholdController c, PacketReadBuffer buffer) {
+        this.c = c;
+        onDeserialize(buffer);
     }
 
     protected void init() {
         setStrongpoints(Stronghold.generatePoints(this.stellarPos));
     }
 
-    public Stronghold(PacketReadBuffer buffer) {
-        onDeserialize(buffer);
-    }
-
     public void setStrongpoints(Vector3i[] pos) {
-        if (stroingpoint_sectors == null)
-            stroingpoint_sectors = new HashMap<>(pos.length);
+        if (strongpointHashMap == null)
+            strongpointHashMap = new HashMap<>(pos.length);
         ownedByNoone = pos.length;
-        stroingpoint_sectors.clear();
+        strongpointHashMap.clear();
         for (Vector3i p: pos) {
-            Strongpoint point = new Strongpoint(p);
-            stroingpoint_sectors.put(p,point);
+            Strongpoint point = new Strongpoint(p, this);
+            strongpointHashMap.put(p,point);
         }
         setSynchFlag(true);
     }
@@ -77,7 +77,7 @@ public class Stronghold extends SimpleSerializerWrapper {
 
         boolean changed = false; //have any strongpoints changed in the update?
         boolean redundant = true; //are all strongpoints redundant and could safely be deleted?
-        for (Strongpoint sp: stroingpoint_sectors.values()) {
+        for (Strongpoint sp: strongpointHashMap.values()) {
             changed = changed || sp.update();
             redundant = redundant && sp.isRedundant();
         }
@@ -88,7 +88,7 @@ public class Stronghold extends SimpleSerializerWrapper {
 
         //change defensepoints
         int diff = Math.max (1,(int) (timeUnits-lastUpdate));
-        adjustPoints(ownedByNoone, ownedBySysOwner, stroingpoint_sectors.size(),diff);
+        adjustPoints(ownedByNoone, ownedBySysOwner, strongpointHashMap.size(),diff);
 
         lastUpdate = timeUnits;
         if (hp<= StrongholdController.hpRange[0] && redundant) {
@@ -98,11 +98,19 @@ public class Stronghold extends SimpleSerializerWrapper {
     }
 
     public boolean isStrongpoint(Vector3i sector) {
-        return stroingpoint_sectors.get(sector)!=null;
+        return strongpointHashMap.get(sector)!=null;
     }
 
     public String getName() {
         return "Installation 05";
+    }
+
+    protected void onDefensePointsChanged(int newPoints) {
+        c.onDefensePointsChanged(this, newPoints);
+    }
+
+    protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
+        c.onStrongpointCaptured(p,newOwner);
     }
 
     /**
@@ -129,7 +137,7 @@ public class Stronghold extends SimpleSerializerWrapper {
     private int countOwnedBySysOwner() {
         ownedBySysOwner = 0;
         ownedByNoone = 0;
-        for (Strongpoint sp: stroingpoint_sectors.values()) {
+        for (Strongpoint sp: strongpointHashMap.values()) {
             if (sp.getOwner()==owner)
                 ownedBySysOwner++;
             else if (sp.getOwner()==0)
@@ -138,19 +146,45 @@ public class Stronghold extends SimpleSerializerWrapper {
         return ownedBySysOwner;
     }
 
-//serialization
+    protected void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    protected UUID getUuid() {
+        return uuid;
+    }
+
+    private void updateStrongpoint(Vector3i pos, PacketReadBuffer buffer) {
+        Strongpoint sp = strongpointHashMap.get(pos);
+        if (sp == null) {
+            sp = new Strongpoint(pos, this);
+            strongpointHashMap.put(pos, sp);
+        }
+        sp.onDeserialize(buffer);
+    }
+    //serialization
 
     @Override
     public void onDeserialize(PacketReadBuffer buffer) {
         try {
-
-
             int strongholds = buffer.readInt();
-            stroingpoint_sectors = new HashMap<>(strongholds);
+            if (strongpointHashMap == null) {
+                strongpointHashMap = new HashMap<>(strongholds);
+            }
+            HashSet<Vector3i> synched = new HashSet<>(); //log the strongpoints that exist on server
             for (int i = 0; i < strongholds; i++) {
-                Strongpoint p = new Strongpoint(buffer.readVector());
-                p.onDeserialize(buffer);
-                stroingpoint_sectors.put(p.getSector(), p);
+                Vector3i pos = buffer.readVector();
+                updateStrongpoint(new Vector3i(pos), buffer);
+                synched.add(pos);
+            }
+            LinkedList<Vector3i> toDelete = new LinkedList<>(); //collect points that only exist on client, log for delete
+            for (Vector3i pos : strongpointHashMap.keySet()) {
+                if (!synched.contains(pos)) {
+                    toDelete.add(pos);
+                }
+            }
+            for (Vector3i pos: toDelete) { //delete unwanted.
+                strongpointHashMap.remove(pos);
             }
 
             setOwner(buffer.readInt());
@@ -158,7 +192,7 @@ public class Stronghold extends SimpleSerializerWrapper {
             setDefensePoints(buffer.readInt());
 
             setFlagDelete(buffer.readBoolean());
-            setSynchFlag(true);
+            setSynchFlag(buffer.readBoolean());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -167,8 +201,9 @@ public class Stronghold extends SimpleSerializerWrapper {
     @Override
     public void onSerialize(PacketWriteBuffer buffer) {
         try {
-            buffer.writeInt(stroingpoint_sectors.size());
-            for (Map.Entry<Vector3i,Strongpoint> entry: stroingpoint_sectors.entrySet()) {
+            buffer.writeObject(uuid);
+            buffer.writeInt(strongpointHashMap.size());
+            for (Map.Entry<Vector3i,Strongpoint> entry: strongpointHashMap.entrySet()) {
                 buffer.writeVector(entry.getKey());
                 entry.getValue().onSerialize(buffer);
             }
@@ -191,7 +226,7 @@ public class Stronghold extends SimpleSerializerWrapper {
         return String.format("owner: %s, pos:%s, hp: %s\n" +
                 "own: %s, ene: %s, neut: %s, all: %s\n"+
                 "updated: %s,\n" +
-                "strongholds: %s",owner,stellarPos,hp,ownedBySysOwner,(stroingpoint_sectors.size()-ownedByNoone-ownedBySysOwner),ownedByNoone, stroingpoint_sectors.size(),lastUpdate,strongholdsToString());
+                "strongholds: %s",owner,stellarPos,hp,ownedBySysOwner,(strongpointHashMap.size()-ownedByNoone-ownedBySysOwner),ownedByNoone, strongpointHashMap.size(),lastUpdate,strongholdsToString());
     }
 
     public static String tryGetFactionName(int faction) {
@@ -212,7 +247,7 @@ public class Stronghold extends SimpleSerializerWrapper {
 
     public String strongholdsToString() {
         StringBuilder b = new StringBuilder();
-        for (Map.Entry<Vector3i,Strongpoint> entry: stroingpoint_sectors.entrySet()) {
+        for (Map.Entry<Vector3i,Strongpoint> entry: strongpointHashMap.entrySet()) {
             b.append(String.format("%s [%s]\n",entry.getKey(),tryGetFactionName(entry.getValue().getOwner())));
         }
         return b.toString();
@@ -246,8 +281,11 @@ public class Stronghold extends SimpleSerializerWrapper {
     }
 
     protected void setDefensePoints(int hp) {
-        this.hp = hp;
-        setSynchFlag(true);
+        if (hp != this.hp) {
+            onDefensePointsChanged(hp);
+            this.hp = hp;
+            setSynchFlag(true);
+        }
     }
 
 //flags for synch and deletion after sync

@@ -21,9 +21,11 @@ import java.io.IOException;
 public class Strongpoint extends SimpleSerializerWrapper {
     private Vector3i sector;
     private int owner;
+    private Stronghold stronghold;
 
-    public Strongpoint(Vector3i sector) {
+    public Strongpoint(Vector3i sector, Stronghold stronghold) {
         this.sector = sector;
+        this.stronghold = stronghold;
     }
 
     public Strongpoint() {
@@ -70,13 +72,11 @@ public class Strongpoint extends SimpleSerializerWrapper {
         return owner == 0;
     }
 
-
     @Override
     public void onDeserialize(PacketReadBuffer buffer) {
         try {
             setOwner(buffer.readInt());
             setSector(buffer.readVector());
-            assert this.getOwner()<=0||this.getOwner()>10000;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -106,8 +106,8 @@ public class Strongpoint extends SimpleSerializerWrapper {
 
     public void setOwner(int owner) {
         if (owner!=this.owner) {
-       //     new StrongpointOwnerChangedEvent(this, owner).fire();
+            stronghold.onStrongpointCaptured(this,owner);
+            this.owner = owner;
         }
-        this.owner = owner;
     }
 }
