@@ -1,5 +1,5 @@
-package me.iron.stronghold.events;
-import me.iron.stronghold.Strongpoint;
+package me.iron.stronghold.mod.events;
+import me.iron.stronghold.mod.framework.Strongpoint;
 
 /**
  * STARMADE MOD

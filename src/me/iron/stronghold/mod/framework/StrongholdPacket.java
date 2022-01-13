@@ -1,4 +1,4 @@
-package me.iron.stronghold;
+package me.iron.stronghold.mod.framework;
 
 import api.network.Packet;
 import api.network.PacketReadBuffer;
@@ -17,8 +17,8 @@ import java.util.LinkedList;
  * TIME: 21:41
  */
 public class StrongholdPacket extends Packet {
-    private LinkedList<StrongholdSystem> systems = new LinkedList<>();
-    public StrongholdPacket(LinkedList<StrongholdSystem> systems) {
+    private LinkedList<Stronghold> systems = new LinkedList<>();
+    public StrongholdPacket(LinkedList<Stronghold> systems) {
         this.systems.addAll(systems);
     }
 
@@ -30,27 +30,27 @@ public class StrongholdPacket extends Packet {
     public void readPacketData(PacketReadBuffer b) throws IOException {
         int size = b.readInt();
         for (int i = 0; i < size; i++) {
-            systems.add(new StrongholdSystem(b));
+            systems.add(new Stronghold(b));
         }
     }
 
     @Override
     public void writePacketData(PacketWriteBuffer b) throws IOException {
         b.writeInt(systems.size());
-        for (StrongholdSystem s: systems) {
+        for (Stronghold s: systems) {
             s.onSerialize(b);
         }
     }
 
     @Override
     public void processPacketOnClient() {
-        SystemController.getInstance().synchFromServer(systems);
+        StrongholdController.getInstance().synchFromServer(systems);
     }
 
     @Override
     public void processPacketOnServer(PlayerState playerState) {
         //this client requested to receive a synch for all stations.
-        SystemController.getInstance().synchClientFull(playerState);
+        StrongholdController.getInstance().synchClientFull(playerState);
     }
 
     public void sendToAll() {

@@ -1,10 +1,11 @@
-package me.iron.stronghold;
+package me.iron.stronghold.mod.framework;
 
 import api.mod.config.SimpleSerializerWrapper;
 import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
-import me.iron.stronghold.events.StrongpointOwnerChangedEvent;
+import me.iron.stronghold.mod.events.StrongpointOwnerChangedEvent;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.common.controller.SpaceStation;
 import org.schema.game.common.data.world.Sector;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.data.GameServerState;
@@ -25,7 +26,16 @@ public class Strongpoint extends SimpleSerializerWrapper {
         this.sector = sector;
     }
 
-    public void update() {
+    public Strongpoint() {
+        sector = new Vector3i();
+    } //used for serialize stuff and dummies
+
+    public boolean update() {
+        boolean changed = false;
+        if (sector==null)
+            return false;
+
+        //test if the strongpoint sector is loaded, if so check if the required station is still in there.
         if (GameServerState.instance.getUniverse().isSectorLoaded(sector)) {
             try {
                 Sector s = GameServerState.instance.getUniverse().getSector(sector);
@@ -33,26 +43,40 @@ public class Strongpoint extends SimpleSerializerWrapper {
                 for (SimpleTransformableSendableObject obj: s.getEntities()) {
                     if (!obj.getType().equals(SimpleTransformableSendableObject.EntityType.SPACE_STATION))
                         continue;
-                    if (obj.getMass()>mass) { //heaviest station will dominate the sector and become the new owner.
-                        mass = (int) obj.getMass();
+
+                    float objMass = ((SpaceStation)obj).getMassWithoutDockIncludingStation();
+                    if (objMass>mass) { //heaviest station will dominate the sector and become the new owner.
+                        mass =(int) objMass;
                         stationOwner = obj.getFactionId();
                     }
                 }
-                setOwner(stationOwner);
+                if (stationOwner != owner) {
+                    changed = true;
+                    setOwner(stationOwner);
+                }
+
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
+        return changed;
     }
 
-
+    /**
+     * can safely be deleted
+     * @return
+     */
+    protected boolean isRedundant() {
+        return owner == 0;
+    }
 
 
     @Override
     public void onDeserialize(PacketReadBuffer buffer) {
         try {
-            owner = buffer.readInt();
-            sector = buffer.readVector();
+            setOwner(buffer.readInt());
+            setSector(buffer.readVector());
+            assert this.getOwner()<=0||this.getOwner()>10000;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -82,7 +106,7 @@ public class Strongpoint extends SimpleSerializerWrapper {
 
     public void setOwner(int owner) {
         if (owner!=this.owner) {
-            new StrongpointOwnerChangedEvent(this, owner);
+       //     new StrongpointOwnerChangedEvent(this, owner).fire();
         }
         this.owner = owner;
     }

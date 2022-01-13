@@ -1,4 +1,4 @@
-package me.iron.stronghold;
+package me.iron.stronghold.mod.framework;
 
 import api.listener.Listener;
 import api.listener.events.entity.SegmentControllerFullyLoadedEvent;
@@ -11,11 +11,13 @@ import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
 import api.network.packets.PacketUtil;
 import api.utils.StarRunnable;
+import me.iron.stronghold.mod.ModMain;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.common.data.world.StellarSystem;
+import org.schema.game.common.data.world.VoidSystem;
 import org.schema.game.server.data.GameServerState;
 
 import java.io.IOException;
@@ -26,33 +28,36 @@ import java.util.*;
  * CREATOR: Max1M
  * DATE: 10.01.2022
  * TIME: 17:52
+ * singelton, manager class that holds, manages, updates, sends, deletes, saves all strongholds.
  */
-public class SystemController extends SimpleSerializerWrapper {
-    private static SystemController instance;
-    public static SystemController getInstance() {
+public class StrongholdController extends SimpleSerializerWrapper {
+    private static StrongholdController instance;
+    public static StrongholdController getInstance() {
         return instance;
     }
-    public static int[] hpRange = new int[]{-500,0,1000}; //lower cap, point of failure, upper cap
+    public static int[] hpRange = new int[]{-500,1000}; //lower cap, point of failure, upper cap
     public static int changePerTimeUnit = 1;
-    private HashMap<Vector3i,StrongholdSystem> system_hps = new HashMap<>();
+
+    //private stuff
+    private HashMap<Vector3i, Stronghold> strongholdHashMap = new HashMap<>();
 
     /**
      * loads a systemcontroller if it exists, otherwise instantiates one.
      * @param skeleton
      * @return
      */
-    public static SystemController loadOrNew(ModSkeleton skeleton) {
-       ArrayList<Object> objs = PersistentObjectUtil.getObjects(skeleton, SystemController.class);
+    public static StrongholdController loadOrNew(ModSkeleton skeleton) {
+       ArrayList<Object> objs = PersistentObjectUtil.getObjects(skeleton, StrongholdController.class);
        if (!objs.isEmpty()) {
-           return (SystemController)objs.get(0);
+           return (StrongholdController)objs.get(0);
        } else {
-           SystemController c = new SystemController();
+           StrongholdController c = new StrongholdController();
            PersistentObjectUtil.addObject(skeleton,c);
            return c;
        }
     }
 
-    public SystemController() {
+    public StrongholdController() {
     }
 
     public void init() {
@@ -66,7 +71,7 @@ public class SystemController extends SimpleSerializerWrapper {
     }
 
     protected void reset() {
-        system_hps.clear();
+        strongholdHashMap.clear();
     }
 
     private void initClient() {
@@ -79,7 +84,7 @@ public class SystemController extends SimpleSerializerWrapper {
                                 @Override
                                 public String toString() {
                                     Vector3i system = GameClientState.instance.getPlayer().getCurrentSystem();
-                                    StrongholdSystem sys = system_hps.get(system);
+                                    Stronghold sys = strongholdHashMap.get(system);
                                     if (sys != null)
                                         return sys.toString();
                                     else
@@ -126,12 +131,15 @@ public class SystemController extends SimpleSerializerWrapper {
         StarLoader.registerListener(SegmentControllerFullyLoadedEvent.class, new Listener<SegmentControllerFullyLoadedEvent>() {
             @Override
             public void onEvent(SegmentControllerFullyLoadedEvent event) {
+                if (!event.isServer())
+                    return;
+
                 if (!event.getController().getType().equals(SimpleTransformableSendableObject.EntityType.SPACE_STATION))
                     return; //dont even have to test for anything non-station.
                 try {
                     Vector3i system = event.getController().getSystem(new Vector3i());
                     int owner = GameServerState.instance.getUniverse().getStellarSystemFromStellarPos(system).getOwnerFaction();
-                    updateSystem(system,owner);
+                    updateStronghold(system,owner);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return;
@@ -147,7 +155,7 @@ public class SystemController extends SimpleSerializerWrapper {
                 try {
                     Vector3i system = event.getEntity().getSystem(new Vector3i());
                     int owner = GameServerState.instance.getUniverse().getStellarSystemFromStellarPos(system).getOwnerFaction();
-                    updateSystem(system,owner);
+                    updateStronghold(system,owner);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return;
@@ -160,34 +168,31 @@ public class SystemController extends SimpleSerializerWrapper {
      * updates all logged systems that a player is currently in. does not create new stronghold systems by itself.
      */
     private void update() {
-        LinkedList<StrongholdSystem> toRemove = new LinkedList<>();
-        LinkedList<StrongholdSystem> synchList = new LinkedList<>();
+        LinkedList<Stronghold> toRemove = new LinkedList<>();
+        LinkedList<Stronghold> synchList = new LinkedList<>();
         //update all systems that players are inside of rn
         for (PlayerState p: GameServerState.instance.getPlayerStatesByName().values()) {
             Vector3i system = p.getCurrentSystem();
-            try {
-                StellarSystem sys = GameServerState.instance.getUniverse().getStellarSystemFromStellarPos(system);
-                StrongholdSystem ss = system_hps.get(system);
-                if (ss != null) {
-                    ss.update(System.currentTimeMillis()/1000);
-                    if (ss.isFlagDelete()) {
-                        //karteileiche
-                        toRemove.add(ss);
-                        ss.setFlagDelete(true);
-                        continue;
-                    }
-
-                    if (ss.isSynchFlag()) { //synch to client required?
-                        synchList.add(ss);
-                    }
+            Stronghold ss = strongholdHashMap.get(system);
+            if (ss != null) {
+                ss.update(System.currentTimeMillis()/1000);
+            //    ModMain.log(ss.toString());
+                if (ss.isFlagDelete()) {
+                    //karteileiche
+                    toRemove.add(ss);
+                    ss.setFlagDelete(true);
+                    continue;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                if (ss.isSynchFlag()) { //synch to client required?
+                    synchList.add(ss);
+                    ss.setSynchFlag(false);
+                }
             }
         }
 
-        for (StrongholdSystem s: toRemove) {
-            system_hps.remove(s.getStellarPos());
+        for (Stronghold s: toRemove) {
+            strongholdHashMap.remove(s.getStellarPos());
         }
 
         synchList.addAll(toRemove);
@@ -201,62 +206,50 @@ public class SystemController extends SimpleSerializerWrapper {
      * @param system
      * @param ownerFaction
      */
-    public void updateSystem(Vector3i system, int ownerFaction) {
-        StrongholdSystem sys = system_hps.get(system);
+    public void updateStronghold(Vector3i system, int ownerFaction) {
+        Stronghold sys = strongholdHashMap.get(system);
         if (sys==null) {
-            sys = new StrongholdSystem(system, ownerFaction);
+            sys = new Stronghold(system, ownerFaction);
             sys.init();
         }
         sys.update(System.currentTimeMillis()/1000);
         if (!sys.isFlagDelete()) {
-            system_hps.put(sys.getStellarPos(),sys);
+            strongholdHashMap.put(sys.getStellarPos(),sys);
         }
     }
 
     public void synchClientFull(final PlayerState p) {
-        final LinkedList<StrongholdSystem> systems = new LinkedList<>();
-        for (StrongholdSystem s: system_hps.values()) {
+        final LinkedList<Stronghold> systems = new LinkedList<>();
+        for (Stronghold s: strongholdHashMap.values()) {
             systems.add(s);
         }
         PacketUtil.sendPacket(p, new StrongholdPacket(systems));
     }
 
-    public boolean isObjectProtected(SimpleTransformableSendableObject obj, Vector3i system, int sysOwner) {
-        boolean isStation = obj.getType().equals(SimpleTransformableSendableObject.EntityType.SPACE_STATION),
-                factionMatchesSystem = obj.getFactionId()==sysOwner,
-                systemIsOwned = sysOwner != 0,
-                isVoidShielded = isSystemProtected(system),
-                notHB = !obj.isHomeBase(),
-                notStrongPointSector = !StrongholdSystem.isStrongpoint(obj.getSector(new Vector3i()));
-        if (isStation && factionMatchesSystem && systemIsOwned && isVoidShielded && notHB && notStrongPointSector)
-            return true;
-        return false;
+    protected Stronghold getStronghold(Vector3i system) {
+        return strongholdHashMap.get(system);
     }
 
     /**
-     * is this system protected by a voidshield => all stations are invulernable?
-     * @param system
+     * gets stronghold that this sector is in. never null
+     * @param s
      * @return
      */
-    public boolean isSystemProtected(Vector3i system) {
-        return getHPForSystem(system)>=hpRange[1];
-    }
-
-    protected StrongholdSystem getSystem(Vector3i system) {
-        return system_hps.get(system);
-    }
-
-    /**
-     * get health points of this system.
-     * @param system system relative pos
-     * @return
-     */
-    public int getHPForSystem(Vector3i system) {
-        StrongholdSystem sys = system_hps.get(system);
-        if (sys==null)
-            return hpRange[0];
-        else
-            return sys.getHp();
+    public Stronghold getStrongholdFromSector(Vector3i s) {
+        s = new Vector3i(s);
+        mutateSectorToSystem(s);
+        Stronghold stronghold = getStronghold(s);
+        if (stronghold == null) {
+            try {
+                int owners = GameServerState.instance.getUniverse().getStellarSystemFromStellarPosIfLoaded(s).getOwnerFaction();
+                stronghold = new Stronghold(s, owners);
+                stronghold.init();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                throw new NullPointerException("could not generate stronghold for sector " + s);
+            }
+        }
+        return stronghold;
     }
 
     @Override
@@ -265,8 +258,8 @@ public class SystemController extends SimpleSerializerWrapper {
             //read systems and their health
             int systems = packetReadBuffer.readInt();
             for (int i = 0; i < systems; i++) {
-                StrongholdSystem s = new StrongholdSystem(packetReadBuffer);
-                system_hps.put(s.getStellarPos(),s);
+                Stronghold s = new Stronghold(packetReadBuffer);
+                strongholdHashMap.put(s.getStellarPos(),s);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -279,8 +272,8 @@ public class SystemController extends SimpleSerializerWrapper {
 
         try {
             //write systems and their health
-            packetWriteBuffer.writeInt(system_hps.size());
-            for (Map.Entry<Vector3i,StrongholdSystem> entry: system_hps.entrySet()) {
+            packetWriteBuffer.writeInt(strongholdHashMap.size());
+            for (Map.Entry<Vector3i, Stronghold> entry: strongholdHashMap.entrySet()) {
                 long last = entry.getValue().lastUpdate;
                 entry.getValue().lastUpdate = 0;
                 entry.getValue().onSerialize(packetWriteBuffer);
@@ -291,15 +284,21 @@ public class SystemController extends SimpleSerializerWrapper {
         }
     }
 
-    public void synchFromServer(LinkedList<StrongholdSystem> systems) {
+    protected void synchFromServer(LinkedList<Stronghold> systems) {
         if (GameClientState.instance==null)
             return;
-        for (StrongholdSystem s: systems) {
+        for (Stronghold s: systems) {
             if (s.isFlagDelete()) {
-                system_hps.remove(s.getStellarPos());
+                strongholdHashMap.remove(s.getStellarPos());
             }else {
-                system_hps.put(s.getStellarPos(),s);
+                strongholdHashMap.put(s.getStellarPos(),s);
             }
         }
+    }
+
+    private void mutateSectorToSystem(Vector3i sector) {
+        sector.x = sector.x/VoidSystem.SYSTEM_SIZE;
+        sector.y = sector.y/VoidSystem.SYSTEM_SIZE;
+        sector.z = sector.z/VoidSystem.SYSTEM_SIZE;
     }
 }

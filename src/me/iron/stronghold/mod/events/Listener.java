@@ -1,4 +1,4 @@
-package me.iron.stronghold.events;
+package me.iron.stronghold.mod.events;
 
 /**
  * STARMADE MOD

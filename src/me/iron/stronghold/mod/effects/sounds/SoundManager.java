@@ -1,14 +1,14 @@
-package me.iron.stronghold.effects.sounds;
+package me.iron.stronghold.mod.effects.sounds;
 
 import api.listener.Listener;
 import api.listener.events.player.PlayerChatEvent;
 import api.mod.StarLoader;
 import api.utils.StarRunnable;
 import api.utils.sound.AudioUtils;
-import me.iron.stronghold.ModMain;
-import me.iron.stronghold.Strongpoint;
-import me.iron.stronghold.events.GenericEvent;
-import me.iron.stronghold.events.StrongpointOwnerChangedEvent;
+import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.framework.Strongpoint;
+import me.iron.stronghold.mod.events.GenericEvent;
+import me.iron.stronghold.mod.events.StrongpointOwnerChangedEvent;
 import org.apache.commons.io.IOUtils;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
@@ -17,7 +17,6 @@ import org.schema.schine.graphicsengine.core.Controller;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Vector;
 
 /**
  * STARMADE MOD
@@ -97,7 +96,7 @@ public class SoundManager {
             if (!file.exists()) {
                 try {
                     //install sound files to client
-                    String jarPath = "me/iron/stronghold/effects/sounds/res/"+Sound.values()[i].getSoundName()+".ogg";
+                    String jarPath = "me/iron/stronghold/mod/effects/sounds/res/" +Sound.values()[i].getSoundName()+".ogg";
 
                     InputStream source = ModMain.instance.getSkeleton().getClassLoader().getResourceAsStream(jarPath);
 
@@ -158,7 +157,7 @@ public class SoundManager {
     }
 
     private void initEH() {
-        GenericEvent.addListener(StrongpointOwnerChangedEvent.class, new me.iron.stronghold.events.Listener(){
+        GenericEvent.addListener(StrongpointOwnerChangedEvent.class, new me.iron.stronghold.mod.events.Listener(){
             @Override
             public void run(GenericEvent e) {
                 super.run(e);
