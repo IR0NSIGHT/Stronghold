@@ -9,6 +9,8 @@ import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.effects.sounds.SoundManager;
 import me.iron.stronghold.mod.framework.Stronghold;
 import me.iron.stronghold.mod.framework.StrongholdController;
+import me.iron.stronghold.mod.framework.Strongpoint;
+import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
@@ -34,8 +36,9 @@ public class VoidShield {
 
     public static boolean isSectorVoidShielded(Vector3i sector) {
         Stronghold hold = StrongholdController.getInstance().getStrongholdFromSector(sector);
+        System.out.println(sector+" sector->sys "+hold.getStellarPos());
    //     ModMain.log(sector+" sector->sys "+hold.getStellarPos());
-        return isStrongholdShielded(hold)&& !hold.isStrongpoint(sector);
+        return isStrongholdShielded(hold) && !hold.isStrongpoint(sector);
     }
 
     public static boolean isObjectVoidShielded(SimpleTransformableSendableObject object) {
@@ -67,17 +70,32 @@ public class VoidShield {
 
     }
 
+
     public static void initClientEHs() {
         StarLoader.registerListener(PlayerChangeSectorEvent.class, new Listener<PlayerChangeSectorEvent>() {
+            protected Vector3i oldSys = new Vector3i();
             @Override
             public void onEvent(final PlayerChangeSectorEvent playerChangeSectorEvent) {
                 new StarRunnable(){
                     @Override
                     public void run() {
                         Vector3i pos = GameClientState.instance.getPlayer().getCurrentSector();
-                        boolean isS = isSectorVoidShielded(pos);
-                        if (isSectorVoidShielded(pos))
-                            SoundManager.instance.queueSound(SoundManager.Sound.system_shielded);
+
+                        Vector3i newSys = new Vector3i(pos);
+                        StrongholdController.mutateSectorToSystem(newSys);
+
+                        //new system, has voidshield
+                        if (!newSys.equals(oldSys)) {
+                            oldSys.set(newSys);
+                            if (isSectorVoidShielded(pos))
+                                SoundManager.instance.queueSound(SoundManager.Sound.system_shielded);
+                        }
+
+
+                        //new sector, is strongpoint
+                        if (StrongholdController.getInstance().getStrongholdFromSector(pos).isStrongpoint(pos)) {
+                            SoundManager.instance.queueSound(SoundManager.Sound.strongpoint_sector);
+                        }
                     }
                 }.runLater(ModMain.instance,10);
             }
