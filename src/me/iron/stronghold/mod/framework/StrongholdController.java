@@ -303,7 +303,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
 
     protected void onDefensePointsChanged(Stronghold h, int newPoints) {
         if (GameClientState.instance!= null) {
-            SoundManager.instance.queueSound(SoundManager.Sound.strongpoint_captured);
+        //    SoundManager.instance.queueSound(SoundManager.Sound.strongpoint_captured);
         }
     }
 
@@ -333,6 +333,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
             for (Map.Entry<Vector3i, Stronghold> entry: strongholdHashMap.entrySet()) {
                 long last = entry.getValue().lastUpdate;
                 entry.getValue().lastUpdate = 0;
+                packetWriteBuffer.writeVector(entry.getKey());
                 entry.getValue().onSerialize(packetWriteBuffer);
                 entry.getValue().lastUpdate = last; //rewrite in case the object is still used.
             }

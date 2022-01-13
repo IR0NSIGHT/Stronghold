@@ -42,6 +42,7 @@ public class ModMain extends StarMod {
             new StrongholdController().init(); //clientside controller, 98% passive, just receives synchs from server
         initGlossar();
         new SoundManager();
+        VoidShield.initClientEHs();
     }
 
     @Override
@@ -49,7 +50,7 @@ public class ModMain extends StarMod {
         super.onServerCreated(serverInitializeEvent);
 
         StrongholdController.loadOrNew(this.getSkeleton()).init();
-        VoidShield.initDamageHandler();
+        VoidShield.initEHs();
         new ScanHandler(); //user interaction interface basically. scan and get infos about system.
     }
     public static void log(String msg) {

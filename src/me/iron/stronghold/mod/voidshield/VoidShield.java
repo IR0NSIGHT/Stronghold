@@ -1,13 +1,19 @@
 package me.iron.stronghold.mod.voidshield;
 
 import api.listener.Listener;
+import api.listener.events.player.PlayerChangeSectorEvent;
 import api.listener.events.systems.ShieldHitEvent;
 import api.mod.StarLoader;
+import api.utils.StarRunnable;
 import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.effects.sounds.SoundManager;
 import me.iron.stronghold.mod.framework.Stronghold;
 import me.iron.stronghold.mod.framework.StrongholdController;
+import org.schema.common.util.linAlg.Vector;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.client.data.GameClientState;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
+import org.schema.game.server.data.GameServerState;
 import org.schema.schine.common.language.Lng;
 import org.schema.schine.network.server.ServerMessage;
 
@@ -28,6 +34,7 @@ public class VoidShield {
 
     public static boolean isSectorVoidShielded(Vector3i sector) {
         Stronghold hold = StrongholdController.getInstance().getStrongholdFromSector(sector);
+   //     ModMain.log(sector+" sector->sys "+hold.getStellarPos());
         return isStrongholdShielded(hold)&& !hold.isStrongpoint(sector);
     }
 
@@ -41,7 +48,7 @@ public class VoidShield {
                 object.getType().equals(SimpleTransformableSendableObject.EntityType.SPACE_STATION);
     }
 
-    public static void initDamageHandler() {
+    public static void initEHs() {
         StarLoader.registerListener(ShieldHitEvent.class, new Listener<ShieldHitEvent>() {
             @Override
             public void onEvent(ShieldHitEvent shieldHitEvent) {
@@ -54,6 +61,25 @@ public class VoidShield {
 
                     shieldHitEvent.getShieldHit().damager.sendServerMessage(Lng.astr("system is voidshielded."), ServerMessage.MESSAGE_TYPE_ERROR);
                 }
+            }
+        }, ModMain.instance);
+
+
+    }
+
+    public static void initClientEHs() {
+        StarLoader.registerListener(PlayerChangeSectorEvent.class, new Listener<PlayerChangeSectorEvent>() {
+            @Override
+            public void onEvent(final PlayerChangeSectorEvent playerChangeSectorEvent) {
+                new StarRunnable(){
+                    @Override
+                    public void run() {
+                        Vector3i pos = GameClientState.instance.getPlayer().getCurrentSector();
+                        boolean isS = isSectorVoidShielded(pos);
+                        if (isSectorVoidShielded(pos))
+                            SoundManager.instance.queueSound(SoundManager.Sound.system_shielded);
+                    }
+                }.runLater(ModMain.instance,10);
             }
         }, ModMain.instance);
     }
