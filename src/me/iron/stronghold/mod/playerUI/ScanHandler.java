@@ -1,8 +1,10 @@
-package me.iron.stronghold.mod;
+package me.iron.stronghold.mod.playerUI;
 
 import api.listener.Listener;
 import api.listener.events.entity.EntityScanEvent;
 import api.mod.StarLoader;
+import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.effects.sounds.SoundManager;
 import me.iron.stronghold.mod.framework.Stronghold;
 import me.iron.stronghold.mod.framework.StrongholdController;
 import me.iron.stronghold.mod.voidshield.VoidShield;
@@ -24,21 +26,19 @@ public class ScanHandler {
         StarLoader.registerListener(EntityScanEvent.class, new Listener<EntityScanEvent>() {
             @Override
             public void onEvent(EntityScanEvent entityScanEvent) {
-                if (!entityScanEvent.isServer())
-                    return;
-
                 Stronghold s = StrongholdController.getInstance().getStrongholdFromSector(entityScanEvent.getEntity().getSector(new Vector3i()));
                 //get relevant info of stronghold. who, how much, where, name
-
-               String mssg = String.format("Stronghold %s [%s]\n" +
-                       "defensepoints: %s, voidshield active: %s\n"+
-                       "strongpoints:\n%s",
-                       s.getName(), Stronghold.tryGetFactionName(s.getOwner()), s.getDefensePoints(),
-                       VoidShield.isStrongholdShielded(s),s.strongholdsToString()
-               );
-               entityScanEvent.getEntity().sendControllingPlayersServerMessage(Lng.astr(mssg), ServerMessage.MESSAGE_TYPE_SIMPLE);
+                if (entityScanEvent.isServer()) {
+                    String mssg = String.format("Stronghold %s [%s]\n" +
+                                    "defensepoints: %s, voidshield active: %s\n"+
+                                    "strongpoints:\n%s",
+                            s.getName(), Stronghold.tryGetFactionName(s.getOwner()), s.getDefensePoints(),
+                            VoidShield.isStrongholdShielded(s),s.strongholdsToString()
+                    );
+                    entityScanEvent.getEntity().sendControllingPlayersServerMessage(Lng.astr(mssg), ServerMessage.MESSAGE_TYPE_SIMPLE);
+                }
             }
-        },ModMain.instance);
+        }, ModMain.instance);
     }
 
 

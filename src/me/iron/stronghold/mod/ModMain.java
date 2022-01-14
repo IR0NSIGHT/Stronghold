@@ -14,6 +14,7 @@ import me.iron.stronghold.mod.effects.sounds.SoundManager;
 import me.iron.stronghold.mod.framework.DebugUI;
 import me.iron.stronghold.mod.framework.StrongholdPacket;
 import me.iron.stronghold.mod.framework.StrongholdController;
+import me.iron.stronghold.mod.playerUI.ScanHandler;
 import me.iron.stronghold.mod.voidshield.VoidShield;
 import org.schema.game.server.data.GameServerState;
 

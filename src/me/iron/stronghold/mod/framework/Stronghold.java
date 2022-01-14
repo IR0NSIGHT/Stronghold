@@ -31,10 +31,11 @@ public class Stronghold extends SimpleSerializerWrapper {
     private int ownedBySysOwner;
     private int ownedByNoone;
     private UUID uuid;
-
-    protected long lastUpdate;
     private boolean flagDelete;
     private StrongholdController c;
+
+    protected long lastUpdate;
+
     protected Stronghold(StrongholdController c, Vector3i stellarPos, int owner) {
         this.uuid = UUID.randomUUID();
         this.stellarPos = stellarPos;
@@ -42,7 +43,7 @@ public class Stronghold extends SimpleSerializerWrapper {
         this.c = c;
     }
 
-    public Stronghold(StrongholdController c, PacketReadBuffer buffer) {
+    protected Stronghold(StrongholdController c, PacketReadBuffer buffer) {
         this.c = c;
         onDeserialize(buffer);
     }
@@ -51,7 +52,24 @@ public class Stronghold extends SimpleSerializerWrapper {
         setStrongpoints(Stronghold.generatePoints(this.stellarPos));
     }
 
-    public void setStrongpoints(Vector3i[] pos) {
+    protected static Vector3i[] generatePoints(Vector3i system) {
+        system = new Vector3i(system);
+        Random r = new Random(system.code());
+        system.scale(VoidSystem.SYSTEM_SIZE); //convert to sector pos
+        system.add(VoidSystem.SYSTEM_SIZE_HALF,VoidSystem.SYSTEM_SIZE_HALF,VoidSystem.SYSTEM_SIZE_HALF); //center pos of system
+        int amout = 3 + r.nextInt(4);
+        amout = (amout/2)*2+1; //always uneven
+        Vector3i[] points = new Vector3i[amout];
+        for (int i = 0; i < amout; i++) {
+            Vector3f dir = new Vector3f(r.nextFloat()*(r.nextBoolean()?1:-1),r.nextFloat()*(r.nextBoolean()?1:-1),r.nextFloat()*(r.nextBoolean()?1:-1));
+            dir.normalize(); dir.scale(VoidSystem.SYSTEM_SIZE_HALF-2);
+            points[i] = new Vector3i(system);
+            points[i].add((int)dir.x,(int)dir.y,(int)(dir.z));
+        }
+        return points;
+    }
+
+    protected void setStrongpoints(Vector3i[] pos) {
         if (strongpointHashMap == null)
             strongpointHashMap = new HashMap<>(pos.length);
         ownedByNoone = pos.length;
@@ -63,7 +81,7 @@ public class Stronghold extends SimpleSerializerWrapper {
         setSynchFlag(true);
     }
 
-    public void update(long timeUnits) {
+    protected void update(long timeUnits) {
         if (lastUpdate == 0)
             lastUpdate = timeUnits;
 
@@ -97,14 +115,6 @@ public class Stronghold extends SimpleSerializerWrapper {
         }
     }
 
-    public boolean isStrongpoint(Vector3i sector) {
-        return strongpointHashMap.get(sector)!=null;
-    }
-
-    public String getName() {
-        return "Installation 05";
-    }
-
     protected void onDefensePointsChanged(int newPoints) {
         c.onDefensePointsChanged(this, newPoints);
     }
@@ -113,6 +123,54 @@ public class Stronghold extends SimpleSerializerWrapper {
         c.onStrongpointCaptured(p,newOwner);
     }
 
+    protected void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    //todo how to define a position if the stronghold is not a starsytem anymore?
+    protected Vector3i getStellarPos() {
+        return stellarPos;
+    }
+
+    protected void setOwner(int owner) {
+        this.owner = owner;
+        setDefensePoints(StrongholdController.hpRange[0]); //changing ownership resets the stronghold.
+        countOwnedBySysOwner();
+        setSynchFlag(true);
+    }
+
+    protected void setDefensePoints(int hp) {
+        if (hp != this.hp) {
+            onDefensePointsChanged(hp);
+            this.hp = hp;
+            setSynchFlag(true);
+        }
+    }
+
+//flags for synch and deletion after sync
+    protected boolean isSynchFlag() {
+        return synchFlag;
+    }
+
+    /**
+     * synch this system to all clients on the next update
+     */
+    protected void setSynchFlag(boolean b) {
+        this.synchFlag = b;
+    }
+
+    protected boolean isFlagDelete() {
+        return flagDelete;
+    }
+
+    /**
+     * sets a flag so the client deletes this system after a synch
+     */
+    protected void setFlagDelete(boolean flagDelete) {
+        this.flagDelete = flagDelete;
+    }
+
+//private stuff
     /**
      * adjust points based on how much time passed since last update and the owned vs total stronghold count.
      * @param owned
@@ -146,14 +204,6 @@ public class Stronghold extends SimpleSerializerWrapper {
         return ownedBySysOwner;
     }
 
-    protected void setUuid(UUID uuid) {
-        this.uuid = uuid;
-    }
-
-    protected UUID getUuid() {
-        return uuid;
-    }
-
     private void updateStrongpoint(Vector3i pos, PacketReadBuffer buffer) {
         Strongpoint sp = strongpointHashMap.get(pos);
         if (sp == null) {
@@ -162,9 +212,9 @@ public class Stronghold extends SimpleSerializerWrapper {
         }
         sp.onDeserialize(buffer);
     }
-    //serialization
 
-    @Override
+//serialization
+       @Override
     public void onDeserialize(PacketReadBuffer buffer) {
         try {
             int strongholds = buffer.readInt();
@@ -219,14 +269,25 @@ public class Stronghold extends SimpleSerializerWrapper {
         }
     }
 
-    //to string stuff
-
+//public interface
     @Override
     public String toString() {
         return String.format("owner: %s, pos:%s, hp: %s\n" +
                 "own: %s, ene: %s, neut: %s, all: %s\n"+
                 "updated: %s,\n" +
                 "strongholds: %s",owner,stellarPos,hp,ownedBySysOwner,(strongpointHashMap.size()-ownedByNoone-ownedBySysOwner),ownedByNoone, strongpointHashMap.size(),lastUpdate,strongholdsToString());
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public boolean isStrongpoint(Vector3i sector) {
+        return strongpointHashMap.get(sector)!=null;
+    }
+
+    public String getName() {
+        return "Installation 05";
     }
 
     public static String tryGetFactionName(int faction) {
@@ -253,13 +314,7 @@ public class Stronghold extends SimpleSerializerWrapper {
         return b.toString();
     }
 
-//getter and setter
-
-    //todo how to define a position if the stronghold is not a starsytem anymore?
-    public Vector3i getStellarPos() {
-        return stellarPos;
-    }
-
+    //TODO replace with a more generic way of getting a position/borders
     public void setStellarPos(Vector3i stellarPos) {
         this.stellarPos = stellarPos;
         setSynchFlag(true);
@@ -269,70 +324,20 @@ public class Stronghold extends SimpleSerializerWrapper {
         return owner;
     }
 
-    protected void setOwner(int owner) {
-        this.owner = owner;
-        setDefensePoints(StrongholdController.hpRange[0]); //changing ownership resets the stronghold.
-        countOwnedBySysOwner();
-        setSynchFlag(true);
-    }
-
     public int getDefensePoints() {
         return hp;
     }
 
-    protected void setDefensePoints(int hp) {
-        if (hp != this.hp) {
-            onDefensePointsChanged(hp);
-            this.hp = hp;
-            setSynchFlag(true);
-        }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Stronghold that = (Stronghold) o;
+        return uuid.equals(that.uuid);
     }
 
-//flags for synch and deletion after sync
-
-    protected boolean isSynchFlag() {
-        return synchFlag;
+    @Override
+    public int hashCode() {
+        return Objects.hash(uuid);
     }
-
-    /**
-     * synch this system to all clients on the next update
-     */
-    protected void setSynchFlag(boolean b) {
-        this.synchFlag = b;
-    }
-
-    protected boolean isFlagDelete() {
-        return flagDelete;
-    }
-
-    /**
-     * sets a flag so the client deletes this system after a synch
-     */
-    protected void setFlagDelete(boolean flagDelete) {
-        this.flagDelete = flagDelete;
-    }
-
-    //just for debugging
-    private static Vector3i[] points = {
-            new Vector3i(2,2,2),
-            new Vector3i(VoidSystem.SYSTEM_SIZE-2,VoidSystem.SYSTEM_SIZE-2,VoidSystem.SYSTEM_SIZE-2)};
-
-    protected static Vector3i[] generatePoints(Vector3i system) {
-        system = new Vector3i(system);
-        Random r = new Random(system.code());
-        system.scale(VoidSystem.SYSTEM_SIZE); //convert to sector pos
-        system.add(VoidSystem.SYSTEM_SIZE_HALF,VoidSystem.SYSTEM_SIZE_HALF,VoidSystem.SYSTEM_SIZE_HALF); //center pos of system
-        int amout = 3 + r.nextInt(4);
-        amout = (amout/2)*2+1; //always uneven
-        Vector3i[] points = new Vector3i[amout];
-        for (int i = 0; i < amout; i++) {
-            Vector3f dir = new Vector3f(r.nextFloat()*(r.nextBoolean()?1:-1),r.nextFloat()*(r.nextBoolean()?1:-1),r.nextFloat()*(r.nextBoolean()?1:-1));
-            dir.normalize(); dir.scale(VoidSystem.SYSTEM_SIZE_HALF-2);
-            points[i] = new Vector3i(system);
-            points[i].add((int)dir.x,(int)dir.y,(int)(dir.z));
-        }
-        return points;
-    }
-
-
 }

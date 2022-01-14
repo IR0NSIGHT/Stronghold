@@ -13,6 +13,8 @@ import api.network.packets.PacketUtil;
 import api.utils.StarRunnable;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.effects.sounds.SoundManager;
+import me.iron.stronghold.mod.events.IStrongholdEvent;
+import me.iron.stronghold.mod.events.IStrongpointEvent;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
 import org.schema.game.common.data.player.PlayerState;
@@ -32,11 +34,15 @@ import java.util.*;
  * singelton, manager class that holds, manages, updates, sends, deletes, saves all strongholds.
  */
 public class StrongholdController extends SimpleSerializerWrapper {
+    private LinkedList<IStrongholdEvent> holdEs = new LinkedList<>();
+    private LinkedList<IStrongpointEvent> pointEs = new LinkedList<>();
+
     private static StrongholdController instance;
     public static StrongholdController getInstance() {
         return instance;
     }
-    public static int[] hpRange = new int[]{-500,1000}; //lower cap, point of failure, upper cap
+    public static String getStrongholdTerm = "Stronghold";
+    public static int[] hpRange = new int[]{-3600,300000}; //lower cap, point of failure, upper cap
     public static int changePerTimeUnit = 1;
 
     //private stuff
@@ -264,48 +270,34 @@ public class StrongholdController extends SimpleSerializerWrapper {
     }
 
     //event stuff
-    protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
-        if (GameServerState.instance != null) {
-            String s = null;
-            if (p.getOwner()!=0 && newOwner == 0) {
-                s = Stronghold.tryGetFactionName(p.getOwner())+"has lost Strongpoint "+p.getSector();
-            }
-            if (p.getOwner()==0 && newOwner != 0) {
-                s = Stronghold.tryGetFactionName(newOwner) + " captured Strongpoint " + p.getSector();
-            }
-            if (p.getOwner()!=0 && newOwner != 0) {
-                s = Stronghold.tryGetFactionName(newOwner) + " took Strongpoint " + p.getSector() + " from " + Stronghold.tryGetFactionName(p.getOwner())+"!";
-            }
-            if (s != null)
-                ModMain.log(s);
-        }
 
-        if (GameClientState.instance!= null) {
-            SoundManager.Sound s = null;
-            int playerF = GameClientState.instance.getPlayer().getFactionId();
-            Vector3i playerPos = GameClientState.instance.getPlayer().getCurrentSystem();
-            Vector3i pointPos = new Vector3i(p.getSector());
-            mutateSectorToSystem(pointPos);
-            if (p.getOwner()==playerF) {
-                s = SoundManager.Sound.strongpoint_lost;
-            }
-            else if (newOwner == playerF) {
-                s = SoundManager.Sound.strongpoint_captured;
-            }
-            else if (pointPos.equals(playerPos)) {
-                s = SoundManager.Sound.strongpoint_contested;
-            }
-            if (s != null) {
-                SoundManager.instance.queueSound(s);
-            }
+    protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
+        for (IStrongpointEvent e: pointEs) {
+            e.onStrongpointOwnerChanged(p,newOwner);
         }
     }
 
     protected void onDefensePointsChanged(Stronghold h, int newPoints) {
-        if (GameClientState.instance!= null) {
-        //    SoundManager.instance.queueSound(SoundManager.Sound.strongpoint_captured);
+        for (IStrongholdEvent e: holdEs) {
+            e.onDefensepointsChanged(h, newPoints);
         }
     }
+
+    protected void onStrongholdOwnerChanged(Stronghold h, int newOwner) {
+        for (IStrongholdEvent e: holdEs) {
+            e.onStrongholdOwnerChanged(h, newOwner);
+        }
+    }
+
+    public void addStrongholdEventListener(IStrongholdEvent e) {
+        holdEs.add(e);
+    }
+
+    public void addStrongpointEventListener(IStrongpointEvent e) {
+        pointEs.add(e);
+    }
+
+    //serialization
 
     @Override
     public void onDeserialize(PacketReadBuffer packetReadBuffer) {
@@ -354,6 +346,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
         }
     }
 
+    //TODO move to utility
     public static void mutateSectorToSystem(Vector3i sector) {
         sector.x = sector.x/VoidSystem.SYSTEM_SIZE;
         sector.y = sector.y/VoidSystem.SYSTEM_SIZE;

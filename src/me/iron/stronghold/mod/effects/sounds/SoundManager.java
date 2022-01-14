@@ -6,14 +6,7 @@ import api.mod.StarLoader;
 import api.utils.StarRunnable;
 import api.utils.sound.AudioUtils;
 import me.iron.stronghold.mod.ModMain;
-import me.iron.stronghold.mod.framework.StrongholdController;
-import me.iron.stronghold.mod.framework.Strongpoint;
-import me.iron.stronghold.mod.events.GenericEvent;
-import me.iron.stronghold.mod.events.StrongpointOwnerChangedEvent;
 import org.apache.commons.io.IOUtils;
-import org.schema.common.util.linAlg.Vector3i;
-import org.schema.game.client.data.GameClientState;
-import org.schema.game.common.data.world.VoidSystem;
 import org.schema.schine.graphicsengine.core.Controller;
 
 import java.io.*;
@@ -43,7 +36,6 @@ public class SoundManager {
         initSounds();
         initDebug();
         initLoop();
-        initEH();
     }
 
     /**
@@ -158,33 +150,6 @@ public class SoundManager {
         }.runTimer(ModMain.instance,10);
     }
 
-    private void initEH() {
-        GenericEvent.addListener(StrongpointOwnerChangedEvent.class, new me.iron.stronghold.mod.events.Listener(){
-            @Override
-            public void run(GenericEvent e) {
-                super.run(e);
-                ModMain.log("listener was run with: "+e.toString());
-                if (e instanceof StrongpointOwnerChangedEvent) {
-                    Strongpoint p = ((StrongpointOwnerChangedEvent)e).getStrongpoint();
-                    int newOwner = ((StrongpointOwnerChangedEvent)e).getNewOwner();
-                    Vector3i system = new Vector3i(p.getSector());
-                    StrongholdController.mutateSectorToSystem(system);
-                    int playerFaction = GameClientState.instance.getPlayer().getFactionId();
-                    Vector3i clientSystem = GameClientState.instance.getPlayer().getCurrentSystem();
-                    if (GameClientState.instance.getPlayer().getCurrentSystem().equals(system)) {
-                        if (playerFaction == newOwner) {
-                            queueSound(Sound.strongpoint_captured);
-                        } else if (playerFaction == p.getOwner()) {
-                            queueSound(Sound.strongpoint_lost);
-                        } else {
-                            queueSound(Sound.strongpoint_contested);
-                        }
-                    }
-
-                }
-            }
-        });
-    }
     public enum Sound {
         system_shielded(            "01-system_shielded"), //soundfile name without the .ogg end
         voidshield_active(          "02-voidshield_active"),

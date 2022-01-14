@@ -10,6 +10,7 @@ import me.iron.stronghold.mod.effects.sounds.SoundManager;
 import me.iron.stronghold.mod.framework.Stronghold;
 import me.iron.stronghold.mod.framework.StrongholdController;
 import me.iron.stronghold.mod.framework.Strongpoint;
+import org.luaj.vm2.ast.Str;
 import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector;
 import org.schema.common.util.linAlg.Vector3i;
@@ -36,8 +37,6 @@ public class VoidShield {
 
     public static boolean isSectorVoidShielded(Vector3i sector) {
         Stronghold hold = StrongholdController.getInstance().getStrongholdFromSector(sector);
-        System.out.println(sector+" sector->sys "+hold.getStellarPos());
-   //     ModMain.log(sector+" sector->sys "+hold.getStellarPos());
         return isStrongholdShielded(hold) && !hold.isStrongpoint(sector);
     }
 
@@ -100,5 +99,9 @@ public class VoidShield {
                 }.runLater(ModMain.instance,10);
             }
         }, ModMain.instance);
+
+        VoidShieldEvents eh = new VoidShieldEvents();
+        StrongholdController.getInstance().addStrongholdEventListener(eh);
+        StrongholdController.getInstance().addStrongpointEventListener(eh);
     }
 }

@@ -17,7 +17,7 @@ import java.util.UUID;
  * DATE: 10.01.2022
  * TIME: 21:41
  */
-public class StrongholdPacket extends Packet {
+class StrongholdPacket extends Packet {
     private LinkedList<Stronghold> systems = new LinkedList<>();
     public StrongholdPacket(LinkedList<Stronghold> systems) {
         this.systems.addAll(systems);
