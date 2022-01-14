@@ -3,7 +3,6 @@ package me.iron.stronghold.mod.framework;
 import api.mod.config.SimpleSerializerWrapper;
 import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
-import me.iron.stronghold.mod.events.StrongpointOwnerChangedEvent;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.SpaceStation;
 import org.schema.game.common.data.world.Sector;
@@ -23,16 +22,16 @@ public class Strongpoint extends SimpleSerializerWrapper {
     private int owner;
     private Stronghold stronghold;
 
-    public Strongpoint(Vector3i sector, Stronghold stronghold) {
+    protected Strongpoint(Vector3i sector, Stronghold stronghold) {
         this.sector = sector;
         this.stronghold = stronghold;
     }
 
-    public Strongpoint() {
+    protected Strongpoint() {
         sector = new Vector3i();
     } //used for serialize stuff and dummies
 
-    public boolean update() {
+    protected boolean update() {
         boolean changed = false;
         if (sector==null)
             return false;
@@ -72,6 +71,17 @@ public class Strongpoint extends SimpleSerializerWrapper {
         return owner == 0;
     }
 
+    protected void setSector(Vector3i sector) {
+        this.sector = sector;
+    }
+
+    protected void setOwner(int owner) {
+        if (owner!=this.owner) {
+            stronghold.onStrongpointCaptured(this,owner);
+            this.owner = owner;
+        }
+    }
+
     @Override
     public void onDeserialize(PacketReadBuffer buffer) {
         try {
@@ -96,18 +106,9 @@ public class Strongpoint extends SimpleSerializerWrapper {
         return sector;
     }
 
-    public void setSector(Vector3i sector) {
-        this.sector = sector;
-    }
-
     public int getOwner() {
         return owner;
     }
 
-    public void setOwner(int owner) {
-        if (owner!=this.owner) {
-            stronghold.onStrongpointCaptured(this,owner);
-            this.owner = owner;
-        }
-    }
+
 }

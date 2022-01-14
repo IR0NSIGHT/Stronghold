@@ -247,7 +247,15 @@ public class StrongholdController extends SimpleSerializerWrapper {
         Stronghold stronghold = getStronghold(s);
         if (stronghold == null) {
             try {
-                int owners = GameServerState.instance.getUniverse().getStellarSystemFromStellarPosIfLoaded(s).getOwnerFaction();
+                int owners = 0;
+                if (GameServerState.instance != null) {
+                    owners = GameServerState.instance.getUniverse().getStellarSystemFromStellarPosIfLoaded(s).getOwnerFaction();
+                }
+                if (GameClientState.instance != null) {
+                    VoidSystem sys = GameClientState.instance.getCurrentClientSystem();
+                    if (sys != null) //only happens when player is currently joing, doesnt matter if he gets wrong info here.
+                        owners = GameClientState.instance.getCurrentClientSystem().getOwnerFaction();
+                }
                 stronghold = new Stronghold(this, s, owners);
                 stronghold.init();
             } catch (IOException ex) {
@@ -286,6 +294,12 @@ public class StrongholdController extends SimpleSerializerWrapper {
     protected void onStrongholdOwnerChanged(Stronghold h, int newOwner) {
         for (IStrongholdEvent e: holdEs) {
             e.onStrongholdOwnerChanged(h, newOwner);
+        }
+    }
+
+    protected void onStrongholdBalanceChanged(Stronghold h, int newBalance) {
+        for (IStrongholdEvent e: holdEs) {
+            e.onStrongholdBalanceChanged(h, newBalance);
         }
     }
 

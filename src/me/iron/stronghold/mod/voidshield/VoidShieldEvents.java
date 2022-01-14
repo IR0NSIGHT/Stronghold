@@ -38,6 +38,11 @@ class VoidShieldEvents implements IStrongpointEvent, IStrongholdEvent {
     }
 
     @Override
+    public void onStrongholdBalanceChanged(Stronghold h, int newBalance) {
+
+    }
+
+    @Override
     public void onStrongpointOwnerChanged(Strongpoint p, int newOwner) {
 
     }

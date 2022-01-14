@@ -39,6 +39,27 @@ public class StrongholdEventSounds implements IStrongpointEvent, IStrongholdEven
             if (s != null)
                 ModMain.log(s);
         }
+        if (GameClientState.instance != null) {
+            int ownF = GameClientState.instance.getPlayer().getFactionId();
+            if (h.getOwner() == ownF)
+                SoundManager.instance.queueSound(SoundManager.Sound.lost_a_region);
+            if (newOwner == ownF)
+                SoundManager.instance.queueSound(SoundManager.Sound.conquered_a_region);
+        }
+    }
+
+    @Override
+    public void onStrongholdBalanceChanged(Stronghold h, int newBalance) {
+        if (GameClientState.instance==null)
+            return;
+        if (h.getBalance()<=0 && newBalance > 0) {
+            //defPoints rising
+            SoundManager.instance.queueSound(SoundManager.Sound.winning_this_region);
+        }
+        if (h.getBalance()>=0 && newBalance< 0) {
+            //defPoints falling
+            SoundManager.instance.queueSound(SoundManager.Sound.loosing_this_region);
+        }
     }
 
     @Override

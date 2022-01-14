@@ -158,7 +158,17 @@ public class SoundManager {
         strongpoint_captured(       "05-strongpoint_captured"),
         strongpoint_lost(           "06-strongpoint_lost"),
         strongpoint_contested(      "07-strongpoint_contested"),
-        strongpoint_sector(         "08-strongpoint_sector");
+        strongpoint_sector(         "08-strongpoint_sector"),
+        loosing_this_region("01-loosing_this_region"),
+        lost_a_region("02-lost_a_region"),
+        winning_this_region("03-winning_this_region"),
+        conquered_a_region("04-conquered_a_region"),
+        this_region_conquered("05-this_region_conquered"),
+        other_sp_lost("06-other_sp_lost"),
+        other_sp_conquered("07-other_sp_conquered"),
+        lost_sp_here("08-lost_sp_here"),
+        conquered_sp_here("09-conquered_sp_here"),
+        other_sp_here_conquere("10-other_sp_here_conquered");
 
         Sound(String path) {
             this.soundName = path;

@@ -90,7 +90,6 @@ public class VoidShield {
                                 SoundManager.instance.queueSound(SoundManager.Sound.system_shielded);
                         }
 
-
                         //new sector, is strongpoint
                         if (StrongholdController.getInstance().getStrongholdFromSector(pos).isStrongpoint(pos)) {
                             SoundManager.instance.queueSound(SoundManager.Sound.strongpoint_sector);

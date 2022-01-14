@@ -12,4 +12,5 @@ import me.iron.stronghold.mod.framework.Strongpoint;
 public interface IStrongholdEvent {
     void onDefensepointsChanged(Stronghold h, int newPoints);
     void onStrongholdOwnerChanged(Stronghold h, int newOwner);
+    void onStrongholdBalanceChanged(Stronghold h, int newBalance);
 }

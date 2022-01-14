@@ -44,6 +44,7 @@ public class ModMain extends StarMod {
         initGlossar();
         new SoundManager();
         VoidShield.initClientEHs();
+        new ScanHandler(); //user interaction interface basically. scan and get infos about system.
     }
 
     @Override

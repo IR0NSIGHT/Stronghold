@@ -3,6 +3,7 @@ package me.iron.stronghold.mod.framework;
 import api.mod.config.SimpleSerializerWrapper;
 import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
+import me.iron.stronghold.mod.ModMain;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
 import org.schema.game.common.data.player.faction.Faction;
@@ -25,6 +26,7 @@ public class Stronghold extends SimpleSerializerWrapper {
     private Vector3i stellarPos;
     private int owner;
     private int hp = StrongholdController.hpRange[0]; //healthpoints
+    private int balance;
     private boolean synchFlag;
 
     private transient HashMap<Vector3i, Strongpoint> strongpointHashMap = new HashMap<>();
@@ -106,7 +108,8 @@ public class Stronghold extends SimpleSerializerWrapper {
 
         //change defensepoints
         int diff = Math.max (1,(int) (timeUnits-lastUpdate));
-        adjustPoints(ownedByNoone, ownedBySysOwner, strongpointHashMap.size(),diff);
+        balance = calculateBalance(strongpointHashMap.values());
+        adjustPoints(balance, diff);
 
         lastUpdate = timeUnits;
         if (hp<= StrongholdController.hpRange[0] && redundant) {
@@ -121,6 +124,15 @@ public class Stronghold extends SimpleSerializerWrapper {
 
     protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
         c.onStrongpointCaptured(p,newOwner);
+        balance = calculateBalance(strongpointHashMap.values());
+    }
+
+    protected void onStrongholdBalanceChanged(int newBalance) {
+        c.onStrongholdBalanceChanged(this,newBalance);
+    }
+
+    protected void onStrongholdOwnerChanged(int newOwner) {
+        c.onStrongholdOwnerChanged(this,newOwner);
     }
 
     protected void setUuid(UUID uuid) {
@@ -133,6 +145,9 @@ public class Stronghold extends SimpleSerializerWrapper {
     }
 
     protected void setOwner(int owner) {
+        if (this.getOwner() != owner) {
+            onStrongholdOwnerChanged(owner);
+        }
         this.owner = owner;
         setDefensePoints(StrongholdController.hpRange[0]); //changing ownership resets the stronghold.
         countOwnedBySysOwner();
@@ -172,15 +187,11 @@ public class Stronghold extends SimpleSerializerWrapper {
 
 //private stuff
     /**
-     * adjust points based on how much time passed since last update and the owned vs total stronghold count.
-     * @param owned
-     * @param exist
+     * adjust points based on how much time passed since last update and who controls the strongpoints.
      * @param timeUnits
      */
-    private void adjustPoints(int neutral, int owned, int exist, int timeUnits) {
-        int diff = owned-(exist-neutral-owned); //own vs all that are not mine/neutral
-        if (neutral==exist)
-            diff=-1;
+    private void adjustPoints(int balance, int timeUnits) {
+        int diff = balance; //own vs all that are not mine/neutral
         int newHP = hp + diff*timeUnits* StrongholdController.changePerTimeUnit; //-2 diff x 5 timeUnits = -10 points
         newHP = Math.min(StrongholdController.hpRange[1],Math.max(StrongholdController.hpRange[0],newHP));
         setDefensePoints(newHP);
@@ -188,6 +199,21 @@ public class Stronghold extends SimpleSerializerWrapper {
         setSynchFlag(true);
     }
 
+    private int calculateBalance(Collection<Strongpoint> points) {
+        int balance = 0;
+        if (getOwner() == 0)
+            return -1;
+        boolean allNeutral = true;
+        for (Strongpoint p: points) {
+            allNeutral = allNeutral&&p.getOwner()!=0;
+            if (p.getOwner()==getOwner())
+                balance += 1;
+            if (p.getOwner()!=getOwner() && p.getOwner() != 0)
+                balance -= 1;
+        }
+        ModMain.log("balance: " + balance);
+        return allNeutral?-1:balance;
+    }
     /**
      * updates internal counters
      * @return
@@ -243,6 +269,7 @@ public class Stronghold extends SimpleSerializerWrapper {
 
             setFlagDelete(buffer.readBoolean());
             setSynchFlag(buffer.readBoolean());
+            balance = calculateBalance(strongpointHashMap.values());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -289,6 +316,8 @@ public class Stronghold extends SimpleSerializerWrapper {
     public String getName() {
         return "Installation 05";
     }
+
+    public int getBalance() {return balance;}
 
     public static String tryGetFactionName(int faction) {
         FactionManager f = null;

@@ -5,15 +5,16 @@ import api.listener.events.entity.EntityScanEvent;
 import api.mod.StarLoader;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.effects.sounds.SoundManager;
+import me.iron.stronghold.mod.effects.sounds.StrongholdEventSounds;
 import me.iron.stronghold.mod.framework.Stronghold;
 import me.iron.stronghold.mod.framework.StrongholdController;
 import me.iron.stronghold.mod.voidshield.VoidShield;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.client.data.GameClientState;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.common.language.Lng;
 import org.schema.schine.network.server.ServerMessage;
 
-import java.io.IOException;
 
 /**
  * STARMADE MOD
@@ -23,22 +24,30 @@ import java.io.IOException;
  */
 public class ScanHandler {
     public ScanHandler() {
-        StarLoader.registerListener(EntityScanEvent.class, new Listener<EntityScanEvent>() {
-            @Override
-            public void onEvent(EntityScanEvent entityScanEvent) {
-                Stronghold s = StrongholdController.getInstance().getStrongholdFromSector(entityScanEvent.getEntity().getSector(new Vector3i()));
-                //get relevant info of stronghold. who, how much, where, name
-                if (entityScanEvent.isServer()) {
-                    String mssg = String.format("Stronghold %s [%s]\n" +
-                                    "defensepoints: %s, voidshield active: %s\n"+
-                                    "strongpoints:\n%s",
-                            s.getName(), Stronghold.tryGetFactionName(s.getOwner()), s.getDefensePoints(),
-                            VoidShield.isStrongholdShielded(s),s.strongholdsToString()
-                    );
-                    entityScanEvent.getEntity().sendControllingPlayersServerMessage(Lng.astr(mssg), ServerMessage.MESSAGE_TYPE_SIMPLE);
+        if (GameServerState.instance != null) {
+            StarLoader.registerListener(EntityScanEvent.class, new Listener<EntityScanEvent>() {
+                @Override
+                public void onEvent(EntityScanEvent entityScanEvent) {
+                    //get relevant info of stronghold. who, how much, where, name
+                    if (entityScanEvent.isServer()) {
+                        Stronghold s = StrongholdController.getInstance().getStrongholdFromSector(entityScanEvent.getEntity().getSector(new Vector3i()));
+                        String mssg = String.format("Stronghold %s [%s]\n" +
+                                        "defensepoints: %s, balance: %s, voidshield active: %s\n"+
+                                        "strongpoints:\n%s",
+                                s.getName(), Stronghold.tryGetFactionName(s.getOwner()), s.getDefensePoints(), s.getBalance(),
+                                VoidShield.isStrongholdShielded(s),s.strongholdsToString()
+                        );
+                        entityScanEvent.getEntity().sendControllingPlayersServerMessage(Lng.astr(mssg), ServerMessage.MESSAGE_TYPE_SIMPLE);
+                    }
                 }
-            }
-        }, ModMain.instance);
+            }, ModMain.instance);
+        }
+
+        if (GameClientState.instance!= null) {
+            StrongholdEventSounds s = new StrongholdEventSounds();
+            StrongholdController.getInstance().addStrongpointEventListener(s);
+            StrongholdController.getInstance().addStrongholdEventListener(s);
+        }
     }
 
 
