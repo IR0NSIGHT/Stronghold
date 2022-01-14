@@ -291,7 +291,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
         }
     }
 
-    protected void onStrongholdOwnerChanged(Stronghold h, int newOwner) {
+    protected void onStrongholdOwnerChanged(Stronghold h, int newOwner) { //TODO sometimes fires when a strongpoint is conquered, not a system.
         for (IStrongholdEvent e: holdEs) {
             e.onStrongholdOwnerChanged(h, newOwner);
         }

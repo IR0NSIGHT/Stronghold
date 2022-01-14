@@ -108,7 +108,7 @@ public class Stronghold extends SimpleSerializerWrapper {
 
         //change defensepoints
         int diff = Math.max (1,(int) (timeUnits-lastUpdate));
-        balance = calculateBalance(strongpointHashMap.values());
+        calculateBalance(strongpointHashMap.values()); //TODO remove once it works reliable eventbased.
         adjustPoints(balance, diff);
 
         lastUpdate = timeUnits;
@@ -124,7 +124,7 @@ public class Stronghold extends SimpleSerializerWrapper {
 
     protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
         c.onStrongpointCaptured(p,newOwner);
-        balance = calculateBalance(strongpointHashMap.values());
+        calculateBalance(strongpointHashMap.values());
     }
 
     protected void onStrongholdBalanceChanged(int newBalance) {
@@ -199,20 +199,24 @@ public class Stronghold extends SimpleSerializerWrapper {
         setSynchFlag(true);
     }
 
-    private int calculateBalance(Collection<Strongpoint> points) {
+    private void calculateBalance(Collection<Strongpoint> points) {
         int balance = 0;
-        if (getOwner() == 0)
-            return -1;
+        if (getOwner() == 0) {
+            this.balance = -1;
+            return;
+        }
         boolean allNeutral = true;
         for (Strongpoint p: points) {
-            allNeutral = allNeutral&&p.getOwner()!=0;
+            allNeutral = allNeutral&&p.getOwner()==0;
             if (p.getOwner()==getOwner())
                 balance += 1;
             if (p.getOwner()!=getOwner() && p.getOwner() != 0)
                 balance -= 1;
         }
-        ModMain.log("balance: " + balance);
-        return allNeutral?-1:balance;
+        balance = allNeutral?-1:balance;
+        if (balance != this.balance)
+            c.onStrongholdBalanceChanged(this, balance);
+        this.balance = balance;
     }
     /**
      * updates internal counters
@@ -269,7 +273,7 @@ public class Stronghold extends SimpleSerializerWrapper {
 
             setFlagDelete(buffer.readBoolean());
             setSynchFlag(buffer.readBoolean());
-            balance = calculateBalance(strongpointHashMap.values());
+            calculateBalance(strongpointHashMap.values());
         } catch (IOException e) {
             e.printStackTrace();
         }
