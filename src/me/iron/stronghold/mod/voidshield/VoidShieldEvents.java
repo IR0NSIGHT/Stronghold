@@ -21,9 +21,10 @@ class VoidShieldEvents implements IStrongpointEvent, IStrongholdEvent {
             int pFaction = GameClientState.instance.getPlayer().getFactionId();
             boolean sameF = pFaction==h.getOwner();
             boolean inStronghold = StrongholdController.getInstance().getStrongholdFromSector(GameClientState.instance.getPlayer().getCurrentSector()).equals(h);
-            boolean shieldGotActive = h.getDefensePoints()>=VoidShield.getRequiredPointsForShield() && VoidShield.getRequiredPointsForShield()>newPoints;
-            boolean shieldGotInactive = h.getDefensePoints()<VoidShield.getRequiredPointsForShield() && VoidShield.getRequiredPointsForShield()<= newPoints;
+            boolean shieldGotActive =h.getDefensePoints()<VoidShield.getRequiredPointsForShield() && VoidShield.getRequiredPointsForShield()<= newPoints;
+            boolean shieldGotInactive = h.getDefensePoints()>=VoidShield.getRequiredPointsForShield() && VoidShield.getRequiredPointsForShield()>newPoints;
             if (sameF && inStronghold && shieldGotActive) {
+
                 SoundManager.instance.queueSound(SoundManager.Sound.voidshield_acivated);
             }
             if (sameF && inStronghold && shieldGotInactive) {

@@ -147,11 +147,12 @@ public class Stronghold extends SimpleSerializerWrapper {
     protected void setOwner(int owner) {
         if (this.getOwner() != owner) {
             onStrongholdOwnerChanged(owner);
+            this.owner = owner;
+            setDefensePoints(StrongholdController.hpRange[0]); //changing ownership resets the stronghold.
+            countOwnedBySysOwner();
+            setSynchFlag(true);
         }
-        this.owner = owner;
-        setDefensePoints(StrongholdController.hpRange[0]); //changing ownership resets the stronghold.
-        countOwnedBySysOwner();
-        setSynchFlag(true);
+
     }
 
     protected void setDefensePoints(int hp) {
