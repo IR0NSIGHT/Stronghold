@@ -319,7 +319,7 @@ public class Stronghold extends SimpleSerializerWrapper {
     }
 
     public String getName() {
-        return "Installation 05";
+        return String.format("Stronghold [%s]",stellarPos.toStringPure());
     }
 
     public int getBalance() {return balance;}

@@ -362,8 +362,10 @@ public class StrongholdController extends SimpleSerializerWrapper {
 
     //TODO move to utility
     public static void mutateSectorToSystem(Vector3i sector) {
-        sector.x = sector.x/VoidSystem.SYSTEM_SIZE;
-        sector.y = sector.y/VoidSystem.SYSTEM_SIZE;
-        sector.z = sector.z/VoidSystem.SYSTEM_SIZE;
+        float x,y,z;
+        x = sector.x; x= (float) Math.floor(x/VoidSystem.SYSTEM_SIZEf);
+        y = sector.y; y= (float) Math.floor(y/VoidSystem.SYSTEM_SIZEf);
+        z = sector.z; z= (float) Math.floor(z/VoidSystem.SYSTEM_SIZEf);
+        sector.set((int)x,(int)y,(int)z);
     }
 }
