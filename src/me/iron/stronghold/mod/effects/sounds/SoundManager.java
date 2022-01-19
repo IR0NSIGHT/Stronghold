@@ -34,7 +34,7 @@ public class SoundManager {
             System.out.println("HOORAY!");
         }
         initSounds();
-        initDebug();
+    //    initDebug();
         initLoop();
     }
 
