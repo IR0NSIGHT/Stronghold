@@ -6,6 +6,7 @@ import api.listener.events.controller.ClientInitializeEvent;
 import api.listener.events.controller.ServerInitializeEvent;
 import api.mod.StarLoader;
 import api.mod.StarMod;
+import api.mod.config.PersistentObjectUtil;
 import api.network.packets.PacketUtil;
 import glossar.GlossarCategory;
 import glossar.GlossarEntry;
@@ -69,5 +70,11 @@ public class ModMain extends StarMod {
                 "The voidshield is active, as long as the starsystems shieldpoints are above "+ VoidShield.getRequiredPointsForShield()+". The shieldpoints can not go below "+ StrongholdController.hpRange[0]+" and not above "+ StrongholdController.hpRange[1]+". Capturing and holding strongpoints directly influences the amount of shieldpoints in a starsystem."));
         cat.addEntry(new GlossarEntry("Strongpoints","Every starsystem has 3 to 7 strongpoints, randomly distributed around the system center, at least 2 sectors away from the border. To capture a strongpoint, place a station of your faction in the strongpoint sector. The station can not be a homebase. If you own more strongpoints than all other factions combined in the system (neutral points are not counted), the shieldpoints increase. if you own less strongpoints than all other factions combined in the system, the shieldpoints decrease. Shieldpoints increase/decrease faster if you own/do not own more strongpoints. If all strongpoints are neutral, the shieldpoints slowly decrease."));
         GlossarInit.addCategory(cat);
+    }
+
+    @Override
+    public void onDisable() {
+        super.onDisable();
+        PersistentObjectUtil.save(getSkeleton());
     }
 }

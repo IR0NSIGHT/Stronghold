@@ -15,6 +15,7 @@ import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.effects.sounds.SoundManager;
 import me.iron.stronghold.mod.events.IStrongholdEvent;
 import me.iron.stronghold.mod.events.IStrongpointEvent;
+import org.newdawn.slick.state.GameState;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
 import org.schema.game.common.data.player.PlayerState;
@@ -36,6 +37,7 @@ import java.util.*;
 public class StrongholdController extends SimpleSerializerWrapper {
     private LinkedList<IStrongholdEvent> holdEs = new LinkedList<>();
     private LinkedList<IStrongpointEvent> pointEs = new LinkedList<>();
+    private long lastSave;
 
     private static StrongholdController instance;
     public static StrongholdController getInstance() {
@@ -172,6 +174,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
 
     /**
      * updates all logged systems that a player is currently in. does not create new stronghold systems by itself.
+     * pure serverside
      */
     private void update() {
         LinkedList<Stronghold> toRemove = new LinkedList<>();
@@ -204,6 +207,10 @@ public class StrongholdController extends SimpleSerializerWrapper {
         synchList.addAll(toRemove);
         if (synchList.size()!= 0)
             new StrongholdPacket(synchList).sendToAll();
+
+        if (lastSave + 1000 * 60 * 15 < System.currentTimeMillis()) { //save timer every 15 minutes
+            PersistentObjectUtil.save(ModMain.instance.getSkeleton());
+        }
     }
 
     /**
