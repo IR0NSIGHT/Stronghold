@@ -31,12 +31,8 @@ public class ScanHandler {
                     //get relevant info of stronghold. who, how much, where, name
                     if (entityScanEvent.isServer()) {
                         Stronghold s = StrongholdController.getInstance().getStrongholdFromSector(entityScanEvent.getEntity().getSector(new Vector3i()));
-                        String mssg = String.format("Stronghold %s [%s]\n" +
-                                        "defensepoints: %s, balance: %s, voidshield active: %s\n"+
-                                        "strongpoints:\n%s",
-                                s.getName(), Stronghold.tryGetFactionName(s.getOwner()), s.getDefensePoints(), s.getBalance(),
-                                VoidShield.isStrongholdShielded(s),s.strongholdsToString()
-                        );
+                        assert s != null;
+                        String mssg = getStrongholdInfo(s);
                         entityScanEvent.getEntity().sendControllingPlayersServerMessage(Lng.astr(mssg), ServerMessage.MESSAGE_TYPE_SIMPLE);
                     }
                 }
@@ -48,6 +44,16 @@ public class ScanHandler {
             StrongholdController.getInstance().addStrongpointEventListener(s);
             StrongholdController.getInstance().addStrongholdEventListener(s);
         }
+    }
+
+    public static String getStrongholdInfo(Stronghold s) {
+        String mssg = String.format("Stronghold %s [%s]\n" +
+                        "defensepoints: %s, balance: %s, voidshield active: %s\n"+
+                        "strongpoints:\n%s",
+                s.getName(), Stronghold.tryGetFactionName(s.getOwner()), s.getDefensePoints(), s.getBalance(),
+                VoidShield.isStrongholdShielded(s),s.strongholdsToString()
+        );
+        return mssg;
     }
 
 

@@ -4,12 +4,14 @@ import api.network.Packet;
 import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
 import api.network.packets.PacketUtil;
+import me.iron.stronghold.mod.ModMain;
+import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.server.data.GameServerState;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.LinkedList;
-import java.util.UUID;
 
 /**
  * STARMADE MOD
@@ -19,7 +21,7 @@ import java.util.UUID;
  */
 public class StrongholdPacket extends Packet {
     private LinkedList<Stronghold> systems = new LinkedList<>();
-    public StrongholdPacket(LinkedList<Stronghold> systems) {
+    public StrongholdPacket(Collection<Stronghold> systems) {
         this.systems.addAll(systems);
     }
 
@@ -31,16 +33,23 @@ public class StrongholdPacket extends Packet {
     public void readPacketData(PacketReadBuffer b) throws IOException {
         int size = b.readInt();
         for (int i = 0; i < size; i++) {
-            UUID uuid = b.readObject(UUID.class);
-            StrongholdController.getInstance().updateStronghold(uuid, b);
+            Vector3i sys = b.readVector();
+            ModMain.log("updating Stronghold " + sys.toString() + " from buffer.");
+            StrongholdController.getInstance().updateStrongholdFromBuffer(sys, b);
+            String s = b.readString();
+            if (!s.equals("stop"))
+                throw new IOException("malformed input.");
         }
     }
 
     @Override
     public void writePacketData(PacketWriteBuffer b) throws IOException {
+        System.out.println("writing systems to packet.");
         b.writeInt(systems.size());
         for (Stronghold s: systems) {
+            b.writeVector(s.getStellarPos());
             s.onSerialize(b);
+            b.writeString("stop");
         }
     }
 

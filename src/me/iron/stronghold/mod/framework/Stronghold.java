@@ -23,20 +23,20 @@ import java.util.*;
  * container for stellar system that acts as a stronghold.
  */
 public class Stronghold extends SimpleSerializerWrapper {
-    private Vector3i stellarPos;
-    private int owner;
-    private int hp = StrongholdController.hpRange[0]; //healthpoints
-    private int balance;
-    private boolean synchFlag;
+    transient private Vector3i stellarPos;
+    transient private int owner;
+    transient private int hp = StrongholdController.hpRange[0]; //healthpoints
+    transient private int balance;
+    transient private boolean synchFlag;
 
-    private transient HashMap<Vector3i, Strongpoint> strongpointHashMap = new HashMap<>();
-    private int ownedBySysOwner;
-    private int ownedByNoone;
-    private UUID uuid;
-    private boolean flagDelete;
-    private StrongholdController c;
+    transient private HashMap<Vector3i, Strongpoint> strongpointHashMap = new HashMap<>();
+    transient private int ownedBySysOwner;
+    transient private int ownedByNoone;
+    transient private UUID uuid;
+    transient private boolean flagDelete;
+    transient private StrongholdController c;
 
-    protected long lastUpdate;
+    transient protected long lastUpdate;
 
     protected Stronghold(StrongholdController c, Vector3i stellarPos, int owner) {
         this.uuid = UUID.randomUUID();
@@ -45,9 +45,14 @@ public class Stronghold extends SimpleSerializerWrapper {
         this.c = c;
     }
 
-    protected Stronghold(StrongholdController c, PacketReadBuffer buffer) {
-        this.c = c;
+    public Stronghold() {} //for auto deserializing
+
+    protected Stronghold(PacketReadBuffer buffer) {
         onDeserialize(buffer);
+    }
+
+    protected void setController(StrongholdController c) {
+        this.c = c;
     }
 
     protected void init() {
@@ -119,20 +124,24 @@ public class Stronghold extends SimpleSerializerWrapper {
     }
 
     protected void onDefensePointsChanged(int newPoints) {
-        c.onDefensePointsChanged(this, newPoints);
+        if (c!=null)
+            c.onDefensePointsChanged(this, newPoints);
     }
 
     protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
-        c.onStrongpointCaptured(p,newOwner);
+        if (c!=null)
+            c.onStrongpointCaptured(p,newOwner);
         calculateBalance(strongpointHashMap.values());
     }
 
     protected void onStrongholdBalanceChanged(int newBalance) {
-        c.onStrongholdBalanceChanged(this,newBalance);
+        if (c!=null)
+            c.onStrongholdBalanceChanged(this,newBalance);
     }
 
     protected void onStrongholdOwnerChanged(int newOwner) {
-        c.onStrongholdOwnerChanged(this,newOwner);
+        if (c!=null)
+            c.onStrongholdOwnerChanged(this,newOwner);
     }
 
     protected void setUuid(UUID uuid) {
@@ -215,7 +224,7 @@ public class Stronghold extends SimpleSerializerWrapper {
                 balance -= 1;
         }
         balance = allNeutral?-1:balance;
-        if (balance != this.balance)
+        if (balance != this.balance && c!=null)
             c.onStrongholdBalanceChanged(this, balance);
         this.balance = balance;
     }
@@ -248,6 +257,7 @@ public class Stronghold extends SimpleSerializerWrapper {
        @Override
     public void onDeserialize(PacketReadBuffer buffer) {
         try {
+            setUuid(buffer.readObject(UUID.class));
             int strongholds = buffer.readInt();
             if (strongpointHashMap == null) {
                 strongpointHashMap = new HashMap<>(strongholds);
@@ -319,7 +329,7 @@ public class Stronghold extends SimpleSerializerWrapper {
     }
 
     public String getName() {
-        return String.format("[%s]",stellarPos.toStringPure());
+        return String.format("[%s]",(stellarPos==null)?"null pos":stellarPos.toStringPure());
     }
 
     public int getBalance() {return balance;}

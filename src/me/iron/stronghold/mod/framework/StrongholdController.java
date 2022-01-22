@@ -3,24 +3,19 @@ package me.iron.stronghold.mod.framework;
 import api.listener.Listener;
 import api.listener.events.entity.SegmentControllerFullyLoadedEvent;
 import api.listener.events.entity.SegmentControllerOverheatEvent;
-import api.mod.ModSkeleton;
 import api.mod.StarLoader;
 import api.mod.config.PersistentObjectUtil;
-import api.mod.config.SimpleSerializerWrapper;
 import api.network.PacketReadBuffer;
-import api.network.PacketWriteBuffer;
 import api.network.packets.PacketUtil;
 import api.utils.StarRunnable;
 import me.iron.stronghold.mod.ModMain;
-import me.iron.stronghold.mod.effects.sounds.SoundManager;
 import me.iron.stronghold.mod.events.IStrongholdEvent;
 import me.iron.stronghold.mod.events.IStrongpointEvent;
-import org.newdawn.slick.state.GameState;
+import me.iron.stronghold.mod.playerUI.ScanHandler;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
-import org.schema.game.common.data.world.StellarSystem;
 import org.schema.game.common.data.world.VoidSystem;
 import org.schema.game.server.data.GameServerState;
 
@@ -34,53 +29,20 @@ import java.util.*;
  * TIME: 17:52
  * singelton, manager class that holds, manages, updates, sends, deletes, saves all strongholds.
  */
-public class StrongholdController extends SimpleSerializerWrapper {
-    private LinkedList<IStrongholdEvent> holdEs = new LinkedList<>();
-    private LinkedList<IStrongpointEvent> pointEs = new LinkedList<>();
-    private long lastSave;
+public class StrongholdController {
+    transient private LinkedList<IStrongholdEvent> holdEs = new LinkedList<>();
+    transient private LinkedList<IStrongpointEvent> pointEs = new LinkedList<>();
+    transient private long lastSave;
 
-    private static StrongholdController instance;
-    public static StrongholdController getInstance() {
-        return instance;
-    }
-    public static String getStrongholdTerm = "Stronghold";
-    public static int[] hpRange = new int[]{-3600,300000}; //lower cap, point of failure, upper cap
-    public static int changePerTimeUnit = 1;
+    transient private static StrongholdController instance;
+    transient public static String getStrongholdTerm = "Stronghold";
+    transient public static int[] hpRange = new int[]{-3600,300000}; //lower cap, point of failure, upper cap
+    transient public static int changePerTimeUnit = 1;
 
     //private stuff
-    private HashMap<Vector3i, Stronghold> strongholdHashMap = new HashMap<>();
-
-    /**
-     * loads a systemcontroller if it exists, otherwise instantiates one.
-     * @param skeleton
-     * @return
-     */
-    public static StrongholdController loadOrNew(ModSkeleton skeleton) {
-       ArrayList<Object> objs = PersistentObjectUtil.getObjects(skeleton, StrongholdController.class);
-       if (!objs.isEmpty()) {
-           return (StrongholdController)objs.get(0);
-       } else {
-           StrongholdController c = new StrongholdController();
-           PersistentObjectUtil.addObject(skeleton,c);
-           return c;
-       }
-    }
+    transient private HashMap<Vector3i, Stronghold> strongholdHashMap = new HashMap<>();
 
     public StrongholdController() {
-    }
-
-    public void init() {
-        instance = this;
-        //load from save file
-        if (GameServerState.instance!=null) {
-            initServer();
-        } else {
-            initClient();
-        }
-    }
-
-    protected void reset() {
-        strongholdHashMap.clear();
     }
 
     private void initClient() {
@@ -125,7 +87,7 @@ public class StrongholdController extends SimpleSerializerWrapper {
             @Override
             public void run() {
                 try {
-                    if (System.currentTimeMillis()>last+5000) {
+                    if (System.currentTimeMillis()>last+10000) {
                         update();
                        // ModMain.log("owo");
                         last = System.currentTimeMillis();
@@ -170,6 +132,8 @@ public class StrongholdController extends SimpleSerializerWrapper {
                 }
             }
         },ModMain.instance);
+
+        load();
     }
 
     /**
@@ -205,86 +169,28 @@ public class StrongholdController extends SimpleSerializerWrapper {
         }
 
         synchList.addAll(toRemove);
-        if (synchList.size()!= 0)
+        if (synchList.size()!= 0) {
+            ModMain.log("synching changed stronghold with client: "+synchList.size());
             new StrongholdPacket(synchList).sendToAll();
+        }
 
         if (lastSave + 1000 * 60 * 15 < System.currentTimeMillis()) { //save timer every 15 minutes
-            PersistentObjectUtil.save(ModMain.instance.getSkeleton());
+            lastSave = System.currentTimeMillis();
+            save();
         }
     }
 
-    /**
-     * update a system outside the update loop for event changes.
-     * will instantiate a new system if required.
-     * @param system
-     * @param ownerFaction
-     */
-    public void updateStronghold(Vector3i system, int ownerFaction) {
-        Stronghold sys = strongholdHashMap.get(system);
-        if (sys==null) {
-            sys = new Stronghold(this, system, ownerFaction);
-            sys.init();
-        }
-        sys.update(System.currentTimeMillis()/1000);
-        if (!sys.isFlagDelete()) {
-            strongholdHashMap.put(sys.getStellarPos(),sys);
-        }
+    protected HashMap<Vector3i, Stronghold> getStrongholdHashMap() {
+        return strongholdHashMap;
     }
 
-    public void synchClientFull(final PlayerState p) {
-        final LinkedList<Stronghold> systems = new LinkedList<>();
-        for (Stronghold s: strongholdHashMap.values()) {
-            systems.add(s);
-        }
-        PacketUtil.sendPacket(p, new StrongholdPacket(systems));
+    protected void reset() {
+        strongholdHashMap.clear();
     }
 
     protected Stronghold getStronghold(Vector3i system) {
         return strongholdHashMap.get(system);
     }
-
-    /**
-     * gets stronghold that this sector is in. never null
-     * @param s
-     * @return
-     */
-    public Stronghold getStrongholdFromSector(Vector3i s) {
-        s = new Vector3i(s);
-        mutateSectorToSystem(s);
-        Stronghold stronghold = getStronghold(s);
-        if (stronghold == null) {
-            try {
-                int owners = 0;
-                if (GameServerState.instance != null) {
-                    owners = GameServerState.instance.getUniverse().getStellarSystemFromStellarPosIfLoaded(s).getOwnerFaction();
-                }
-                if (GameClientState.instance != null) {
-                    VoidSystem sys = GameClientState.instance.getCurrentClientSystem();
-                    if (sys != null) //only happens when player is currently joing, doesnt matter if he gets wrong info here.
-                        owners = GameClientState.instance.getCurrentClientSystem().getOwnerFaction();
-                }
-                stronghold = new Stronghold(this, s, owners);
-                stronghold.init();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                throw new NullPointerException("could not generate stronghold for sector " + s);
-            }
-        }
-        return stronghold;
-    }
-
-    public void updateStronghold(UUID uuid, PacketReadBuffer buffer) {
-        for (Stronghold x: strongholdHashMap.values()) {
-            if (x.getUuid()!=null && uuid.equals(x.getUuid()))
-                x.onDeserialize(buffer);
-                return;
-        }
-        Stronghold s = new Stronghold(this, buffer);
-        s.setUuid(uuid);
-        strongholdHashMap.put(s.getStellarPos(),s);
-    }
-
-    //event stuff
 
     protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
         for (IStrongpointEvent e: pointEs) {
@@ -318,41 +224,123 @@ public class StrongholdController extends SimpleSerializerWrapper {
         pointEs.add(e);
     }
 
-    //serialization
-
-    @Override
-    public void onDeserialize(PacketReadBuffer packetReadBuffer) {
-        try {
-            //read systems and their health
-            int systems = packetReadBuffer.readInt();
-            for (int i = 0; i < systems; i++) {
-                UUID uuid = packetReadBuffer.readObject(UUID.class);
-                Stronghold s = new Stronghold(this, packetReadBuffer);
-                s.setUuid(uuid);
-                strongholdHashMap.put(s.getStellarPos(),s);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void init() {
+        instance = this;
+        //load from save file
+        if (GameServerState.instance!=null) {
+            initServer();
+        } else {
+            initClient();
         }
     }
 
-    @Override
-    public void onSerialize(PacketWriteBuffer packetWriteBuffer) {
+    public void onShutdown() {
+        save();
+    }
 
+    public static StrongholdController getInstance() {
+        return instance;
+    }
 
-        try {
-            //write systems and their health
-            packetWriteBuffer.writeInt(strongholdHashMap.size());
-            for (Map.Entry<Vector3i, Stronghold> entry: strongholdHashMap.entrySet()) {
-                long last = entry.getValue().lastUpdate;
-                entry.getValue().lastUpdate = 0;
-                packetWriteBuffer.writeVector(entry.getKey());
-                entry.getValue().onSerialize(packetWriteBuffer);
-                entry.getValue().lastUpdate = last; //rewrite in case the object is still used.
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    /**
+     * update a system outside the update loop for event changes.
+     * will instantiate a new system if required.
+     * @param system
+     * @param ownerFaction
+     */
+    public void updateStronghold(Vector3i system, int ownerFaction) {
+        Stronghold sys = strongholdHashMap.get(system);
+        if (sys==null) {
+            sys = new Stronghold(this, system, ownerFaction);
+            sys.init();
         }
+        sys.update(System.currentTimeMillis()/1000);
+        if (!sys.isFlagDelete()) {
+            strongholdHashMap.put(sys.getStellarPos(),sys);
+        }
+    }
+
+    public void synchClientFull(final PlayerState p) {
+        final LinkedList<Stronghold> systems = new LinkedList<>();
+        for (Stronghold s: strongholdHashMap.values()) {
+            systems.add(s);
+        }
+        PacketUtil.sendPacket(p, new StrongholdPacket(systems));
+    }
+
+    /**
+     * gets stronghold that this sector is in. never null
+     * @param s
+     * @return
+     */
+    public Stronghold getStrongholdFromSector(Vector3i s) {
+        s = new Vector3i(s);
+        mutateSectorToSystem(s);
+        Stronghold stronghold = getStronghold(s);
+        if (stronghold == null) {
+            try {
+                int owners = 0;
+                if (GameServerState.instance != null) {
+                    owners = GameServerState.instance.getUniverse().getStellarSystemFromStellarPosIfLoaded(s).getOwnerFaction();
+                }
+                if (GameClientState.instance != null) {
+                    VoidSystem sys = GameClientState.instance.getCurrentClientSystem();
+                    if (sys != null) //only happens when player is currently joing, doesnt matter if he gets wrong info here.
+                        owners = GameClientState.instance.getCurrentClientSystem().getOwnerFaction();
+                }
+                stronghold = new Stronghold(this, s, owners);
+                stronghold.init();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                throw new NullPointerException("could not generate stronghold for sector " + s);
+            }
+        }
+        return stronghold;
+    }
+
+    public void updateStrongholdFromBuffer(Vector3i system, PacketReadBuffer buffer) {
+        Stronghold h = strongholdHashMap.get(system);
+        if (h !=null)
+            h.onDeserialize(buffer);
+        else {
+            h = new Stronghold(buffer);
+            h.setController(this);
+        }
+        assert system.equals(h.getStellarPos());
+        if (h.isFlagDelete()) {
+            strongholdHashMap.remove(system);
+        } else {
+            strongholdHashMap.put(h.getStellarPos(),h);
+        }
+    }
+
+    protected void load() {
+        ModMain.log("stronghold loading data");
+        strongholdHashMap.clear();
+        StrongholdContainer c = getContainer();
+        for (Stronghold s: c.getStrongHolds()) {
+            s.setController(this);
+            strongholdHashMap.put(s.getStellarPos(),s);
+        }
+        ModMain.log("stronghold loaded " + strongholdHashMap.values().size() + " strongholds.");
+    }
+    protected void save() {
+        ModMain.log("saving Strongholds data.");
+        StrongholdContainer c = getContainer();
+         c.getStrongHolds().clear();
+         c.setStrongholds(strongholdHashMap.values());
+        PersistentObjectUtil.save(ModMain.instance.getSkeleton());
+        ModMain.log("finished saving strongholds data");
+    }
+
+    private StrongholdContainer getContainer() {
+        ArrayList<Object> os = PersistentObjectUtil.getObjects(ModMain.instance.getSkeleton(), StrongholdContainer.class);
+        if (os.size()!=0) {
+            return (StrongholdContainer)os.get(0);
+        }
+        StrongholdContainer c = new StrongholdContainer();
+        PersistentObjectUtil.addObject(ModMain.instance.getSkeleton(), c);
+        return c;
     }
 
     protected void synchFromServer(LinkedList<Stronghold> systems) {
@@ -365,6 +353,19 @@ public class StrongholdController extends SimpleSerializerWrapper {
                 strongholdHashMap.put(s.getStellarPos(),s);
             }
         }
+    }
+
+    public String toStringPretty() {
+        StringBuilder b = new StringBuilder("All strongholds:\n");
+        for (Stronghold h: getStrongholdHashMap().values()) {
+            b.append(ScanHandler.getStrongholdInfo(h)).append("\n\n");
+        }
+        return "StrongholdController{" +
+                "holdEs=" + holdEs +
+                ", pointEs=" + pointEs +
+                ", lastSave=" + lastSave +
+                ", strongholdHashMap=" + b.toString() +
+                '}';
     }
 
     //TODO move to utility

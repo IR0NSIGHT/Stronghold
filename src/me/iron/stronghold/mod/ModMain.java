@@ -52,7 +52,7 @@ public class ModMain extends StarMod {
     public void onServerCreated(ServerInitializeEvent serverInitializeEvent) {
         super.onServerCreated(serverInitializeEvent);
 
-        StrongholdController.loadOrNew(this.getSkeleton()).init();
+        new StrongholdController().init();
         VoidShield.initEHs();
         new ScanHandler(); //user interaction interface basically. scan and get infos about system.
     }
@@ -75,6 +75,8 @@ public class ModMain extends StarMod {
     @Override
     public void onDisable() {
         super.onDisable();
-        PersistentObjectUtil.save(getSkeleton());
+        if (GameServerState.instance!=null)
+            StrongholdController.getInstance().onShutdown();
+
     }
 }

@@ -18,9 +18,9 @@ import java.io.IOException;
  * TIME: 18:12
  */
 public class Strongpoint extends SimpleSerializerWrapper {
-    private Vector3i sector;
-    private int owner;
-    private Stronghold stronghold;
+    transient private Vector3i sector;
+    transient private int owner;
+    transient private Stronghold stronghold;
 
     protected Strongpoint(Vector3i sector, Stronghold stronghold) {
         this.sector = sector;

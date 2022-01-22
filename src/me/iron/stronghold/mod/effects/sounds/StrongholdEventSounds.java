@@ -25,6 +25,7 @@ public class StrongholdEventSounds implements IStrongpointEvent, IStrongholdEven
 
     @Override
     public void onStrongholdOwnerChanged(Stronghold h, int newOwner) {
+        System.out.println("event: stronghold owner changed.");
         if (GameServerState.instance != null) {
             String s = null;
             if (h.getOwner()!=0 && newOwner == 0) {
@@ -50,6 +51,8 @@ public class StrongholdEventSounds implements IStrongpointEvent, IStrongholdEven
 
     @Override
     public void onStrongholdBalanceChanged(Stronghold h, int newBalance) {
+        System.out.println("event: stronghold balance changed.");
+
         if (GameClientState.instance==null)
             return;
         if (h.getBalance()<=0 && newBalance > 0) {
@@ -64,6 +67,8 @@ public class StrongholdEventSounds implements IStrongpointEvent, IStrongholdEven
 
     @Override
     public void onStrongpointOwnerChanged(Strongpoint p, int newOwner) {
+        System.out.println("event: strongpoint owner changed.");
+
         if (GameServerState.instance != null) {
             String s = null;
             if (p.getOwner()!=0 && newOwner == 0) {
