@@ -34,7 +34,7 @@ public class StrongholdPacket extends Packet {
         int size = b.readInt();
         for (int i = 0; i < size; i++) {
             Vector3i sys = b.readVector();
-            ModMain.log("updating Stronghold " + sys.toString() + " from buffer.");
+        //    ModMain.log("updating Stronghold " + sys.toString() + " from buffer.");
             StrongholdController.getInstance().updateStrongholdFromBuffer(sys, b);
             String s = b.readString();
             if (!s.equals("stop"))
@@ -44,7 +44,7 @@ public class StrongholdPacket extends Packet {
 
     @Override
     public void writePacketData(PacketWriteBuffer b) throws IOException {
-        System.out.println("writing systems to packet.");
+    //    System.out.println("writing systems to packet.");
         b.writeInt(systems.size());
         for (Stronghold s: systems) {
             b.writeVector(s.getStellarPos());

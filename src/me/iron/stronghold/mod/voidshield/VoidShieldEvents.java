@@ -17,8 +17,6 @@ import org.schema.game.client.data.GameClientState;
 class VoidShieldEvents implements IStrongpointEvent, IStrongholdEvent {
     @Override
     public void onDefensepointsChanged(Stronghold h, int newPoints) {
-        System.out.println("event: stronghold points changed.");
-
         if (GameClientState.instance != null) {
             int pFaction = GameClientState.instance.getPlayer().getFactionId();
             boolean sameF = pFaction==h.getOwner();

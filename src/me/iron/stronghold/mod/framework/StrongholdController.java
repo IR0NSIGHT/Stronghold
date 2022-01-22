@@ -193,24 +193,28 @@ public class StrongholdController {
     }
 
     protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
+        ModMain.log("strongpoint captured: "+p.getSector() +" by " + newOwner);
         for (IStrongpointEvent e: pointEs) {
             e.onStrongpointOwnerChanged(p,newOwner);
         }
     }
 
     protected void onDefensePointsChanged(Stronghold h, int newPoints) {
+        ModMain.log("defense points changed: " + h.getName() + " to: " + newPoints);
         for (IStrongholdEvent e: holdEs) {
             e.onDefensepointsChanged(h, newPoints);
         }
     }
 
     protected void onStrongholdOwnerChanged(Stronghold h, int newOwner) { //TODO sometimes fires when a strongpoint is conquered, not a system.
+        ModMain.log("stronghold owner changed: " + h.getName() + " to " + newOwner);
         for (IStrongholdEvent e: holdEs) {
             e.onStrongholdOwnerChanged(h, newOwner);
         }
     }
 
     protected void onStrongholdBalanceChanged(Stronghold h, int newBalance) {
+        ModMain.log("stronghold balance changed: " + h.getName() + " to "+ newBalance);
         for (IStrongholdEvent e: holdEs) {
             e.onStrongholdBalanceChanged(h, newBalance);
         }

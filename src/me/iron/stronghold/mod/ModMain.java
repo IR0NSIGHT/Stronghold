@@ -27,6 +27,7 @@ import org.schema.game.server.data.GameServerState;
  */
 public class ModMain extends StarMod {
     public static ModMain instance;
+    public boolean logAll = false;
     @Override
     public void onEnable() {
         instance = this;
@@ -57,10 +58,13 @@ public class ModMain extends StarMod {
         new ScanHandler(); //user interaction interface basically. scan and get infos about system.
     }
     public static void log(String msg) {
+        if (!instance.logAll)
+            return;
+        msg = "[STRONGHOLDS]"+msg;
         System.out.println(msg);
         DebugFile.log(msg);
-        if (GameServerState.instance!=null)
-            ModPlayground.broadcastMessage(msg);
+    //    if (GameServerState.instance!=null)
+    //        ModPlayground.broadcastMessage(msg);
     }
     private void initGlossar() {
         GlossarInit.initGlossar(this);

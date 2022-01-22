@@ -27,12 +27,6 @@ public class SoundManager {
     }
     public SoundManager() {
         instance = this;
-        File test = new File(".","StarMade.jar");
-        if (!test.exists()) {
-            new NullPointerException().printStackTrace();
-        } else {
-            System.out.println("HOORAY!");
-        }
         initSounds();
     //    initDebug();
         initLoop();
@@ -95,7 +89,6 @@ public class SoundManager {
                     InputStream source = ModMain.instance.getSkeleton().getClassLoader().getResourceAsStream(jarPath);
 
                     File targetFile = new File(".",path);
-                    System.out.println(path);
                     targetFile.createNewFile();
 
 

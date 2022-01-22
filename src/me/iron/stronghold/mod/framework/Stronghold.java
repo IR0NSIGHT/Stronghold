@@ -205,7 +205,7 @@ public class Stronghold extends SimpleSerializerWrapper {
         int newHP = hp + diff*timeUnits* StrongholdController.changePerTimeUnit; //-2 diff x 5 timeUnits = -10 points
         newHP = Math.min(StrongholdController.hpRange[1],Math.max(StrongholdController.hpRange[0],newHP));
         setDefensePoints(newHP);
-        System.out.println(String.format("strongholds factor:%s, timeUnits: %s, totalChange: %s",diff,timeUnits,diff*timeUnits));
+        ModMain.log(String.format("updated stronghold %s balance :%s, timeUnits: %s, totalChange: %s",getName(),diff,timeUnits,diff*timeUnits));
         setSynchFlag(true);
     }
 

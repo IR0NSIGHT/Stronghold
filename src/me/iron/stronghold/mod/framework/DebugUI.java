@@ -57,6 +57,11 @@ public class DebugUI implements CommandInterface {
 
             return true;
         }
+
+        if (strings.length>0&&strings[0].toLowerCase().equals("log")) {
+            ModMain.instance.logAll = !ModMain.instance.logAll;
+            PlayerUtils.sendMessage(playerState,"set logging for stronghold to: "+ModMain.instance.logAll);
+        }
         if (strings.length>0&&strings[0].toLowerCase().equals("print")) {
             String out = StrongholdController.getInstance().toStringPretty();
             PlayerUtils.sendMessage(playerState,out);
