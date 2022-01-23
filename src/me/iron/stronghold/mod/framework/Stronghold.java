@@ -64,8 +64,8 @@ public class Stronghold extends SimpleSerializerWrapper {
         Random r = new Random(system.code());
         system.scale(VoidSystem.SYSTEM_SIZE); //convert to sector pos
         system.add(VoidSystem.SYSTEM_SIZE_HALF,VoidSystem.SYSTEM_SIZE_HALF,VoidSystem.SYSTEM_SIZE_HALF); //center pos of system
-        int amout = 3 + r.nextInt(4);
-        amout = (amout/2)*2+1; //always uneven
+        int amout = 1 + r.nextInt(3);
+        //amout = (amout/2)*2+1; //always uneven
         Vector3i[] points = new Vector3i[amout];
         for (int i = 0; i < amout; i++) {
             Vector3f dir = new Vector3f(r.nextFloat()*(r.nextBoolean()?1:-1),r.nextFloat()*(r.nextBoolean()?1:-1),r.nextFloat()*(r.nextBoolean()?1:-1));
