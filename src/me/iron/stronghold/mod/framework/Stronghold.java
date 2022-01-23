@@ -114,7 +114,7 @@ public class Stronghold extends SimpleSerializerWrapper {
         //change defensepoints
         int diff = Math.max (1,(int) (timeUnits-lastUpdate));
         calculateBalance(strongpointHashMap.values()); //TODO remove once it works reliable eventbased.
-        adjustPoints(balance, diff);
+        adjustPoints(balance, diff, strongpointHashMap.size());
 
         lastUpdate = timeUnits;
         if (hp<= StrongholdController.hpRange[0] && redundant) {
@@ -200,10 +200,10 @@ public class Stronghold extends SimpleSerializerWrapper {
      * adjust points based on how much time passed since last update and who controls the strongpoints.
      * @param timeUnits
      */
-    private void adjustPoints(int balance, int timeUnits) {
+    private void adjustPoints(int balance, int timeUnits, int sPsAmount) {
         int diff = balance; //own vs all that are not mine/neutral
         int newHP = hp + diff*timeUnits* StrongholdController.changePerTimeUnit; //-2 diff x 5 timeUnits = -10 points
-        newHP = Math.min(StrongholdController.hpRange[1],Math.max(StrongholdController.hpRange[0],newHP));
+        newHP = Math.min(StrongholdController.hpRange[1]*sPsAmount,Math.max(StrongholdController.hpRange[0],newHP));
         setDefensePoints(newHP);
         ModMain.log(String.format("updated stronghold %s balance :%s, timeUnits: %s, totalChange: %s",getName(),diff,timeUnits,diff*timeUnits));
         setSynchFlag(true);
