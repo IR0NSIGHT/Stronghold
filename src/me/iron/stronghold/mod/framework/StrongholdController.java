@@ -326,6 +326,7 @@ public class StrongholdController {
             s.setController(this);
             strongholdHashMap.put(s.getStellarPos(),s);
         }
+        ModMain.instance.logAll = c.log;
         ModMain.log("stronghold loaded " + strongholdHashMap.values().size() + " strongholds.");
     }
     protected void save() {
@@ -337,6 +338,7 @@ public class StrongholdController {
         StrongholdContainer c = getContainer();
          c.getStrongHolds().clear();
          c.setStrongholds(strongholdHashMap.values());
+         c.log = ModMain.instance.logAll;
         PersistentObjectUtil.save(ModMain.instance.getSkeleton());
         ModMain.log("finished saving strongholds data");
     }

@@ -15,6 +15,7 @@ import java.util.LinkedList;
  * TIME: 14:29
  */
 class StrongholdContainer extends SimpleSerializerWrapper {
+    public boolean log;
     private static String code = "holds_container";
     private transient Collection<Stronghold> hs= new LinkedList<>();
     StrongholdContainer() {
