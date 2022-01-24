@@ -99,6 +99,9 @@ public class Stronghold extends SimpleSerializerWrapper {
                     setOwner(cOwner);
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (NullPointerException ex) {
+                ModMain.log("ignoring nullpointer in stronghold update");
+                return;
             }
         }
 
