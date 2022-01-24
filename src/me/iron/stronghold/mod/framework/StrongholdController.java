@@ -329,6 +329,10 @@ public class StrongholdController {
         ModMain.log("stronghold loaded " + strongholdHashMap.values().size() + " strongholds.");
     }
     protected void save() {
+        for (Stronghold h: strongholdHashMap.values()) {
+            updateStronghold(h.getStellarPos(), h.getOwner());
+        }
+
         ModMain.log("saving Strongholds data.");
         StrongholdContainer c = getContainer();
          c.getStrongHolds().clear();

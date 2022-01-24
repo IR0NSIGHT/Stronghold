@@ -92,13 +92,16 @@ public class Stronghold extends SimpleSerializerWrapper {
         if (lastUpdate == 0)
             lastUpdate = timeUnits;
 
-        try {
-            int cOwner =GameServerState.instance.getUniverse().getStellarSystemFromStellarPosIfLoaded(stellarPos).getOwnerFaction();
-            if (cOwner != owner)
-                setOwner(cOwner);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (GameServerState.instance!=null) { //has to work outside of starmade too for debug purposes
+            try {
+                int cOwner =GameServerState.instance.getUniverse().getStellarSystemFromStellarPosIfLoaded(stellarPos).getOwnerFaction();
+                if (cOwner != owner)
+                    setOwner(cOwner);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
 
         boolean changed = false; //have any strongpoints changed in the update?
         boolean redundant = true; //are all strongpoints redundant and could safely be deleted?

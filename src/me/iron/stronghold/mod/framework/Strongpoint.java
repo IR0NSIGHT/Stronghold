@@ -37,7 +37,7 @@ public class Strongpoint extends SimpleSerializerWrapper {
             return false;
 
         //test if the strongpoint sector is loaded, if so check if the required station is still in there.
-        if (GameServerState.instance.getUniverse().isSectorLoaded(sector)) {
+        if (GameServerState.instance != null && GameServerState.instance.getUniverse().isSectorLoaded(sector)) {
             try {
                 Sector s = GameServerState.instance.getUniverse().getSector(sector);
                 int mass = 0, stationOwner = 0;
