@@ -2,7 +2,7 @@
   "name": "Stronghold",
   "author": "IR0NSIGHT",
   "description": "system-wide protection of stations, capture-and-defend-combat",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "starmade_version": "0.202.110",
   "client_mod": false,
   "server_mod": false,
