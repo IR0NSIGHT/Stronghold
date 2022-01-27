@@ -12,6 +12,7 @@ import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.events.IStrongholdEvent;
 import me.iron.stronghold.mod.events.IStrongpointEvent;
 import me.iron.stronghold.mod.playerUI.ScanHandler;
+import me.iron.stronghold.mod.voidshield.VoidShieldController;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
 import org.schema.game.common.data.player.PlayerState;
@@ -240,6 +241,12 @@ public class StrongholdController {
 
     public void onShutdown() {
         save();
+        instance = null;
+
+        //listener clear
+        VoidShieldController.eventlisteners.clear();
+        this.pointEs.clear();
+        this.holdEs.clear();
     }
 
     public static StrongholdController getInstance() {

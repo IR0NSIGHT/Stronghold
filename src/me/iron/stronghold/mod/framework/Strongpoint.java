@@ -110,5 +110,9 @@ public class Strongpoint extends SimpleSerializerWrapper {
         return owner;
     }
 
+    public Stronghold getStronghold() {
+        assert stronghold != null;
+        return stronghold;
+    }
 
 }

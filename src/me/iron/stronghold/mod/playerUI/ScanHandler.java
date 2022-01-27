@@ -4,11 +4,11 @@ import api.listener.Listener;
 import api.listener.events.entity.EntityScanEvent;
 import api.mod.StarLoader;
 import me.iron.stronghold.mod.ModMain;
-import me.iron.stronghold.mod.effects.sounds.SoundManager;
-import me.iron.stronghold.mod.effects.sounds.StrongholdEventSounds;
+import me.iron.stronghold.mod.effects.AmbienceUtils;
+import me.iron.stronghold.mod.effects.listeners.clientside.StrongholdListener;
 import me.iron.stronghold.mod.framework.Stronghold;
 import me.iron.stronghold.mod.framework.StrongholdController;
-import me.iron.stronghold.mod.voidshield.VoidShield;
+import me.iron.stronghold.mod.voidshield.VoidShieldController;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
 import org.schema.game.server.data.GameServerState;
@@ -40,7 +40,7 @@ public class ScanHandler {
         }
 
         if (GameClientState.instance!= null) {
-            StrongholdEventSounds s = new StrongholdEventSounds();
+            StrongholdListener s = new StrongholdListener();
             StrongholdController.getInstance().addStrongpointEventListener(s);
             StrongholdController.getInstance().addStrongholdEventListener(s);
         }
@@ -50,8 +50,8 @@ public class ScanHandler {
         String mssg = String.format("Stronghold %s [%s]\n" +
                         "defensepoints: %s, balance: %s, voidshield active: %s\n"+
                         "strongpoints:\n%s",
-                s.getName(), Stronghold.tryGetFactionName(s.getOwner()), s.getDefensePoints(), s.getBalance(),
-                VoidShield.isStrongholdShielded(s),s.strongholdsToString()
+                s.getName(), AmbienceUtils.tryGetFactionName(s.getOwner()), s.getDefensePoints(), s.getBalance(),
+                VoidShieldController.isStrongholdShielded(s),s.strongholdsToString()
         );
         return mssg;
     }

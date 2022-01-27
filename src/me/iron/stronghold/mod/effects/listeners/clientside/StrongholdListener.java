@@ -1,6 +1,8 @@
-package me.iron.stronghold.mod.effects.sounds;
+package me.iron.stronghold.mod.effects.listeners.clientside;
 
 import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.effects.AmbienceUtils;
+import me.iron.stronghold.mod.effects.sounds.SoundManager;
 import me.iron.stronghold.mod.events.IStrongholdEvent;
 import me.iron.stronghold.mod.events.IStrongpointEvent;
 import me.iron.stronghold.mod.framework.Stronghold;
@@ -17,7 +19,7 @@ import org.schema.game.server.data.GameServerState;
  * TIME: 16:59
  * basic event sounds: voice announcer
  */
-public class StrongholdEventSounds implements IStrongpointEvent, IStrongholdEvent {
+public class StrongholdListener implements IStrongpointEvent, IStrongholdEvent {
     @Override
     public void onDefensepointsChanged(Stronghold h, int newPoints) {
 
@@ -28,13 +30,13 @@ public class StrongholdEventSounds implements IStrongpointEvent, IStrongholdEven
         if (GameServerState.instance != null) {
             String s = null;
             if (h.getOwner()!=0 && newOwner == 0) {
-                s = String.format("[%s] has lost %s %s",Stronghold.tryGetFactionName(h.getOwner()), StrongholdController.getStrongholdTerm, h.getName());
+                s = String.format("[%s] has lost %s %s", AmbienceUtils.tryGetFactionName(h.getOwner()), StrongholdController.getStrongholdTerm, h.getName());
             }
             if (h.getOwner()==0 && newOwner != 0) {
-                s = String.format("[%s] conquered %s %s",Stronghold.tryGetFactionName(newOwner), StrongholdController.getStrongholdTerm, h.getName());
+                s = String.format("[%s] conquered %s %s", AmbienceUtils.tryGetFactionName(newOwner), StrongholdController.getStrongholdTerm, h.getName());
             }
             if (h.getOwner()!=0 && newOwner != 0) {
-                s = String.format("[%s] took %s %s from %s",Stronghold.tryGetFactionName(newOwner), StrongholdController.getStrongholdTerm, h.getName(), Stronghold.tryGetFactionName(h.getOwner()));
+                s = String.format("[%s] took %s %s from %s", AmbienceUtils.tryGetFactionName(newOwner), StrongholdController.getStrongholdTerm, h.getName(), AmbienceUtils.tryGetFactionName(h.getOwner()));
             }
             if (s != null)
                 ModMain.log(s);
@@ -57,8 +59,7 @@ public class StrongholdEventSounds implements IStrongpointEvent, IStrongholdEven
         if (h.getBalance()<=0 && newBalance > 0) {
             //defPoints rising
             SoundManager.instance.queueSound(SoundManager.Sound.winning_this_region);
-        }
-        if (h.getBalance()>=0 && newBalance< 0) {
+        } else if (h.getBalance()>=0 && newBalance< 0) {
             //defPoints falling
             SoundManager.instance.queueSound(SoundManager.Sound.loosing_this_region);
         }
@@ -67,38 +68,38 @@ public class StrongholdEventSounds implements IStrongpointEvent, IStrongholdEven
     @Override
     public void onStrongpointOwnerChanged(Strongpoint p, int newOwner) {
 
-        if (GameServerState.instance != null) {
-            String s = null;
-            if (p.getOwner()!=0 && newOwner == 0) {
-                s = Stronghold.tryGetFactionName(p.getOwner())+"has lost Strongpoint "+p.getSector();
-            }
-            if (p.getOwner()==0 && newOwner != 0) {
-                s = Stronghold.tryGetFactionName(newOwner) + " captured Strongpoint " + p.getSector();
-            }
-            if (p.getOwner()!=0 && newOwner != 0) {
-                s = Stronghold.tryGetFactionName(newOwner) + " took Strongpoint " + p.getSector() + " from " + Stronghold.tryGetFactionName(p.getOwner())+"!";
-            }
-            if (s != null)
-                ModMain.log(s);
+        String s = null;
+        if (p.getOwner()!=0 && newOwner == 0) {
+            s = AmbienceUtils.tryGetFactionName(p.getOwner())+"has lost Strongpoint "+p.getSector();
+        } else if (p.getOwner()==0 && newOwner != 0) {
+            s = AmbienceUtils.tryGetFactionName(newOwner) + " captured Strongpoint " + p.getSector();
+        } else if (p.getOwner()!=0 && newOwner != 0) {
+            s = AmbienceUtils.tryGetFactionName(newOwner) + " took Strongpoint " + p.getSector() + " from " + AmbienceUtils.tryGetFactionName(p.getOwner())+"!";
         }
 
+        if (GameServerState.instance != null && s != null)
+            ModMain.log(s);
+
         if (GameClientState.instance!= null) {
-            SoundManager.Sound s = null;
+            SoundManager.Sound sound = null;
             int playerF = GameClientState.instance.getPlayer().getFactionId();
             Vector3i playerPos = GameClientState.instance.getPlayer().getCurrentSystem();
             Vector3i pointPos = new Vector3i(p.getSector());
             StrongholdController.mutateSectorToSystem(pointPos);
+
             if (p.getOwner()==playerF) {
-                s = SoundManager.Sound.strongpoint_lost;
+                sound = SoundManager.Sound.strongpoint_lost;
+            } else if (newOwner == playerF) {
+                sound = SoundManager.Sound.strongpoint_captured;
+            } else if (pointPos.equals(playerPos)) {
+                sound = SoundManager.Sound.strongpoint_contested;
             }
-            else if (newOwner == playerF) {
-                s = SoundManager.Sound.strongpoint_captured;
-            }
-            else if (pointPos.equals(playerPos)) {
-                s = SoundManager.Sound.strongpoint_contested;
+
+            if (sound != null) {
+                SoundManager.instance.queueSound(sound);
             }
             if (s != null) {
-                SoundManager.instance.queueSound(s);
+                AmbienceUtils.clientShowMessage(s);
             }
         }
     }

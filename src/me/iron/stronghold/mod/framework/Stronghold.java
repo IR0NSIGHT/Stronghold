@@ -4,10 +4,8 @@ import api.mod.config.SimpleSerializerWrapper;
 import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
 import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.effects.AmbienceUtils;
 import org.schema.common.util.linAlg.Vector3i;
-import org.schema.game.client.data.GameClientState;
-import org.schema.game.common.data.player.faction.Faction;
-import org.schema.game.common.data.player.faction.FactionManager;
 import org.schema.game.common.data.world.VoidSystem;
 import org.schema.game.server.data.GameServerState;
 
@@ -340,26 +338,10 @@ public class Stronghold extends SimpleSerializerWrapper {
 
     public int getBalance() {return balance;}
 
-    public static String tryGetFactionName(int faction) {
-        FactionManager f = null;
-        if (GameServerState.instance==null) {
-            f = GameClientState.instance.getFactionManager();
-        } else {
-            f = GameServerState.instance.getFactionManager();
-        }
-        Faction owners = f.getFaction(faction);
-        String name;
-        if (owners!=null) {
-            name ="'"+ owners.getName()+"'";
-        } else
-            name = "neutral";
-        return name;
-    }
-
     public String strongholdsToString() {
         StringBuilder b = new StringBuilder();
         for (Map.Entry<Vector3i,Strongpoint> entry: strongpointHashMap.entrySet()) {
-            b.append(String.format("%s [%s]\n",entry.getKey(),tryGetFactionName(entry.getValue().getOwner())));
+            b.append(String.format("%s [%s]\n",entry.getKey(), AmbienceUtils.tryGetFactionName(entry.getValue().getOwner())));
         }
         return b.toString();
     }
