@@ -1,6 +1,5 @@
 package me.iron.stronghold.mod.voidshield;
 
-import api.ModPlayground;
 import api.utils.StarRunnable;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.effects.sounds.SoundManager;
@@ -36,13 +35,8 @@ public class VoidShieldController {
                 e.onShieldHit(h, hitShield.getSegmentController(), damager);
             }
             damage = 0;
-            if (GameServerState.instance != null) {
-                ModPlayground.broadcastMessage("shield hit negated.");
-            }
         }
-        if (GameServerState.instance != null) {
-            ModPlayground.broadcastMessage("ShieldAddon.handleShieldHit() fired.");
-        }
+
         return damage;
     }
 
@@ -71,11 +65,14 @@ public class VoidShieldController {
 
         Vector3i sector = object.getSector(new Vector3i());
         Stronghold hold = StrongholdController.getInstance().getStrongholdFromSector(sector);
+        boolean isOwner = hold.getOwner() == object.getFactionId(), isAlly;
+        isAlly = ((GameServerState.instance!=null && GameServerState.instance.getFactionManager().isFriend(hold.getOwner(), object.getFactionId())) ||
+                (GameClientState.instance != null && GameClientState.instance.getFactionManager().isFriend(hold.getOwner(), object.getFactionId())));
 
         return  isSectorVoidShielded(sector)&&
                 !object.isHomeBase()&&
                 hold.getOwner()!=0&&
-                hold.getOwner()==object.getFactionId()&&
+                hold.getOwner()==object.getFactionId()||isAlly&&
                 object.getType().equals(SimpleTransformableSendableObject.EntityType.SPACE_STATION);
     }
 
