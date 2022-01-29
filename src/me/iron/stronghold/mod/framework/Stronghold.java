@@ -222,9 +222,9 @@ public class Stronghold extends SimpleSerializerWrapper {
         boolean allNeutral = true;
         for (Strongpoint p: points) {
             allNeutral = allNeutral&&p.getOwner()==0;
-            if (p.getOwner()==getOwner())
+            if (p.getOwner()==getOwner()||GameServerState.instance.getFactionManager().isFriend(p.getOwner(),getOwner()))
                 balance += 1;
-            if (p.getOwner()!=getOwner() && p.getOwner() != 0)
+            else if (p.getOwner()!=getOwner() && p.getOwner() != 0)
                 balance -= 1;
         }
         balance = allNeutral?-1:balance;
