@@ -38,7 +38,7 @@ public class VoidShieldController implements IVoidShieldEvent, IStrongpointEvent
     }
 
     private VoidShieldContainer c = new VoidShieldContainer();
-    private long CP_lockdownAfterConquer = 9000;
+    private long CP_lockdownAfterConquer = 60*1000;
     private LinkedList<IVoidShieldEvent> eventlisteners = new LinkedList<>();
     public void addListener(IVoidShieldEvent listener) {
         eventlisteners.add(listener);
@@ -128,7 +128,7 @@ public class VoidShieldController implements IVoidShieldEvent, IStrongpointEvent
         return isSectorVoidShielded(sector) && !object.isHomeBase() && object.getFactionId() != 0 && (hold.getOwner() == object.getFactionId() && isAlly) && object.getType().equals(SimpleTransformableSendableObject.EntityType.SPACE_STATION);
     }
 
-    public static long controlPointLockDownTill(Strongpoint p) {
+    public static long getControlPointLockDownTill(Strongpoint p) {
         if (getInstance() == null)
             return -1;
         return getInstance().c.getCPConqueredAt(p)+ getInstance().CP_lockdownAfterConquer;
@@ -203,6 +203,7 @@ public class VoidShieldController implements IVoidShieldEvent, IStrongpointEvent
     public void onStrongpointOwnerChanged(Strongpoint p, int newOwner) {
         //log the change with time
         c.setCPConquered(p, System.currentTimeMillis());
+        ModMain.log("controlpoint " + p.getSector() + " was conquered and is locked now for "+ (CP_lockdownAfterConquer/1000/60)+" minutes "+(CP_lockdownAfterConquer/1000%60) + " seconds.");
     }
 
     @Override

@@ -7,8 +7,6 @@ import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.effects.AmbienceUtils;
 import me.iron.stronghold.mod.effects.CPNameGen;
 import me.iron.stronghold.mod.voidshield.VoidShieldController;
-import org.lwjgl.Sys;
-import org.lwjgl.util.vector.Vector;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.world.VoidSystem;
 import org.schema.game.server.data.GameServerState;
@@ -346,7 +344,7 @@ public class Stronghold extends SimpleSerializerWrapper {
      * @return CP
      */
     public Strongpoint getNextOwnStrongpoint() {
-        return (highestOwnCP>=0)?strongpointOrder.get(highestOwnCP):null;
+        return (highestOwnCP+1>=0)?strongpointOrder.get(highestOwnCP+1):null;
     }
 
     /**
@@ -355,7 +353,7 @@ public class Stronghold extends SimpleSerializerWrapper {
      * @return CP
      */
     public Strongpoint getNextEnemyStrongpoint() {
-        return (highestOwnCP+1<strongpointOrder.size())?strongpointOrder.get(highestOwnCP+1):null;
+        return (highestOwnCP<strongpointOrder.size())?strongpointOrder.get(Math.max(0,highestOwnCP)):null;
     }
 
     /**
@@ -407,7 +405,8 @@ public class Stronghold extends SimpleSerializerWrapper {
             for (Vector3i pos: toDelete) { //delete unwanted.
                 strongpointHashMap.remove(pos);
             }
-            updateOrder(strongpointHashMap.values());
+            if (strongpointOrder.isEmpty()) //only on the very first sent update
+                updateOrder(strongpointHashMap.values());
 
             setOwner(buffer.readInt());
             setStellarPos(buffer.readVector());
@@ -475,10 +474,15 @@ public class Stronghold extends SimpleSerializerWrapper {
         Strongpoint p;
         for (int i = 0; i < strongpointOrder.size(); i++) {
             p = strongpointOrder.get(i);
+            String next = "";
+            if (p.equals(getNextEnemyStrongpoint()))
+                next = "<<E";
+            if (p.equals(getNextOwnStrongpoint()))
+                next = "<<O";
             b.append(String.format("%s %s [%s] %s %s\n",gen.next(),p.getSector(), AmbienceUtils.tryGetFactionName(p.getOwner()),
-                    (p.equals(getNextOwnStrongpoint())||p.equals(getNextEnemyStrongpoint())? "<<<":""),
-                    (VoidShieldController.getInstance()!=null&&VoidShieldController.controlPointLockDownTill(p)>System.currentTimeMillis())
-                            ?("locked for "+(VoidShieldController.controlPointLockDownTill(p)-System.currentTimeMillis())/1000+" seconds")
+                    next,
+                    (VoidShieldController.getInstance()!=null&&VoidShieldController.getControlPointLockDownTill(p)>System.currentTimeMillis())
+                            ?("locked for "+(VoidShieldController.getControlPointLockDownTill(p)-System.currentTimeMillis())/1000+" seconds")
                             :""));
         }
         return b.toString();

@@ -57,7 +57,7 @@ public class ModMain extends StarMod {
         super.onServerCreated(serverInitializeEvent);
 
         new StrongholdController().init();
-        new VoidShieldController(true);
+        new VoidShieldController(true).init();
 
         new ScanHandler(); //user interaction interface basically. scan and get infos about system.
         new ServerEventManager();

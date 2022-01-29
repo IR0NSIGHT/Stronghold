@@ -24,6 +24,7 @@ import org.schema.schine.network.server.ServerMessage;
  */
 public class ScanHandler {
     public ScanHandler() {
+        //do serverside stuff => scan for info in chat
         if (GameServerState.instance != null) {
             StarLoader.registerListener(EntityScanEvent.class, new Listener<EntityScanEvent>() {
                 @Override
@@ -38,8 +39,9 @@ public class ScanHandler {
                 }
             }, ModMain.instance);
         }
-
+        //do clientside stuff =>
         if (GameClientState.instance!= null) {
+            //sound playing eventlistener
             StrongholdListener s = new StrongholdListener();
             StrongholdController.getInstance().addStrongpointEventListener(s);
             StrongholdController.getInstance().addStrongholdEventListener(s);

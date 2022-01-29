@@ -20,7 +20,6 @@ public class VoidShieldContainer extends SimpleSerializerWrapper {
     private HashMap<Strongpoint, Long> cpConquered_atTime = new HashMap<>();
 
     protected void setCPConquered(Strongpoint p, long millis) {
-        ModMain.log("controlpoint " + p.getSector() + " was conquered and is locked now.");
         cpConquered_atTime.put(p,millis);
     }
     protected long getCPConqueredAt(Strongpoint p) {
