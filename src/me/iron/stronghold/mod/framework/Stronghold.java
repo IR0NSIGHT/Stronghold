@@ -5,6 +5,10 @@ import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.effects.AmbienceUtils;
+import me.iron.stronghold.mod.effects.CPNameGen;
+import me.iron.stronghold.mod.voidshield.VoidShieldController;
+import org.lwjgl.Sys;
+import org.lwjgl.util.vector.Vector;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.world.VoidSystem;
 import org.schema.game.server.data.GameServerState;
@@ -28,6 +32,8 @@ public class Stronghold extends SimpleSerializerWrapper {
     transient private boolean synchFlag;
 
     transient private HashMap<Vector3i, Strongpoint> strongpointHashMap = new HashMap<>();
+    transient private ArrayList<Strongpoint> strongpointOrder = new ArrayList<>();
+    transient private int highestOwnCP;
     transient private int ownedBySysOwner;
     transient private int ownedByNoone;
     transient private UUID uuid;
@@ -47,6 +53,78 @@ public class Stronghold extends SimpleSerializerWrapper {
 
     protected Stronghold(PacketReadBuffer buffer) {
         onDeserialize(buffer);
+    }
+
+    /**
+     * returns the enemy controlpoint highest in the order. can be null if no enemy cp
+     * @return
+     */
+    protected Strongpoint getLastEnemyCP() {
+       // if (lastEnemyOwned<0||lastEnemyOwned>=strongpointOrder.size())
+       //     return null;
+       // return strongpointOrder.get(lastEnemyOwned);
+        return null;
+    }
+
+    protected Strongpoint getHighestOwnCP() {
+        return null;
+    }
+
+    public static void main(String[] args) {
+        //init controllers
+        StrongholdController c = new StrongholdController();
+        c.init();
+        VoidShieldController v = new VoidShieldController(true);
+        v.init();
+
+        //make stronghold
+        Stronghold h = new Stronghold();
+        h.setStellarPos(new Vector3i(0,0,0));
+        int ownerF = 420;
+        h.setOwner(ownerF);
+        h.setStrongpoints(new Vector3i[]{new Vector3i(0,0,0),new Vector3i(1,1,1), new Vector3i(2,2,2),new Vector3i(3,3,3)});
+        h.setController(c);
+
+        //add to controller
+        c.getStrongholdHashMap().put(h.getStellarPos(),h);
+        System.out.println("--print hold ---\n"+h.toString()+"--------\n");
+
+    //   //start conquering CPs
+    //   for (int i = 0; i < 2; i++) {
+    //       System.out.println("setting CP "+h.strongpointOrder.get(i).getSector()+" to owner "+ownerF +":");
+
+    //       h.strongpointOrder.get(i).setOwner(ownerF);
+    //   }
+
+        h.setDefensePoints(500);
+        long t = 0;
+        long first = System.currentTimeMillis();
+        long last = System.currentTimeMillis();
+        int i = 0;
+        while (System.currentTimeMillis()<first+1000*35) {
+            t+= System.currentTimeMillis()-last;
+            last = System.currentTimeMillis();
+            if (t>1000) {
+                t = 0;
+                i++;
+                if (i%3==0&&i/3-1<h.strongpointOrder.size()) {
+                    h.strongpointOrder.get(i/3-1).setOwner(420);
+                }
+                System.out.println("t="+i);
+                if (i%5==0){
+                    System.out.println("t+"+i);
+                    System.out.println("--print hold ---\n"+h.toString()+"---------\n");
+
+                    //for (Strongpoint p: h.strongpointOrder) {
+                    //    VoidShieldController.isSectorVoidShielded(p.getSector());
+                    //}
+                }
+            }
+
+
+        }
+
+        System.out.println("--print hold ---\n"+h.toString()+"---------\n");
     }
 
     protected void setController(StrongholdController c) {
@@ -75,6 +153,7 @@ public class Stronghold extends SimpleSerializerWrapper {
     }
 
     protected void setStrongpoints(Vector3i[] pos) {
+        //init map, fill map
         if (strongpointHashMap == null)
             strongpointHashMap = new HashMap<>(pos.length);
         ownedByNoone = pos.length;
@@ -83,6 +162,7 @@ public class Stronghold extends SimpleSerializerWrapper {
             Strongpoint point = new Strongpoint(p, this);
             strongpointHashMap.put(p,point);
         }
+        updateOrder(strongpointHashMap.values());
         setSynchFlag(true);
     }
 
@@ -117,7 +197,7 @@ public class Stronghold extends SimpleSerializerWrapper {
 
         //change defensepoints
         int diff = Math.max (1,(int) (timeUnits-lastUpdate));
-        calculateBalance(strongpointHashMap.values()); //TODO remove once it works reliable eventbased.
+        calculateBalance(strongpointOrder); //TODO remove once it works reliable eventbased.
         adjustPoints(balance, diff, strongpointHashMap.size());
 
         lastUpdate = timeUnits;
@@ -132,10 +212,11 @@ public class Stronghold extends SimpleSerializerWrapper {
             c.onDefensePointsChanged(this, newPoints);
     }
 
-    protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
+    protected void onStrongpointCaptured(Strongpoint p, int oldOwner) {
         if (c!=null)
-            c.onStrongpointCaptured(p,newOwner);
-        calculateBalance(strongpointHashMap.values());
+            c.onStrongpointCaptured(p,oldOwner);
+        calculateBalance(strongpointOrder);
+        updateHighestCP();
     }
 
     protected void onStrongholdBalanceChanged(int newBalance) {
@@ -146,6 +227,7 @@ public class Stronghold extends SimpleSerializerWrapper {
     protected void onStrongholdOwnerChanged(int newOwner) {
         if (c!=null)
             c.onStrongholdOwnerChanged(this,newOwner);
+        updateHighestCP();
     }
 
     protected void setUuid(UUID uuid) {
@@ -222,8 +304,10 @@ public class Stronghold extends SimpleSerializerWrapper {
         boolean allNeutral = true;
         for (Strongpoint p: points) {
             allNeutral = allNeutral&&p.getOwner()==0;
-            if (p.getOwner()==getOwner()||GameServerState.instance.getFactionManager().isFriend(p.getOwner(),getOwner()))
+            //we or an ally owns this point.
+            if (p.getOwner()==getOwner()||(GameServerState.instance != null && GameServerState.instance.getFactionManager().isFriend(p.getOwner(),getOwner())))
                 balance += 1;
+            //someone else owns this point.
             else if (p.getOwner()!=getOwner() && p.getOwner() != 0)
                 balance -= 1;
         }
@@ -232,6 +316,48 @@ public class Stronghold extends SimpleSerializerWrapper {
             c.onStrongholdBalanceChanged(this, balance);
         this.balance = balance;
     }
+    private void updateOrder(Collection<Strongpoint> ps) {
+        strongpointOrder.clear();
+        strongpointOrder.ensureCapacity(ps.size());
+        strongpointOrder.addAll(ps);
+        Collections.sort(strongpointOrder, new Comparator<Strongpoint>() {
+            @Override
+            public int compare(Strongpoint o1, Strongpoint o2) {
+                return (int)(o1.getSector().code()-o2.getSector().code());
+            }
+        });
+        updateHighestCP();
+    }
+    private void updateHighestCP() {
+        for (int i = 0; i < strongpointOrder.size(); i++) {
+            int cpOwner = strongpointOrder.get(i).getOwner();
+            //not neutral, own or allied
+            if (cpOwner != getOwner() && (GameServerState.instance == null || !GameServerState.instance.getFactionManager().isFriend(cpOwner,getOwner()))) {
+                highestOwnCP = i-1;
+                return;
+            }
+
+        }
+    }
+
+    /**
+     * the strongpoint that enemy forces have to conquer next.
+     * if owner controls NO CPs, return null.
+     * @return CP
+     */
+    public Strongpoint getNextOwnStrongpoint() {
+        return (highestOwnCP>=0)?strongpointOrder.get(highestOwnCP):null;
+    }
+
+    /**
+     * the controlpoint that can be conquered by owner forces next.
+     * if owner controls all CPs => return null
+     * @return CP
+     */
+    public Strongpoint getNextEnemyStrongpoint() {
+        return (highestOwnCP+1<strongpointOrder.size())?strongpointOrder.get(highestOwnCP+1):null;
+    }
+
     /**
      * updates internal counters
      * @return
@@ -258,7 +384,7 @@ public class Stronghold extends SimpleSerializerWrapper {
     }
 
 //serialization
-       @Override
+    @Override
     public void onDeserialize(PacketReadBuffer buffer) {
         try {
             setUuid(buffer.readObject(UUID.class));
@@ -281,6 +407,7 @@ public class Stronghold extends SimpleSerializerWrapper {
             for (Vector3i pos: toDelete) { //delete unwanted.
                 strongpointHashMap.remove(pos);
             }
+            updateOrder(strongpointHashMap.values());
 
             setOwner(buffer.readInt());
             setStellarPos(buffer.readVector());
@@ -321,7 +448,7 @@ public class Stronghold extends SimpleSerializerWrapper {
         return String.format("owner: %s, pos:%s, hp: %s\n" +
                 "own: %s, ene: %s, neut: %s, all: %s\n"+
                 "updated: %s,\n" +
-                "strongholds: %s",owner,stellarPos,hp,ownedBySysOwner,(strongpointHashMap.size()-ownedByNoone-ownedBySysOwner),ownedByNoone, strongpointHashMap.size(),lastUpdate,strongholdsToString());
+                "strongholds:\n%s",owner,stellarPos,hp,ownedBySysOwner,(strongpointHashMap.size()-ownedByNoone-ownedBySysOwner),ownedByNoone, strongpointHashMap.size(),lastUpdate,strongholdsToString());
     }
 
     public UUID getUuid() {
@@ -329,7 +456,11 @@ public class Stronghold extends SimpleSerializerWrapper {
     }
 
     public boolean isStrongpoint(Vector3i sector) {
-        return strongpointHashMap.get(sector)!=null;
+        return strongpointHashMap.containsKey(sector);
+    }
+
+    public Strongpoint getStrongpointFromSector(Vector3i sector) {
+        return strongpointHashMap.get(sector);
     }
 
     public String getName() {
@@ -340,8 +471,15 @@ public class Stronghold extends SimpleSerializerWrapper {
 
     public String strongholdsToString() {
         StringBuilder b = new StringBuilder();
-        for (Map.Entry<Vector3i,Strongpoint> entry: strongpointHashMap.entrySet()) {
-            b.append(String.format("%s [%s]\n",entry.getKey(), AmbienceUtils.tryGetFactionName(entry.getValue().getOwner())));
+        CPNameGen gen = AmbienceUtils.getControlPointNameGen();
+        Strongpoint p;
+        for (int i = 0; i < strongpointOrder.size(); i++) {
+            p = strongpointOrder.get(i);
+            b.append(String.format("%s %s [%s] %s %s\n",gen.next(),p.getSector(), AmbienceUtils.tryGetFactionName(p.getOwner()),
+                    (p.equals(getNextOwnStrongpoint())||p.equals(getNextEnemyStrongpoint())? "<<<":""),
+                    (VoidShieldController.getInstance()!=null&&VoidShieldController.controlPointLockDownTill(p)>System.currentTimeMillis())
+                            ?("locked for "+(VoidShieldController.controlPointLockDownTill(p)-System.currentTimeMillis())/1000+" seconds")
+                            :""));
         }
         return b.toString();
     }

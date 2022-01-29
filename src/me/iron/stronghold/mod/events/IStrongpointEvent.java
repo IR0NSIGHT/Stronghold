@@ -9,5 +9,5 @@ import me.iron.stronghold.mod.framework.Strongpoint;
  * TIME: 16:50
  */
 public interface IStrongpointEvent {
-    void onStrongpointOwnerChanged(Strongpoint p, int newOwner);
+    void onStrongpointOwnerChanged(Strongpoint p, int oldOwner);
 }

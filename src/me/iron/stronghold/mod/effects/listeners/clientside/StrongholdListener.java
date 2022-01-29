@@ -66,15 +66,15 @@ public class StrongholdListener implements IStrongpointEvent, IStrongholdEvent {
     }
 
     @Override
-    public void onStrongpointOwnerChanged(Strongpoint p, int newOwner) {
-
+    public void onStrongpointOwnerChanged(Strongpoint p, int n) {
+        int oldOwner = n, newOwner = p.getOwner();
         String s = null;
-        if (p.getOwner()!=0 && newOwner == 0) {
-            s = AmbienceUtils.tryGetFactionName(p.getOwner())+"has lost Strongpoint "+p.getSector();
-        } else if (p.getOwner()==0 && newOwner != 0) {
+        if (oldOwner!=0 && newOwner == 0) {
+            s = AmbienceUtils.tryGetFactionName(oldOwner)+"has lost Strongpoint "+p.getSector();
+        } else if (oldOwner==0 && newOwner != 0) {
             s = AmbienceUtils.tryGetFactionName(newOwner) + " captured Strongpoint " + p.getSector();
-        } else if (p.getOwner()!=0 && newOwner != 0) {
-            s = AmbienceUtils.tryGetFactionName(newOwner) + " took Strongpoint " + p.getSector() + " from " + AmbienceUtils.tryGetFactionName(p.getOwner())+"!";
+        } else if (oldOwner!=0 && newOwner != 0) {
+            s = AmbienceUtils.tryGetFactionName(newOwner) + " took Strongpoint " + p.getSector() + " from " + AmbienceUtils.tryGetFactionName(oldOwner)+"!";
         }
 
         if (GameServerState.instance != null && s != null)
@@ -87,7 +87,7 @@ public class StrongholdListener implements IStrongpointEvent, IStrongholdEvent {
             Vector3i pointPos = new Vector3i(p.getSector());
             StrongholdController.mutateSectorToSystem(pointPos);
 
-            if (p.getOwner()==playerF) {
+            if (oldOwner==playerF) {
                 sound = SoundManager.Sound.strongpoint_lost;
             } else if (newOwner == playerF) {
                 sound = SoundManager.Sound.strongpoint_captured;

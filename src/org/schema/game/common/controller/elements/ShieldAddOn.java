@@ -94,6 +94,13 @@ public class ShieldAddOn implements HittableInterface, ManagerUpdatableInterface
             return 0;
         }
 
+        //inserted code
+        VoidShieldController c = VoidShieldController.getInstance();
+        if (c != null) {
+            damage = c.handleShieldHit(this, damager, defenseSet, hitPoint, projectileSectorId, damageType, hitType, damage, weaponId);
+        }
+        // end
+
         InterEffectSet attack = null;
 
         if(damager != null) {
@@ -107,12 +114,7 @@ public class ShieldAddOn implements HittableInterface, ManagerUpdatableInterface
             System.err.println("[WARNING] Shield attacked without attack effect set "+getSegmentController());
         }
 
-        //inserted code
-        double modifiedDamage = VoidShieldController.handleShieldHit(this,  damager, defenseSet, hitPoint, projectileSectorId, damageType, hitType, damage, weaponId);
-        if (damage != modifiedDamage) {
-            return modifiedDamage;
-        }
-        // end
+
 
         if(isUsingLocalShields()){
             double damageAfterShields = getShieldLocalAddOn().handleShieldHit(damager, hitPoint, projectileSectorId, damageType, damageWithDefenseEffect, weaponId);

@@ -16,7 +16,7 @@ import org.schema.game.common.controller.damage.Damager;
  * DATE: 27.01.2022
  * TIME: 15:56
  */
-public class VoidShieldListener implements IVoidShieldEvent {
+public class VoidShieldEventBroadcaster implements IVoidShieldEvent {
     long l;
     @Override
     public void onShieldHit(Stronghold h, SegmentController hitObject, Damager d) {

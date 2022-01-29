@@ -36,10 +36,13 @@ public class AmbienceUtils {
 
     public static String tryGetFactionName(int faction) {
         FactionManager f = null;
-        if (GameServerState.instance==null) {
+
+        if (GameClientState.instance!=null) {
             f = GameClientState.instance.getFactionManager();
-        } else {
+        } else if (GameServerState.instance!=null) {
             f = GameServerState.instance.getFactionManager();
+        } else {
+            return "Faction "+faction;
         }
         Faction owners = f.getFaction(faction);
         String name;
@@ -49,4 +52,9 @@ public class AmbienceUtils {
             name = "neutral";
         return name;
     }
+
+    public static CPNameGen getControlPointNameGen() {
+        return new CPNameGen();
+    }
 }
+

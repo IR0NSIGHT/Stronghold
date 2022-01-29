@@ -77,8 +77,9 @@ public class Strongpoint extends SimpleSerializerWrapper {
 
     protected void setOwner(int owner) {
         if (owner!=this.owner) {
-            stronghold.onStrongpointCaptured(this,owner);
+            int oldOwner = this.owner;
             this.owner = owner;
+            stronghold.onStrongpointCaptured(this,oldOwner);
         }
     }
 

@@ -44,10 +44,12 @@ public class ModMain extends StarMod {
         if (StrongholdController.getInstance()==null) //on SP, this is taken up by the server one
             new StrongholdController().init(); //clientside controller, 98% passive, just receives synchs from server
         initGlossar();
+        new VoidShieldController(false).initClientEHs();
         new SoundManager();
-        new ClientEventManager().initAll();
-        VoidShieldController.initClientEHs();
+
         new ScanHandler(); //user interaction interface basically. scan and get infos about system.
+        new ClientEventManager().initAll();
+
     }
 
     @Override
@@ -55,17 +57,17 @@ public class ModMain extends StarMod {
         super.onServerCreated(serverInitializeEvent);
 
         new StrongholdController().init();
+        new VoidShieldController(true);
+
         new ScanHandler(); //user interaction interface basically. scan and get infos about system.
         new ServerEventManager();
     }
     public static void log(String msg) {
-        if (!instance.logAll)
+        if (instance != null &&  !instance.logAll)
             return;
         msg = "[STRONGHOLDS]"+msg;
         System.out.println(msg);
         DebugFile.log(msg);
-    //    if (GameServerState.instance!=null)
-    //        ModPlayground.broadcastMessage(msg);
     }
     private void initGlossar() {
         GlossarInit.initGlossar(this);
@@ -82,6 +84,7 @@ public class ModMain extends StarMod {
         super.onDisable();
         if (GameServerState.instance!=null)
             StrongholdController.getInstance().onShutdown();
-
+        if (VoidShieldController.getInstance() != null)
+            VoidShieldController.getInstance().onShutdown();
     }
 }

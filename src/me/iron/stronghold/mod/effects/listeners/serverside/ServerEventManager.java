@@ -12,8 +12,11 @@ import me.iron.stronghold.mod.voidshield.VoidShieldController;
 public class ServerEventManager {
     public ServerEventManager() {
         FactionBoardPoster fbp = new FactionBoardPoster();
-        VoidShieldController.eventlisteners.add(fbp);
-        StrongholdController.getInstance().addStrongholdEventListener(fbp);
-        StrongholdController.getInstance().addStrongpointEventListener(fbp);
+        if (VoidShieldController.getInstance() != null)
+            VoidShieldController.getInstance().addListener(fbp);
+        if (StrongholdController.getInstance()!=null) {
+            StrongholdController.getInstance().addStrongholdEventListener(fbp);
+            StrongholdController.getInstance().addStrongpointEventListener(fbp);
+        }
     }
 }

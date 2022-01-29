@@ -47,15 +47,16 @@ public class FactionBoardPoster implements IStrongholdEvent, IStrongpointEvent, 
     }
 
     @Override
-    public void onStrongpointOwnerChanged(Strongpoint p, int newOwner) {
+    public void onStrongpointOwnerChanged(Strongpoint p, int n) {
+        int oldOwner = n, newOwner = p.getOwner();
         AmbienceUtils.addToFactionBoard(
-                p.getOwner(),
+                oldOwner,
                 "Controlpoint lost",
                 String.format("We have lost controlpoint %s in stronghold %s to faction %s",p.getSector(), p.getStronghold().getName(), AmbienceUtils.tryGetFactionName(newOwner)));
 
         AmbienceUtils.addToFactionBoard(newOwner,
                 "Controlpoint captured",
-                String.format("We have taken controlpoint %s in stronghold %s from faction %s",p.getSector(), p.getStronghold().getName(),AmbienceUtils.tryGetFactionName(p.getOwner())));
+                String.format("We have taken controlpoint %s in stronghold %s from faction %s",p.getSector(), p.getStronghold().getName(),AmbienceUtils.tryGetFactionName(oldOwner)));
     }
 
     @Override

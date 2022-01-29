@@ -14,7 +14,7 @@ public class ClientEventManager {
     }
 
     public void initAll() {
-        VoidShieldController.eventlisteners.add(new VoidShieldListener());
+        VoidShieldController.getInstance().addListener(new VoidShieldEventBroadcaster());
     }
 
 

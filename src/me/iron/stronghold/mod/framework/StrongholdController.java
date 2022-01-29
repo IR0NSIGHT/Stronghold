@@ -193,10 +193,11 @@ public class StrongholdController {
         return strongholdHashMap.get(system);
     }
 
-    protected void onStrongpointCaptured(Strongpoint p, int newOwner) {
+    protected void onStrongpointCaptured(Strongpoint p, int n) {
+        int oldOwner = n; int newOwner = p.getOwner();
         ModMain.log("strongpoint captured: "+p.getSector() +" by " + newOwner);
         for (IStrongpointEvent e: pointEs) {
-            e.onStrongpointOwnerChanged(p,newOwner);
+            e.onStrongpointOwnerChanged(p,oldOwner);
         }
     }
 
@@ -234,7 +235,7 @@ public class StrongholdController {
         //load from save file
         if (GameServerState.instance!=null) {
             initServer();
-        } else {
+        } else if (GameClientState.instance != null) {
             initClient();
         }
     }
@@ -244,7 +245,6 @@ public class StrongholdController {
         instance = null;
 
         //listener clear
-        VoidShieldController.eventlisteners.clear();
         this.pointEs.clear();
         this.holdEs.clear();
     }
