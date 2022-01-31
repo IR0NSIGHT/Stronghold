@@ -1,6 +1,7 @@
 package me.iron.stronghold.mod.implementation;
 
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
+import org.lwjgl.Sys;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -11,8 +12,9 @@ import java.util.Map;
  * an attacker will have to conquer ALL child areas => auto gains control.
  */
 public class SystemArea extends AbstractControllableArea {
-    public SystemArea(String name, @Nullable AbstractControllableArea parent) {
-        super(name, parent);
+    public SystemArea(){}
+    public SystemArea(long UID, String name, @Nullable AbstractControllableArea parent) {
+        super(UID, name, parent);
     }
 
     @Override

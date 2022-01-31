@@ -3,9 +3,12 @@ package me.iron.stronghold.mod.implementation;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import org.schema.schine.graphicsengine.core.Timer;
 
+import java.io.IOException;
+
 public class SectorArea extends AbstractControllableArea {
-    public SectorArea(String name, AbstractControllableArea parent) {
-        super(name, parent);
+    public SectorArea(){}
+    public SectorArea(long UID, String name, AbstractControllableArea parent) {
+        super(UID, name, parent);
     }
 
     @Override
