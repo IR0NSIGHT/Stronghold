@@ -15,7 +15,7 @@ public abstract class AbstractControllableArea implements Serializable, IAreaEve
     }
 
     protected boolean canBeConquered;
-    protected String name;
+    protected String name = "";
     protected int ownerFaction;
     protected long UID;
     protected long lastAttackMssg;
@@ -171,7 +171,7 @@ public abstract class AbstractControllableArea implements Serializable, IAreaEve
     public void onAttacked(Timer t, AbstractControllableArea area, int attackerFaction, Vector3i position) {
         if (this.equals(area)) { //only broadcast every 30 seconds for this area
             if (t.currentTime-lastAttackMssg<1000*30) {
-                lastAttackMssg = t.currentTime;
+                setLastAttacked(t.currentTime);
                 return;
             }
             lastAttackMssg = t.currentTime;
@@ -184,10 +184,18 @@ public abstract class AbstractControllableArea implements Serializable, IAreaEve
         }
     }
 
-    public void requestSynchToClient(AbstractControllableArea area) {
-        if (this.equals(area)) {
-            System.out.println("area " + this.getName() + " has requested a client synch.");
+    public long getLastAttacked() {
+        return lastAttackMssg;
+    }
+
+    protected void setLastAttacked(long l) {
+        if (l != lastAttackMssg) {
+            lastAttackMssg = l;
+            requestSynchToClient(this);
         }
+    }
+
+    public void requestSynchToClient(AbstractControllableArea area) {
         if (parent != null)
             parent.requestSynchToClient(area);
     }
@@ -197,10 +205,10 @@ public abstract class AbstractControllableArea implements Serializable, IAreaEve
      * @param area
      */
     public void updateFromObject(AbstractControllableArea area) {
+        setName(area.getName());
         setUID(area.UID);
         setOwnerFaction(area.ownerFaction);
         setCanBeConquered(area.canBeConquered);
-        setName(area.getName());
     }
 
     @Override

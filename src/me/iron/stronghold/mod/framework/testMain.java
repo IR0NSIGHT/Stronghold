@@ -17,48 +17,48 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 public class testMain {
+    static AreaManager server;
+    static AreaManager client;
+
     static long lastUID;
     private static long getNextUID() {
         return lastUID++;
     }
     public static void main(String[] args) throws IOException {
-        AreaManager m = new AreaManager(true, false);
+        server = new AreaManager(true, false);
+        client = new AreaManager(false, true);
 
-        GenericNewsCollector g = new GenericNewsCollector();
-        m.addListener(g);
+        GenericNewsCollector g = new GenericNewsCollector("[ServerNews]");
+        server.addListener(g);
+        GenericNewsCollector gC = new GenericNewsCollector("[ClientNews]");
+        client.addListener(gC);
 
-        SystemArea myHold = new SystemArea(getNextUID(),"Installation 05",m);
-        m.addChildArea(myHold);
-        myHold.addEffect(new VoidShield(getNextUID(),myHold));
+        SystemArea myHold = new SystemArea(AreaManager.getNextID(),"Installation 05",server);
+        server.addChildArea(myHold);
         for (int i = 0; i < 4; i++) {
-            SectorArea x = new SectorArea(getNextUID(),"SectorArea_"+i, myHold);
+            SectorArea x = new SectorArea(AreaManager.getNextID(),"SectorArea_"+i, myHold);
             myHold.addChildArea(x);
         }
         Timer t = new Timer();
         t.lastUpdate = 0;
         t.currentTime = 1000*60*60*1; //5h
-        m.update(t);
-        for (AbstractControllableArea a: myHold.getChildren())
-            a.setOwnerFaction(3);
-        m.update(t);
-        myHold.onAttacked(t,myHold,-1,new Vector3i(0,0,0));
-        myHold.onAttacked(t,myHold,-1,new Vector3i(0,0,0));
-
-
-        //synchSim(m);
-
+        server.update(t);
+        myHold.setOwnerFaction(-1);
+        t.currentTime++;
+        server.update(t);
     }
 
-    public static <T extends Serializable> void  synchSim(AbstractAreaContainer container) throws IOException {
+    public static void synchSim(AbstractAreaContainer container) throws IOException {
+        System.out.println("update server->client");
         AbstractAreaContainer target = new AbstractAreaContainer();
         readWrite(container,target);
-        Iterator<AbstractControllableArea> ic = container.objects.iterator();
-        Iterator<AbstractControllableArea> it = target.objects.iterator();
-        while (ic.hasNext() || it.hasNext()) {
-            Serializable o1 = ic.next(), o2 = it.next();
-            if (!o1.equals(o2))
-                throw new IOException("object equality after sending is hurt");
+        Iterator<AbstractControllableArea> it = target.getSynchObjectIterator();
+        while (it.hasNext()) {
+            AbstractControllableArea o2 = it.next();
+            client.updateArea(o2);
         }
+        if (target.getTree() != null)
+            client.instantiateArea(target.getTree(),null);
 
     }
 
@@ -67,7 +67,7 @@ public class testMain {
         PacketWriteBuffer buf = new PacketWriteBuffer(new DataOutputStream(bArray));
         object.onSerialize(buf);
         //object is written to buffer
-        System.out.println("barray='"+Arrays.toString(bArray.toByteArray())+"'");
+        //System.out.println("barray='"+Arrays.toString(bArray.toByteArray())+"'");
         ByteArrayInputStream inputStream = new ByteArrayInputStream( bArray.toByteArray());
         PacketReadBuffer rb = new PacketReadBuffer(new DataInputStream(inputStream));
         target.onDeserialize(rb);
