@@ -11,10 +11,10 @@ public class AreaManager extends AbstractControllableArea {
     private boolean client;
     private boolean server;
     private AbstractAreaContainer container = new AbstractAreaContainer();
-    private HashMap<Long,AbstractControllableArea> UID_to_object = new HashMap<>();
+    private HashMap<Long,SendableUpdateable> UID_to_object = new HashMap<>();
     protected AreaManager(boolean isServer, boolean isClient) { //is a singelton (hopefully)
-        super(getNextID(), "AbstractAreaManager", null);
-        UID_to_object.put(UID,this);
+        super("AbstractAreaManager");
+        UID_to_object.put(getUID(),this);
         server = isServer;
         client = isClient;
     }
@@ -25,7 +25,7 @@ public class AreaManager extends AbstractControllableArea {
     }
 
     @Override
-    protected void update(Timer timer) {
+    public void update(Timer timer) {
         super.update(timer); //update all children
         //collect all children that want to be synched.
         if (container.isEmpty())
@@ -48,24 +48,27 @@ public class AreaManager extends AbstractControllableArea {
     }
 
     @Override
-    public void onChildChanged(AbstractControllableArea parent, AbstractControllableArea child, boolean removed) {
+    public void onChildChanged(AbstractControllableArea parent, SendableUpdateable child, boolean removed) {
         super.onChildChanged(parent, child, removed);
         if (client)
             broadcast("child changed on client: class="+child+" name='"+child.getName() +"' was "+(removed?"removed":"added"));
         if (removed){
-            UID_to_object.remove(child.UID);
+            UID_to_object.remove(child.getUID());
         } else {
             //child was added
-            UID_to_object.put(child.UID, child);
+            UID_to_object.put(child.getUID(), child);
             if (server && !client) {
+            //    System.out.println("child added, make a chain: " + child.getName());
                 //request that clientmanager instantiates an empty child and creates the parent->child and child->parent connections.
                 //collect parent chain from child to manager and the parents classes
-                LinkedList<AbstractControllableArea> chain = new LinkedList<>();
-                AbstractControllableArea iterator = child;
-                while (iterator.parent != null) {
+                LinkedList<SendableUpdateable> chain = new LinkedList<>();
+                SendableUpdateable iterator = child;
+                while (iterator.getParent() != null) {
                     chain.add(iterator);
-                    iterator = iterator.parent;
+                   //  System.out.print(iterator.getName()+">>");
+                    iterator = iterator.getParent();
                 }
+                //System.out.println(""+iterator.getName());
                 chain.add(iterator);
                 Collections.reverse(chain); //manager->...->child
                 assert iterator.equals(this); //all areas MUST be children of the manager.
@@ -75,13 +78,15 @@ public class AreaManager extends AbstractControllableArea {
         }
     }
 
-    protected void updateArea(AbstractControllableArea area) {
-        long UID = area.UID;
-        AbstractControllableArea target= UID_to_object.get(UID);
+    protected void updateObject(SendableUpdateable area) {
+        long UID = area.getUID();
+        SendableUpdateable target= UID_to_object.get(UID);
         if (target != null) {
             target.updateFromObject(area);
+            broadcast("updating object "+target.getName());
+
         } else {
-            System.err.println("area "+area.getName()+"("+area.UID+") has no local counterpart. cant update.");
+            System.err.println("area "+area.getName()+"("+area.getUID()+") has no local counterpart. cant update.");
         }
     }
 
@@ -105,14 +110,13 @@ public class AreaManager extends AbstractControllableArea {
             try {
                 Class<?> clazz = Class.forName(className);
                 Object o = clazz.newInstance();
-                if (o instanceof AbstractControllableArea) {
-                    AbstractControllableArea parentObj = UID_to_object.get(parent);
-                    AbstractControllableArea child = (AbstractControllableArea)o;
+                if (o instanceof SendableUpdateable) {
+                    AbstractControllableArea parentObj = (AbstractControllableArea)UID_to_object.get(parent);
+                    SendableUpdateable child = (SendableUpdateable) o;
                     child.setUID(UID);
                     //broadcast("instantiating child type " + className + " to parent type " + parentObj.getClass().getName());
                     //link parent and child
-                    child.parent = parentObj;
-                    parentObj.addChildArea(child);
+                    parentObj.addChildObject(child);
 
                     UID_to_object.put(UID,child);
                     //recurse

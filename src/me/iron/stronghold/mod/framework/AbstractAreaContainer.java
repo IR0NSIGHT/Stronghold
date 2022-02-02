@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.Objects;
 
 public class AbstractAreaContainer extends SimpleSerializerWrapper {
-    transient private LinkedList<AbstractControllableArea> updateObjects = new LinkedList<>();
+    transient private LinkedList<SendableUpdateable> updateObjects = new LinkedList<>();
     transient private DummyArea newObjectTree;
     public AbstractAreaContainer() {
         updateObjects = new LinkedList<>();
@@ -23,20 +23,20 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
         updateObjects.add(a);
     }
 
-    public void addChainForInstantiation(LinkedList<AbstractControllableArea> chain) {
+    public void addChainForInstantiation(LinkedList<SendableUpdateable> chain) {
         //every chain start with the manager
         //replicate chain structure into the dummy tree
-        Iterator<AbstractControllableArea> it = chain.iterator();
+        Iterator<SendableUpdateable> it = chain.iterator();
 
-        AbstractControllableArea a = it.next();
+        SendableUpdateable a = it.next();
         if (newObjectTree == null) {
             assert a instanceof AreaManager:"tree root is not manager";
-            newObjectTree = new DummyArea(a.getClass().getName(),a.UID);
+            newObjectTree = new DummyArea(a.getClass().getName(),a.getUID());
         }
         DummyArea parent = newObjectTree;
         while (it.hasNext()) {
             a = it.next();
-            DummyArea child = new DummyArea(a.getClass().getName(), a.UID);
+            DummyArea child = new DummyArea(a.getClass().getName(), a.getUID());
             boolean exists = false;
             for (DummyArea c1: parent.children) {
                 if (c1.equals(child)) {
@@ -62,7 +62,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
      * iterator for accessing the received objects
      * @return
      */
-    public Iterator<AbstractControllableArea> getSynchObjectIterator() {
+    public Iterator<SendableUpdateable> getSynchObjectIterator() {
         return updateObjects.iterator();
     }
 
@@ -80,7 +80,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
                 String className = b.readString();
                 Class<?> c = Class.forName(className);
                 Object o = b.readObject(c);
-                updateObjects.add((AbstractControllableArea) o);
+                updateObjects.add((SendableUpdateable) o);
             }
 
 
@@ -99,9 +99,9 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             b.writeString("stop");
 
             b.writeInt(updateObjects.size());
-            for (AbstractControllableArea o: updateObjects) {
+            for (SendableUpdateable o: updateObjects) {
                 //make dummy object, fill with values
-                AbstractControllableArea dummy = o.getClass().newInstance();
+                SendableUpdateable dummy = o.getClass().newInstance();
                 dummy.updateFromObject(o); //write values we want
 
                 b.writeString(dummy.getClass().getName());

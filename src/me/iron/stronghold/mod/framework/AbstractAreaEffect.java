@@ -2,13 +2,13 @@ package me.iron.stronghold.mod.framework;
 
 import org.schema.schine.graphicsengine.core.Timer;
 
-public abstract class AbstractAreaEffect {
-    protected  long UID;
-    transient protected AbstractControllableArea parent = null;
-
-    public AbstractAreaEffect(){}//for deserializing
-    public AbstractAreaEffect(long UID, AbstractControllableArea parent) {
-        this.parent = parent;
+public abstract class AbstractAreaEffect extends SendableUpdateable{
+    public AbstractAreaEffect(){
+        super();
+    }//for deserializing
+    public AbstractAreaEffect(String name) {
+        super(AreaManager.getNextID(), name);
     }
-    protected void update(Timer timer) {};
+
+    public void update(Timer timer) {}
 }

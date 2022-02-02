@@ -1,50 +1,45 @@
 package me.iron.stronghold.mod.framework;
 
+import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.schine.graphicsengine.core.Timer;
 
 import javax.annotation.Nullable;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public abstract class AbstractControllableArea implements Serializable, IAreaEvent {
+public abstract class AbstractControllableArea extends SendableUpdateable implements IAreaEvent {
     private static long nextID;
     protected static long getNextID() {
         return nextID++;
     }
 
     protected boolean canBeConquered;
-    protected String name = "";
     protected int ownerFaction;
-    protected long UID;
     protected long lastAttackMssg;
 
-    transient protected AbstractControllableArea parent = null;
-    transient protected ArrayList<AbstractControllableArea> children = new ArrayList<>();
-    transient protected ArrayList<AbstractAreaEffect> effects = new ArrayList<>();
+    transient protected ArrayList<SendableUpdateable> children = new ArrayList<>();
     transient protected ArrayList<IAreaEvent> listeners = new ArrayList<>();
 
-    public AbstractControllableArea() {}; //serialization stuff
+    public AbstractControllableArea() {
+        super();
+    }; //serialization stuff
 
-    protected AbstractControllableArea(long UID, String name, @Nullable AbstractControllableArea parent) {
-        this.parent = parent;
-        this.name = name;
-        this.UID = UID;
+    protected AbstractControllableArea(String name) {
+        super(AreaManager.getNextID(),name);
     }
 
     protected void init() { //call this after deserialzing to reconstruct circular references to children and effects
-        for (AbstractControllableArea a: children)
-            a.parent = this;
-        for (AbstractAreaEffect e: effects) {
-            e.parent = this;
-        }
+        for (SendableUpdateable a: children)
+            a.setParent(this);
     }
 
-    protected void addChildArea(AbstractControllableArea child) {
+    protected void addChildObject(SendableUpdateable child) {
         if (!children.contains(child)) {
             children.add(child);
+            child.setParent(this);
             onChildChanged(this, child, false);
+        //    System.out.println("adding child"+child.getName()+" to parent "+getName());
         }
     }
 
@@ -63,36 +58,22 @@ public abstract class AbstractControllableArea implements Serializable, IAreaEve
         listeners.remove(e);
     }
 
-    public void addEffect(AbstractAreaEffect e) {
-        effects.add(e);
-    }
-
-    public boolean removeEffect(AbstractAreaEffect e) {
-        return effects.remove(e);
-    }
     public boolean canBeConquered() {
         return false;
     };
-
-    public String getName() {
-        return name;
-    }
 
     public int getOwnerFaction() {
         return ownerFaction;
     }
 
-    protected void update(Timer timer) {
-        for (AbstractControllableArea c: children) {
+    public void update(Timer timer) {
+        for (SendableUpdateable c: children) {
             c.update(timer);
-        }
-        for (AbstractAreaEffect e: effects) {
-            e.update(timer);
         }
         onUpdate(this);
     }
 
-    public ArrayList<AbstractControllableArea> getChildren() {
+    public ArrayList<SendableUpdateable> getChildren() {
         return children;
     }
 
@@ -114,57 +95,46 @@ public abstract class AbstractControllableArea implements Serializable, IAreaEve
         }
     }
 
-    public void setName(String name) {
-        if (!Objects.equals(this.name, name)) {
-            this.name = name;
-            requestSynchToClient(this);
-        }
-    }
-
-    public void setUID(long UID) {
-        this.UID = UID;
-
-    }
-
     @Override
     public void onConquered(AbstractControllableArea area, int oldOwner) {
         for (IAreaEvent e: listeners) {
             e.onConquered(area,oldOwner);
         }
-        if (this.parent != null)
-            this.parent.onConquered(area, oldOwner);
+        if (this.getParent() != null && getParent() instanceof IAreaEvent)
+           ( (IAreaEvent)getParent()).onConquered(area, oldOwner);
     }
 
     @Override
     public void onCanBeConqueredChanged(AbstractControllableArea area, boolean oldValue) {
         for (IAreaEvent e: listeners)
             e.onCanBeConqueredChanged(area,oldValue);
-        if (parent!=null)
-            parent.onCanBeConqueredChanged(area, oldValue);
+        if (this.getParent() != null && getParent() instanceof IAreaEvent)
+            ((IAreaEvent)getParent()).onCanBeConqueredChanged(area, oldValue);
     }
 
     @Override
     public void onUpdate(AbstractControllableArea area) {
         for (IAreaEvent e: listeners)
             e.onUpdate(area);
-        if (parent!=null)
-            parent.onUpdate(area);
+        if (this.getParent() != null && getParent() instanceof IAreaEvent)
+            ((IAreaEvent)getParent()).onUpdate(area);
     }
 
     @Override
-    public void onChildChanged(AbstractControllableArea parent, AbstractControllableArea child, boolean removed) {
+    public void onChildChanged(AbstractControllableArea parent, SendableUpdateable child, boolean removed) {
+        //System.out.println("child changed: p="+parent.getName()+",c="+child.getName()+" level:"+this.getName());
         for (IAreaEvent e: listeners)
             e.onChildChanged(parent,child,removed);
-        if (this.parent!=null)
-            this.parent.onChildChanged(parent, child, removed);
+        if (this.getParent() != null && getParent() instanceof IAreaEvent)
+            ((IAreaEvent)getParent()).onChildChanged(parent, child, removed);
     }
 
     @Override
-    public void onParentChanged(AbstractControllableArea child, AbstractControllableArea parent, boolean removed) {
+    public void onParentChanged(SendableUpdateable child, AbstractControllableArea parent, boolean removed) {
         for (IAreaEvent e: listeners)
             e.onParentChanged(child, parent, removed);
-        if (this.parent!=null)
-            this.parent.onParentChanged(parent,child,removed);
+        if (this.getParent() != null && getParent() instanceof IAreaEvent)
+            ((IAreaEvent)getParent()).onParentChanged(child,parent,removed);
     }
 
     @Override
@@ -179,9 +149,8 @@ public abstract class AbstractControllableArea implements Serializable, IAreaEve
         for (IAreaEvent e: listeners) {
             e.onAttacked(t, area, attackerFaction, position);
         }
-        if (this.parent != null) {
-            parent.onAttacked(t,area,attackerFaction,position);
-        }
+        if (this.getParent() != null && getParent() instanceof IAreaEvent)
+            ((IAreaEvent)getParent()).onAttacked(t,area,attackerFaction,position);
     }
 
     public long getLastAttacked() {
@@ -195,32 +164,19 @@ public abstract class AbstractControllableArea implements Serializable, IAreaEve
         }
     }
 
-    public void requestSynchToClient(AbstractControllableArea area) {
-        if (parent != null)
-            parent.requestSynchToClient(area);
-    }
-
     /**
      * value clones input object into this object
-     * @param area
+     * @param a
      */
-    public void updateFromObject(AbstractControllableArea area) {
-        setName(area.getName());
-        setUID(area.UID);
-        setOwnerFaction(area.ownerFaction);
-        setCanBeConquered(area.canBeConquered);
-    }
-
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AbstractControllableArea that = (AbstractControllableArea) o;
-        return canBeConquered == that.canBeConquered && ownerFaction == that.ownerFaction && UID == that.UID && lastAttackMssg == that.lastAttackMssg && name.equals(that.name);
-    }
+    public void updateFromObject(SendableUpdateable a) {
+        if (a instanceof AbstractControllableArea) {
+            AbstractControllableArea area = (AbstractControllableArea)a;
+            setName(area.getName());
+            setUID(area.getUID());
+            setOwnerFaction(area.ownerFaction);
+            setCanBeConquered(area.canBeConquered);
+        }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(UID);
     }
 }

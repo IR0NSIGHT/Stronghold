@@ -7,12 +7,9 @@ import me.iron.stronghold.mod.implementation.GenericNewsCollector;
 import me.iron.stronghold.mod.implementation.SectorArea;
 import me.iron.stronghold.mod.implementation.SystemArea;
 import me.iron.stronghold.mod.implementation.VoidShield;
-import org.lwjgl.Sys;
-import org.schema.common.util.linAlg.Vector3i;
 import org.schema.schine.graphicsengine.core.Timer;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -33,18 +30,23 @@ public class testMain {
         GenericNewsCollector gC = new GenericNewsCollector("[ClientNews]");
         client.addListener(gC);
 
-        SystemArea myHold = new SystemArea(AreaManager.getNextID(),"Installation 05",server);
-        server.addChildArea(myHold);
+        SystemArea myHold = new SystemArea("Installation 05");
+        server.addChildObject(myHold);
         for (int i = 0; i < 4; i++) {
-            SectorArea x = new SectorArea(AreaManager.getNextID(),"SectorArea_"+i, myHold);
-            myHold.addChildArea(x);
+            SectorArea x = new SectorArea("SectorArea_"+i);
+            myHold.addChildObject(x);
         }
+        VoidShield v = new VoidShield();
+        myHold.addChildObject(v);
+        myHold.setOwnerFaction(-1);
+
         Timer t = new Timer();
         t.lastUpdate = 0;
         t.currentTime = 1000*60*60*1; //5h
         server.update(t);
-        myHold.setOwnerFaction(-1);
         t.currentTime++;
+        server.update(t);
+        v.setActive(false);
         server.update(t);
     }
 
@@ -52,13 +54,15 @@ public class testMain {
         System.out.println("update server->client");
         AbstractAreaContainer target = new AbstractAreaContainer();
         readWrite(container,target);
-        Iterator<AbstractControllableArea> it = target.getSynchObjectIterator();
-        while (it.hasNext()) {
-            AbstractControllableArea o2 = it.next();
-            client.updateArea(o2);
-        }
+
         if (target.getTree() != null)
             client.instantiateArea(target.getTree(),null);
+        Iterator<SendableUpdateable> it = target.getSynchObjectIterator();
+        while (it.hasNext()) {
+            SendableUpdateable o2 = it.next();
+            client.updateObject(o2);
+        }
+
 
     }
 

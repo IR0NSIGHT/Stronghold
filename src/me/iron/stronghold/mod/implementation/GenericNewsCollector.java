@@ -2,6 +2,7 @@ package me.iron.stronghold.mod.implementation;
 
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.IAreaEvent;
+import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.schine.graphicsengine.core.Timer;
 
@@ -26,12 +27,12 @@ public class GenericNewsCollector implements IAreaEvent {
     }
 
     @Override
-    public void onChildChanged(AbstractControllableArea parent, AbstractControllableArea child, boolean removed) {
+    public void onChildChanged(AbstractControllableArea parent, SendableUpdateable child, boolean removed) {
        // broadcast("area "+parent.getName()+(removed?" had removed":" was added ")+ "child area "+child.getName());
     }
 
     @Override
-    public void onParentChanged(AbstractControllableArea child, AbstractControllableArea parent, boolean removed) {
+    public void onParentChanged(SendableUpdateable child, AbstractControllableArea parent, boolean removed) {
        // broadcast("area"+child.getName()+" had parent changed: removed?"+removed+" parent: "+parent.getName());
     }
 
