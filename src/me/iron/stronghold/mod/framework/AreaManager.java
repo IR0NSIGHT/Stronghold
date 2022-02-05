@@ -1,10 +1,8 @@
 package me.iron.stronghold.mod.framework;
 
-import org.lwjgl.Sys;
 import org.schema.schine.graphicsengine.core.Timer;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.*;
 
 public class AreaManager extends AbstractControllableArea {
@@ -30,16 +28,15 @@ public class AreaManager extends AbstractControllableArea {
         //collect all children that want to be synched.
         if (container.isEmpty())
             return;
-        try {
-            broadcast("synching server->client");
-            testMain.synchSim(container);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        broadcast("synching server->client");
+        UpdatePacket p = new UpdatePacket();
+        p.addContainer(container);
+        testMain.simulateNetwork(p);
+
     }
 
     @Override
-    public void requestSynchToClient(AbstractControllableArea area) {
+    public void requestSynchToClient(SendableUpdateable area) {
         super.requestSynchToClient(area);
         if (client)
             return;
@@ -52,8 +49,11 @@ public class AreaManager extends AbstractControllableArea {
         super.onChildChanged(parent, child, removed);
         if (client)
             broadcast("child changed on client: class="+child+" name='"+child.getName() +"' was "+(removed?"removed":"added"));
+
         if (removed){
             UID_to_object.remove(child.getUID());
+            if (server && !client)
+                container.addForDeletion(child);
         } else {
             //child was added
             UID_to_object.put(child.getUID(), child);
@@ -75,6 +75,17 @@ public class AreaManager extends AbstractControllableArea {
                 container.addChainForInstantiation(chain);
             }
 
+        }
+    }
+
+    protected void removeObject(long UID) {
+        SendableUpdateable obj = UID_to_object.get(UID);
+        if (obj != null) {
+            SendableUpdateable a = obj.getParent();
+            if (a instanceof AbstractControllableArea) {
+                ((AbstractControllableArea)a).removeChildArea(obj);
+            }
+            obj.destroy();
         }
     }
 

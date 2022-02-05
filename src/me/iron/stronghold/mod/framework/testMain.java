@@ -1,26 +1,20 @@
 package me.iron.stronghold.mod.framework;
 
 import api.mod.config.SimpleSerializerWrapper;
+import api.network.Packet;
 import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
-import me.iron.stronghold.mod.implementation.GenericNewsCollector;
 import me.iron.stronghold.mod.implementation.SectorArea;
 import me.iron.stronghold.mod.implementation.SystemArea;
 import me.iron.stronghold.mod.implementation.VoidShield;
 import org.schema.schine.graphicsengine.core.Timer;
 
 import java.io.*;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class testMain {
-    static AreaManager server;
-    static AreaManager client;
-
-    static long lastUID;
-    private static long getNextUID() {
-        return lastUID++;
-    }
+    public static AreaManager server;
+    public static AreaManager client;
     public static void main(String[] args) throws IOException {
         server = new AreaManager(true, false);
         client = new AreaManager(false, true);
@@ -48,33 +42,35 @@ public class testMain {
         server.update(t);
         v.setActive(false);
         server.update(t);
+        server.removeObject(v.getUID());
+        t.currentTime++;
+        server.update(t);
+        SectorArea child = (SectorArea) myHold.children.get(0);
+        myHold.removeChildArea(child);
+        child.setOwnerFaction(10001);
+        assert !myHold.children.contains(child);
+        t.currentTime++;
+        server.update(t);
+        child.setOwnerFaction(-1);
+        t.currentTime++;
+        server.update(t);
     }
 
-    public static void synchSim(AbstractAreaContainer container) throws IOException {
-        System.out.println("update server->client");
-        AbstractAreaContainer target = new AbstractAreaContainer();
-        readWrite(container,target);
-
-        if (target.getTree() != null)
-            client.instantiateArea(target.getTree(),null);
-        Iterator<SendableUpdateable> it = target.getSynchObjectIterator();
-        while (it.hasNext()) {
-            SendableUpdateable o2 = it.next();
-            client.updateObject(o2);
+    public static void simulateNetwork(Packet object) {
+        try {
+            ByteArrayOutputStream bArray = new ByteArrayOutputStream();
+            PacketWriteBuffer buf = new PacketWriteBuffer(new DataOutputStream(bArray));
+            object.writePacketData(buf);
+            //object is written to buffer
+            //System.out.println("barray='"+Arrays.toString(bArray.toByteArray())+"'");
+            ByteArrayInputStream inputStream = new ByteArrayInputStream( bArray.toByteArray());
+            PacketReadBuffer rb = new PacketReadBuffer(new DataInputStream(inputStream));
+            Packet receiver = object.getClass().newInstance();
+            receiver.readPacketData(rb);
+            receiver.processPacketOnClient();
+        } catch (InstantiationException|IOException|IllegalAccessException e) {
+            e.printStackTrace();
         }
-
-
-    }
-
-    public static void readWrite(SimpleSerializerWrapper object, SimpleSerializerWrapper target) throws IOException {
-        ByteArrayOutputStream bArray = new ByteArrayOutputStream();
-        PacketWriteBuffer buf = new PacketWriteBuffer(new DataOutputStream(bArray));
-        object.onSerialize(buf);
-        //object is written to buffer
-        //System.out.println("barray='"+Arrays.toString(bArray.toByteArray())+"'");
-        ByteArrayInputStream inputStream = new ByteArrayInputStream( bArray.toByteArray());
-        PacketReadBuffer rb = new PacketReadBuffer(new DataInputStream(inputStream));
-        target.onDeserialize(rb);
     }
 
 

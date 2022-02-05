@@ -1,4 +1,4 @@
-package me.iron.stronghold.mod.implementation;
+package me.iron.stronghold.mod.framework;
 
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.IAreaEvent;
@@ -23,12 +23,12 @@ public class GenericNewsCollector implements IAreaEvent {
 
     @Override
     public void onUpdate(AbstractControllableArea area) {
-       // broadcast(area.getName()+" was updated.");
+        broadcast(area.getName()+" was updated by parent "+ (area.getParent()!=null?area.getParent().getName():"null"));
     }
 
     @Override
     public void onChildChanged(AbstractControllableArea parent, SendableUpdateable child, boolean removed) {
-       // broadcast("area "+parent.getName()+(removed?" had removed":" was added ")+ "child area "+child.getName());
+        broadcast("area "+parent.getName()+(removed?" had removed":" was added ")+ "child area "+child.getName());
     }
 
     @Override
@@ -40,7 +40,8 @@ public class GenericNewsCollector implements IAreaEvent {
     public void onAttacked(Timer t, AbstractControllableArea area, int attackerFaction, Vector3i position) {
         broadcast("area " + area.getName() +" is under attack at " + position + " by faction " + attackerFaction);
     }
-    
+
+
     private void broadcast(String mssg) {
         System.out.println(prefix+mssg);
     }

@@ -2,6 +2,7 @@ package me.iron.stronghold.mod.implementation;
 
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
+import org.schema.schine.graphicsengine.core.Timer;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -15,6 +16,11 @@ public class SystemArea extends AbstractControllableArea {
     public SystemArea(){}
     public SystemArea(String name) {
         super(name);
+    }
+
+    @Override
+    public void update(Timer timer) {
+        super.update(timer);
     }
 
     @Override

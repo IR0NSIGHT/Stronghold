@@ -23,3 +23,13 @@ getStrongpoints
 ## effects
 ### voidshield
 strongholds with sufficient defense points can protect their stations with a voidshield. it makes normal shields unbreakable in the whole starsystem/stronghold
+
+
+# TODO
+- abstract framework
+  - centralized structure
+    - can be updated
+    - can be sent
+      - instantiate
+      - synch
+      - delete <<

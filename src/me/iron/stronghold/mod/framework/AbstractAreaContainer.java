@@ -12,6 +12,7 @@ import java.util.Objects;
 
 public class AbstractAreaContainer extends SimpleSerializerWrapper {
     transient private LinkedList<SendableUpdateable> updateObjects = new LinkedList<>();
+    transient private LinkedList<Long> deleteUIDs = new LinkedList<>();
     transient private DummyArea newObjectTree;
     public AbstractAreaContainer() {
         updateObjects = new LinkedList<>();
@@ -19,7 +20,8 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
     public boolean isEmpty() {
         return updateObjects.isEmpty() && newObjectTree == null;
     }
-    public void addForSynch(AbstractControllableArea a) {
+    public void addForSynch(SendableUpdateable a) {
+        System.out.println("added sendable "+a.getName()+" to container for synch.");
         updateObjects.add(a);
     }
 
@@ -54,6 +56,9 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
 
     }
 
+    public void addForDeletion(SendableUpdateable obj) {
+        deleteUIDs.add(obj.getUID());
+    }
     public DummyArea getTree() {
         return newObjectTree;
     }
@@ -66,6 +71,9 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
         return updateObjects.iterator();
     }
 
+    public Iterator<Long> getDeleteUIDIterator() {
+        return deleteUIDs.iterator();
+    }
     @Override
     public void onDeserialize(PacketReadBuffer b) {
         try {
@@ -83,7 +91,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
                 updateObjects.add((SendableUpdateable) o);
             }
 
-
+            deleteUIDs.addAll(b.readLongList());
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -108,6 +116,8 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
                 b.writeObject(dummy);
             }
 
+            b.writeLongList(deleteUIDs);
+            deleteUIDs.clear();
             updateObjects.clear();
             newObjectTree = null;
 

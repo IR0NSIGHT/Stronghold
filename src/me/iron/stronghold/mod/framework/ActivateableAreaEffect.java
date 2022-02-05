@@ -30,6 +30,12 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
     }
 
     @Override
+    protected void destroy() {
+        super.destroy();
+        setActive(false);
+    }
+
+    @Override
     protected void updateFromObject(SendableUpdateable origin) {
         super.updateFromObject(origin);
         if (origin instanceof ActivateableAreaEffect) {

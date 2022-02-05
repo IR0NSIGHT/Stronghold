@@ -43,10 +43,12 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         }
     }
 
-    protected boolean removeChildArea(AbstractControllableArea child) {
+    protected boolean removeChildArea(SendableUpdateable child) {
         boolean out = children.remove(child);
-        if (out)
+        if (out) {
             onChildChanged(this, child, true);
+            child.setParent(null);
+        }
         return out;
     }
 
@@ -86,6 +88,12 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         }
     }
 
+    @Override
+    public void requestSynchToClient(SendableUpdateable area) {
+        super.requestSynchToClient(area);
+        assert this.equals(area)||children.contains(area);
+    }
+
     public void setOwnerFaction(int ownerFaction) {
         int oldVal = this.ownerFaction;
         if (oldVal != ownerFaction) {
@@ -93,6 +101,14 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
             onConquered(this, oldVal);
             requestSynchToClient(this);
         }
+    }
+
+    @Override
+    protected void destroy() {
+        super.destroy();
+        for (SendableUpdateable child: children)
+            child.destroy();
+        children.clear();
     }
 
     @Override

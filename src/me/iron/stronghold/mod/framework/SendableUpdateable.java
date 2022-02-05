@@ -36,12 +36,17 @@ public abstract class SendableUpdateable implements Serializable {
         return parent;
     };
 
+    protected void destroy() {
+        requestSynchToClient(this);
+    }
+
     protected void updateFromObject(SendableUpdateable origin){
         setUID(origin.getUID());
         setName(origin.getName());
     };
 
-    public void requestSynchToClient(AbstractControllableArea area) {
+    public void requestSynchToClient(SendableUpdateable area) {
+    //    System.out.println("request synch for area "+area.getName()+" at level " +this.getName());
         if (this.getParent() != null )
             getParent().requestSynchToClient(area);
     }
