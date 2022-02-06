@@ -33,3 +33,6 @@ strongholds with sufficient defense points can protect their stations with a voi
       - instantiate
       - synch
       - delete <<
+  - area is a defined stellar area
+    - get abstractArea of this sector/position
+    - 
