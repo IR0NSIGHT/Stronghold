@@ -1,12 +1,9 @@
 package me.iron.stronghold.mod.framework;
 
-import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.schine.graphicsengine.core.Timer;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public abstract class AbstractControllableArea extends SendableUpdateable implements IAreaEvent {
     private static long nextID;
@@ -43,7 +40,7 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         }
     }
 
-    protected boolean removeChildArea(SendableUpdateable child) {
+    protected boolean removeChildObject(SendableUpdateable child) {
         boolean out = children.remove(child);
         if (out) {
             onChildChanged(this, child, true);

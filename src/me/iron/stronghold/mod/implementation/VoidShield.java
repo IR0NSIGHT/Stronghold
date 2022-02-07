@@ -4,7 +4,7 @@ import me.iron.stronghold.mod.framework.*;
 import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.schine.graphicsengine.core.Timer;
-
+//will make shields unbreakable if active
 public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
     private int defPoints;
     private int requiredPoints = 60*60; //seconds

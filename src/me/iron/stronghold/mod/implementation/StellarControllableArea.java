@@ -7,7 +7,8 @@ import org.schema.common.util.linAlg.Vector3i;
 public class StellarControllableArea extends AbstractControllableArea {
     //has a position/size that belongs to it.
     private Vector3i[] dimensions = new Vector3i[2];
-    private Vector3i maxDimension = new Vector3i(16*8,16*8,16*8); //in sectors
+    //TODO config value
+    public static Vector3i maxDimension = new Vector3i(16*8,16*8,16*8); //in sectors
 
     public StellarControllableArea(Vector3i start, Vector3i end, String name) {
         super(name);

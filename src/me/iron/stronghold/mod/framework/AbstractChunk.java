@@ -1,7 +1,8 @@
-package me.iron.stronghold.mod.implementation;
+package me.iron.stronghold.mod.framework;
 
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
+import me.iron.stronghold.mod.implementation.StellarControllableArea;
 import org.schema.common.util.linAlg.Vector3i;
 
 import java.util.LinkedList;
@@ -30,6 +31,18 @@ public class AbstractChunk extends AbstractControllableArea {
     protected void addChildObject(SendableUpdateable child) {
         if (!(child instanceof StellarControllableArea)) //reject anything that doesnt have a physical dimension.
             return;
-        super.addChildObject(child);
+        children.add(child);
     }
+
+    @Override
+    protected boolean removeChildObject(SendableUpdateable child) {
+        boolean out =  children.remove(child);
+        System.out.println(""+getName()+" has " + children.size() + " left.");
+        return out;
+    }
+
+    protected boolean isEmpty() {
+        return getChildren().isEmpty();
+    }
+
 }

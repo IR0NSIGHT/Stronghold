@@ -1,5 +1,7 @@
 package me.iron.stronghold.mod.framework;
 
+import org.schema.game.common.data.player.PlayerState;
+import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
 import javax.annotation.Nullable;
@@ -8,6 +10,7 @@ import java.util.*;
 public class AreaManager extends AbstractControllableArea {
     private boolean client;
     private boolean server;
+    private ChunkManager chunkManager = new ChunkManager();
     private AbstractAreaContainer container = new AbstractAreaContainer();
     private HashMap<Long,SendableUpdateable> UID_to_object = new HashMap<>();
     protected AreaManager(boolean isServer, boolean isClient) { //is a singelton (hopefully)
@@ -24,7 +27,7 @@ public class AreaManager extends AbstractControllableArea {
 
     @Override
     public void update(Timer timer) {
-        super.update(timer); //update all children
+        updateLoaded(timer);
         //collect all children that want to be synched.
         if (container.isEmpty())
             return;
@@ -32,6 +35,30 @@ public class AreaManager extends AbstractControllableArea {
         UpdatePacket p = new UpdatePacket();
         p.addContainer(container);
         testMain.simulateNetwork(p);
+    }
+
+    public void updateAll(Timer timer) {
+        for (SendableUpdateable c: children)
+            c.update(timer);
+    }
+
+    /**
+     * will update any direct children (highest level areas) that a player is inside of.
+     * @param timer
+     */
+    public void updateLoaded(Timer timer) {
+        if (GameServerState.instance != null) {
+            //collect all loaded areas => areas that players are currently in.
+            HashSet<SendableUpdateable> loadedAreas = new HashSet<>(GameServerState.instance.getPlayerStatesByName().size()*4);
+            for (PlayerState p: GameServerState.instance.getPlayerStatesByName().values()) {
+                loadedAreas.addAll(chunkManager.getAreasFromSector(p.getCurrentSector()));
+            }
+            for (SendableUpdateable child: getChildren()) {
+                if (loadedAreas.contains(child)) {
+                    child.update(timer);
+                }
+            }
+        }
 
     }
 
@@ -83,7 +110,7 @@ public class AreaManager extends AbstractControllableArea {
         if (obj != null) {
             SendableUpdateable a = obj.getParent();
             if (a instanceof AbstractControllableArea) {
-                ((AbstractControllableArea)a).removeChildArea(obj);
+                ((AbstractControllableArea)a).removeChildObject(obj);
             }
             obj.destroy();
         }

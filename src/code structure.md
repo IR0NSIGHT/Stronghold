@@ -34,5 +34,6 @@ strongholds with sufficient defense points can protect their stations with a voi
       - synch
       - delete <<
   - area is a defined stellar area
-    - get abstractArea of this sector/position
-    - 
+    - get abstractArea of this sector/position <<
+  - centralized update for all areas through areaManager
+  - specific update for loaded chunks through chunkManager
