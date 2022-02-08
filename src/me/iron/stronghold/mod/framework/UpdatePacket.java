@@ -31,21 +31,7 @@ public class UpdatePacket extends Packet {
     @Override
     public void processPacketOnClient() {
         AreaManager client = testMain.client;
-        //instantiate tree structure of empty object
-        if (container.getTree() != null)
-            client.instantiateArea(container.getTree(),null);
-
-        //update objects with values
-        Iterator<SendableUpdateable> it = container.getSynchObjectIterator();
-        while (it.hasNext()) {
-            SendableUpdateable o2 = it.next();
-            client.updateObject(o2);
-        }
-
-        Iterator<Long> delete = container.getDeleteUIDIterator();
-        while (delete.hasNext()) {
-            client.removeObject(delete.next());
-        }
+        client.loadFromContainer(container);
     }
 
     @Override

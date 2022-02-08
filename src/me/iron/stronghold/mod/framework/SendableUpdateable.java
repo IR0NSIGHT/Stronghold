@@ -16,7 +16,7 @@ public abstract class SendableUpdateable implements Serializable {
     }
 
     protected void update(Timer t){};
-    protected long getUID(){
+    public long getUID(){
         return UID;
     };
     protected void setUID(long UID){
@@ -62,5 +62,14 @@ public abstract class SendableUpdateable implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(UID);
+    }
+
+    @Override
+    public String toString() {
+        return "SendableUpdateable{" +
+                "UID=" + UID +
+                ", name='" + name + '\'' +
+                ", class=" + getClass().getSimpleName() +
+                '}';
     }
 }

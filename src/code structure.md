@@ -37,3 +37,8 @@ strongholds with sufficient defense points can protect their stations with a voi
     - get abstractArea of this sector/position <<
   - centralized update for all areas through areaManager
   - specific update for loaded chunks through chunkManager
+
+# ISSUES
+saves and loads properly BUT denies instantiating areas upon onServerccreated load from POU.
+Possibly related if old manager UID doesnt fit the new manager?
+

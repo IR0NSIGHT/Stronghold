@@ -1,9 +1,12 @@
 package me.iron.stronghold.mod.framework;
 
+import api.ModPlayground;
+import api.utils.game.PlayerUtils;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.IAreaEvent;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
 public class GenericNewsCollector implements IAreaEvent {
@@ -43,6 +46,9 @@ public class GenericNewsCollector implements IAreaEvent {
 
 
     private void broadcast(String mssg) {
+        if (GameServerState.instance!=null) {
+            ModPlayground.broadcastMessage(mssg);
+        }
         System.out.println(prefix+mssg);
     }
 }

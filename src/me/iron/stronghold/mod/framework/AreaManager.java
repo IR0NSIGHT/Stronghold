@@ -1,5 +1,12 @@
 package me.iron.stronghold.mod.framework;
 
+import api.DebugFile;
+import api.mod.StarMod;
+import api.mod.config.PersistentObjectUtil;
+import api.utils.StarRunnable;
+import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.implementation.StellarControllableArea;
+import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
@@ -10,14 +17,95 @@ import java.util.*;
 public class AreaManager extends AbstractControllableArea {
     private boolean client;
     private boolean server;
+    private final Timer timer = new Timer();
     private ChunkManager chunkManager = new ChunkManager();
     private AbstractAreaContainer container = new AbstractAreaContainer();
     private HashMap<Long,SendableUpdateable> UID_to_object = new HashMap<>();
-    protected AreaManager(boolean isServer, boolean isClient) { //is a singelton (hopefully)
+    public AreaManager() { //is a singelton (hopefully)
         super("AbstractAreaManager");
         UID_to_object.put(getUID(),this);
-        server = isServer;
-        client = isClient;
+        assert getUID() == -1;
+        addListener(chunkManager);
+    }
+    public void setServer(StarMod m){
+        server = true;
+        new StarRunnable(){
+            @Override
+            public void run() {
+                if (timer.currentTime + 5000<System.currentTimeMillis()) {
+                    update(timer);
+                }
+            }
+        }.runTimer(m,10);
+        load();
+    };
+
+    public void setClient(){
+        client = true;
+    };
+
+    public void onShutdown() {
+        if (server) {
+            save();
+        }
+        //destroy();
+    }
+
+    public void load() {
+        if (ModMain.instance != null) {
+            ArrayList<Object> os = PersistentObjectUtil.getObjects(ModMain.instance.getSkeleton(), container.getClass());
+            if (!os.isEmpty())
+                loadFromContainer ((AbstractAreaContainer)os.get(0));
+        }
+    }
+
+    public void clear() {
+        UID_to_object.clear();
+        children.clear();
+    }
+
+    public void loadFromContainer(AbstractAreaContainer container) {
+        broadcast("load from container.");
+        //instantiate tree structure of empty object
+        if (container.getTree() != null) {
+            broadcast("instantiate from tree, start with"+container.getTree().className);
+            this.instantiateArea(container.getTree(),null);
+
+        }
+        else
+            broadcast("nothing to instantiate from container.");
+
+        //update objects with values
+        Iterator<SendableUpdateable> it = container.getSynchObjectIterator();
+        while (it.hasNext()) {
+            SendableUpdateable o2 = it.next();
+            this.updateObject(o2);
+        }
+
+        Iterator<Long> delete = container.getDeleteUIDIterator();
+        while (delete.hasNext()) {
+            this.removeObject(delete.next());
+        }
+    }
+
+    public void save() {
+        //the saving is basically all code reused from the network synching.
+        if (ModMain.instance != null) {
+            //update all areas on last time
+            update(timer);
+            //mark all areas as synch so they get saved to container.
+            AbstractAreaContainer container = new AbstractAreaContainer();
+            for (SendableUpdateable su: UID_to_object.values()) {
+                if (su.equals(this))
+                    continue;
+                container.addForInstantiation(su);
+                container.addForSynch(su);
+            }
+            //save the whole container.
+            PersistentObjectUtil.removeAllObjects(ModMain.instance.getSkeleton(), container.getClass());
+            PersistentObjectUtil.addObject(ModMain.instance.getSkeleton(), container);
+            PersistentObjectUtil.save(ModMain.instance.getSkeleton());
+        }
     }
 
     @Override
@@ -27,14 +115,17 @@ public class AreaManager extends AbstractControllableArea {
 
     @Override
     public void update(Timer timer) {
+        timer.lastUpdate = timer.currentTime;
+        timer.currentTime = System.currentTimeMillis();
         updateLoaded(timer);
         //collect all children that want to be synched.
-        if (container.isEmpty())
+        if (container.isEmpty() || client)
             return;
         broadcast("synching server->client");
         UpdatePacket p = new UpdatePacket();
         p.addContainer(container);
-        testMain.simulateNetwork(p);
+        p.sendToAll();
+        //testMain.simulateNetwork(p);
     }
 
     public void updateAll(Timer timer) {
@@ -63,6 +154,11 @@ public class AreaManager extends AbstractControllableArea {
     }
 
     @Override
+    public void addChildObject(SendableUpdateable child) {
+        super.addChildObject(child);
+    }
+
+    @Override
     public void requestSynchToClient(SendableUpdateable area) {
         super.requestSynchToClient(area);
         if (client)
@@ -88,18 +184,8 @@ public class AreaManager extends AbstractControllableArea {
             //    System.out.println("child added, make a chain: " + child.getName());
                 //request that clientmanager instantiates an empty child and creates the parent->child and child->parent connections.
                 //collect parent chain from child to manager and the parents classes
-                LinkedList<SendableUpdateable> chain = new LinkedList<>();
-                SendableUpdateable iterator = child;
-                while (iterator.getParent() != null) {
-                    chain.add(iterator);
-                   //  System.out.print(iterator.getName()+">>");
-                    iterator = iterator.getParent();
-                }
-                //System.out.println(""+iterator.getName());
-                chain.add(iterator);
-                Collections.reverse(chain); //manager->...->child
-                assert iterator.equals(this); //all areas MUST be children of the manager.
-                container.addChainForInstantiation(chain);
+
+                container.addForInstantiation(child);
             }
 
         }
@@ -119,10 +205,10 @@ public class AreaManager extends AbstractControllableArea {
     protected void updateObject(SendableUpdateable area) {
         long UID = area.getUID();
         SendableUpdateable target= UID_to_object.get(UID);
+        assert target.getClass().getName().equals(area.getClass().getName());
         if (target != null) {
             target.updateFromObject(area);
             broadcast("updating object "+target.getName());
-
         } else {
             System.err.println("area "+area.getName()+"("+area.getUID()+") has no local counterpart. cant update.");
         }
@@ -144,7 +230,10 @@ public class AreaManager extends AbstractControllableArea {
         }
         //manager->parent->...->parent->child/leaf
         //UID is unknown, parent UID is known.
-        if (!UID_to_object.containsKey(UID) && UID_to_object.containsKey(parent)) {
+        if (UID_to_object.containsKey(UID)) {
+            System.out.println("warning: instantiating area with existing UID. predecessor: "+UID_to_object.get(UID)+" new obj:"+dummy);
+        }
+        if (UID_to_object.containsKey(parent)) {
             try {
                 Class<?> clazz = Class.forName(className);
                 Object o = clazz.newInstance();
@@ -165,10 +254,17 @@ public class AreaManager extends AbstractControllableArea {
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
             }
+        } else {
+            broadcast("denied instantiating area: "+dummy.UID+" "+dummy.className+" bc parent dont match or UID already known.");
         }
     }
 
     private void broadcast(String mssg) {
-    //    System.out.println("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
+        System.out.println("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
+        DebugFile.log("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
+    }
+
+    public LinkedList<StellarControllableArea> getAreaFromSector(Vector3i sector) {
+        return chunkManager.getAreasFromSector(sector);
     }
 }

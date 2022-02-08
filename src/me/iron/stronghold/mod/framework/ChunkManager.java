@@ -111,19 +111,21 @@ public class ChunkManager implements IAreaEvent {
     }
 
     private LinkedList<Vector3i> getChunkGridsForArea(StellarControllableArea area) {
-        Vector3i start = new Vector3i(area.getDimensionsStart());
-        Vector3i end = new Vector3i(area.getDimensionsEnd());
-        mutateToGrid(start);
-        mutateToGrid(end);
         LinkedList<Vector3i> chunks = new LinkedList<>();
-        for (int x = start.x; x <= end.x; x++) {
-            for (int y = start.y; y <= end.y; y++) {
-                for (int z = start.z; z <= end.z; z++) {
-                    chunks.add(new Vector3i(x,y,z));
+        if (area.getDimensionsEnd()!=null&&area.getDimensionsStart()!=null) {
+            Vector3i start = new Vector3i(area.getDimensionsStart());
+            Vector3i end = new Vector3i(area.getDimensionsEnd());
+            mutateToGrid(start);
+            mutateToGrid(end);
+            for (int x = start.x; x <= end.x; x++) {
+                for (int y = start.y; y <= end.y; y++) {
+                    for (int z = start.z; z <= end.z; z++) {
+                        chunks.add(new Vector3i(x,y,z));
+                    }
                 }
             }
+            assert chunks.size()>0;
         }
-        assert chunks.size()>0;
         return chunks;
     }
 
