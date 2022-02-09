@@ -40,6 +40,11 @@ public class AreaManager extends AbstractControllableArea {
         load();
     };
 
+    @Override
+    public long getUID() {
+        return -1; //area manager has a locked UID, its a singelton and should be constant across machines and restarts.
+    }
+
     public void setClient(){
         client = true;
     };
@@ -54,8 +59,10 @@ public class AreaManager extends AbstractControllableArea {
     public void load() {
         if (ModMain.instance != null) {
             ArrayList<Object> os = PersistentObjectUtil.getObjects(ModMain.instance.getSkeleton(), container.getClass());
-            if (!os.isEmpty())
+            if (!os.isEmpty()) {
+                clear();
                 loadFromContainer ((AbstractAreaContainer)os.get(0));
+            }
         }
     }
 
@@ -70,7 +77,6 @@ public class AreaManager extends AbstractControllableArea {
         if (container.getTree() != null) {
             broadcast("instantiate from tree, start with"+container.getTree().className);
             this.instantiateArea(container.getTree(),null);
-
         }
         else
             broadcast("nothing to instantiate from container.");
@@ -216,12 +222,11 @@ public class AreaManager extends AbstractControllableArea {
 
     //will refuse to add any areas that it doesnt know the parent of.
     protected void instantiateArea(AbstractAreaContainer.DummyArea dummy,@Nullable Long parent) {
-        if (!client)
-            return;
         long UID = dummy.UID;
         String className = dummy.className;
         broadcast("instantiate area: UID=" + UID +" ,class="+ className );
-        if (parent == null && className.equals(getClass().getName())) {
+        if (parent == null && className.equals(getClass().getName())) { //is new object a singelton, and exists already with a different UID?
+            //c
             UID_to_object.put(UID, this);
             //broadcast("no parent, recurse");
             for (AbstractAreaContainer.DummyArea child: dummy.children)
@@ -237,20 +242,20 @@ public class AreaManager extends AbstractControllableArea {
             try {
                 Class<?> clazz = Class.forName(className);
                 Object o = clazz.newInstance();
-                if (o instanceof SendableUpdateable) {
-                    AbstractControllableArea parentObj = (AbstractControllableArea)UID_to_object.get(parent);
-                    SendableUpdateable child = (SendableUpdateable) o;
-                    child.setUID(UID);
-                    //broadcast("instantiating child type " + className + " to parent type " + parentObj.getClass().getName());
-                    //link parent and child
-                    parentObj.addChildObject(child);
+                assert o instanceof SendableUpdateable:"instantiated new object is not a sendableUpdatable:"+o.getClass().getName();
+                AbstractControllableArea parentObj = (AbstractControllableArea)UID_to_object.get(parent);
+                SendableUpdateable child = (SendableUpdateable) o;
+                child.setUID(UID);
+                //broadcast("instantiating child type " + className + " to parent type " + parentObj.getClass().getName());
+                //link parent and child
+                parentObj.addChildObject(child);
 
-                    UID_to_object.put(UID,child);
-                    //recurse
-                    for (AbstractAreaContainer.DummyArea childX: dummy.children) {
-                        instantiateArea(childX, UID);
-                    }
+                UID_to_object.put(UID,child);
+                //recurse
+                for (AbstractAreaContainer.DummyArea childX: dummy.children) {
+                    instantiateArea(childX, UID);
                 }
+
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
             }
