@@ -1,8 +1,12 @@
 package me.iron.stronghold.mod.framework;
 
 import api.DebugFile;
+import api.listener.Listener;
+import api.listener.events.player.PlayerJoinWorldEvent;
+import api.mod.StarLoader;
 import api.mod.StarMod;
 import api.mod.config.PersistentObjectUtil;
+import api.network.packets.PacketUtil;
 import api.utils.StarRunnable;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.implementation.StellarControllableArea;
@@ -38,6 +42,27 @@ public class AreaManager extends AbstractControllableArea {
             }
         }.runTimer(m,10);
         load();
+        StarLoader.registerListener(PlayerJoinWorldEvent.class, new Listener<PlayerJoinWorldEvent>() {
+            @Override
+            public void onEvent(PlayerJoinWorldEvent playerJoinWorldEvent) {
+                final String playername = playerJoinWorldEvent.getPlayerName();
+                new StarRunnable(){
+                    @Override
+                    public void run() {
+                        if (GameServerState.instance.getPlayerStatesByName().containsKey(playername)) {
+                            AbstractAreaContainer c = new AbstractAreaContainer();
+                            addAllToContainer(c);
+                            UpdatePacket up= new UpdatePacket();
+                            up.addContainer(c);
+                            PlayerState p = GameServerState.instance.getPlayerStatesByName().get(playername);
+                            PacketUtil.sendPacket(p, up);
+                            cancel();
+                        }
+                    }
+                }.runTimer(ModMain.instance,10);
+
+            }
+        },ModMain.instance);
     };
 
     @Override
@@ -47,6 +72,12 @@ public class AreaManager extends AbstractControllableArea {
 
     public void setClient(){
         client = true;
+        new StarRunnable(){
+            @Override
+            public void run() {
+                update(t);
+            }
+        }.runTimer(ModMain.instance,100);
     };
 
     public void onShutdown() {
@@ -57,7 +88,7 @@ public class AreaManager extends AbstractControllableArea {
     }
 
     public void load() {
-        if (ModMain.instance != null) {
+        if (ModMain.instance != null && server) {
             ArrayList<Object> os = PersistentObjectUtil.getObjects(ModMain.instance.getSkeleton(), container.getClass());
             if (!os.isEmpty()) {
                 clear();
@@ -81,12 +112,16 @@ public class AreaManager extends AbstractControllableArea {
         else
             broadcast("nothing to instantiate from container.");
 
+        broadcast("Loading: after instantiation:\n"+printObject(this));
+
         //update objects with values
         Iterator<SendableUpdateable> it = container.getSynchObjectIterator();
         while (it.hasNext()) {
             SendableUpdateable o2 = it.next();
             this.updateObject(o2);
         }
+
+        broadcast("Loading: After synching:\n"+printObject(this));
 
         Iterator<Long> delete = container.getDeleteUIDIterator();
         while (delete.hasNext()) {
@@ -101,16 +136,20 @@ public class AreaManager extends AbstractControllableArea {
             update(timer);
             //mark all areas as synch so they get saved to container.
             AbstractAreaContainer container = new AbstractAreaContainer();
-            for (SendableUpdateable su: UID_to_object.values()) {
-                if (su.equals(this))
-                    continue;
-                container.addForInstantiation(su);
-                container.addForSynch(su);
-            }
+            addAllToContainer(container);
             //save the whole container.
             PersistentObjectUtil.removeAllObjects(ModMain.instance.getSkeleton(), container.getClass());
             PersistentObjectUtil.addObject(ModMain.instance.getSkeleton(), container);
             PersistentObjectUtil.save(ModMain.instance.getSkeleton());
+        }
+    }
+
+    private void addAllToContainer(AbstractAreaContainer container) {
+        for (SendableUpdateable su: UID_to_object.values()) {
+            if (su.equals(this))
+                continue;
+            container.addForInstantiation(su);
+            container.addForSynch(su);
         }
     }
 
@@ -197,6 +236,21 @@ public class AreaManager extends AbstractControllableArea {
         }
     }
 
+    @Override
+    public void beforeDestroy(AbstractControllableArea area) {
+        super.beforeDestroy(area);
+        for (IAreaEvent e: listeners) {
+            e.beforeDestroy(area);
+        }
+    }
+
+    @Override
+    public void onOverwrite(AbstractControllableArea area) {
+        for (IAreaEvent e: listeners) {
+            e.onOverwrite(area);
+        }
+    }
+
     protected void removeObject(long UID) {
         SendableUpdateable obj = UID_to_object.get(UID);
         if (obj != null) {
@@ -227,7 +281,7 @@ public class AreaManager extends AbstractControllableArea {
         broadcast("instantiate area: UID=" + UID +" ,class="+ className );
         if (parent == null && className.equals(getClass().getName())) { //is new object a singelton, and exists already with a different UID?
             //c
-            UID_to_object.put(UID, this);
+            UID_to_object.put(UID, this); //schreibe selbst an parent UID im dictionary.
             //broadcast("no parent, recurse");
             for (AbstractAreaContainer.DummyArea child: dummy.children)
                 instantiateArea(child, UID);
@@ -246,7 +300,7 @@ public class AreaManager extends AbstractControllableArea {
                 AbstractControllableArea parentObj = (AbstractControllableArea)UID_to_object.get(parent);
                 SendableUpdateable child = (SendableUpdateable) o;
                 child.setUID(UID);
-                //broadcast("instantiating child type " + className + " to parent type " + parentObj.getClass().getName());
+                broadcast("instantiating child type " + className + " to parent type " + parentObj.getClass().getName());
                 //link parent and child
                 parentObj.addChildObject(child);
 
@@ -271,5 +325,23 @@ public class AreaManager extends AbstractControllableArea {
 
     public LinkedList<StellarControllableArea> getAreaFromSector(Vector3i sector) {
         return chunkManager.getAreasFromSector(sector);
+    }
+
+    public String printObject(SendableUpdateable su) {
+        return printRecursion(su,"");
+    }
+
+    private String printRecursion(SendableUpdateable su, String prefix) {
+        StringBuilder out = new StringBuilder(prefix + su.toString()+"\n");
+        if (su instanceof AbstractControllableArea) {
+            int max = ((AbstractControllableArea) su).getChildren().size();
+            for (int i = 0; i < max; i++) {
+                SendableUpdateable c = ((AbstractControllableArea) su).getChildren().get(i);
+                out.append(printRecursion(c, prefix + "\t"));
+                if (i != 0 && i != max-1)
+                    out.append("\n");
+            }
+        }
+        return out.toString();
     }
 }

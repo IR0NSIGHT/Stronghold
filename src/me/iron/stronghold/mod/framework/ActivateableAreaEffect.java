@@ -7,6 +7,15 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
 
     boolean active;
 
+    /**
+     * can this effect be set to x
+     * @param to desired state to test
+     * @return
+     */
+    protected boolean canToggle(boolean to) {
+        return true;
+    }
+
     protected void onActivate(ActivateableAreaEffect effect) {
         System.out.println(getName()+" activated");
     }
@@ -20,7 +29,7 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
     }
 
     protected void setActive(boolean active) {
-        if (isActive()!=active) {
+        if (isActive()!=active && canToggle(active)) {
             this.active = active;
             if (isActive())
                 onActivate(this);
@@ -36,8 +45,8 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
     }
 
     @Override
-    protected void updateFromObject(SendableUpdateable origin) {
-        super.updateFromObject(origin);
+    protected void synch(SendableUpdateable origin) {
+        super.synch(origin);
         if (origin instanceof ActivateableAreaEffect) {
             setActive (((ActivateableAreaEffect) origin).isActive());
         }

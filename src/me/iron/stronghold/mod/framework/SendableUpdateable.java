@@ -40,7 +40,11 @@ public abstract class SendableUpdateable implements Serializable {
         requestSynchToClient(this);
     }
 
-    protected void updateFromObject(SendableUpdateable origin){
+    public void updateFromObject(SendableUpdateable origin) { //yes a wrapper, its necessary.
+        synch(origin);//gets overritten by descendendats
+    }
+
+    protected void synch(SendableUpdateable origin){
         setUID(origin.getUID());
         setName(origin.getName());
     };
@@ -66,10 +70,8 @@ public abstract class SendableUpdateable implements Serializable {
 
     @Override
     public String toString() {
-        return "SendableUpdateable{" +
-                "UID=" + UID +
-                ", name='" + name + '\'' +
-                ", class=" + getClass().getSimpleName() +
-                '}';
+        return getClass().getSimpleName() +"{" +
+                "UID=" + getUID() +
+                ", name='" + getName() + '\'';
     }
 }

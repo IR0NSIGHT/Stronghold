@@ -16,6 +16,32 @@ public class ChunkManager implements IAreaEvent {
         chunks = new AbstractChunk[128*128*128/(systemsPerGrid*systemsPerGrid*systemsPerGrid)];
     }
 
+    @Override
+    public void beforeOverwrite(AbstractControllableArea area) {
+        if (area instanceof StellarControllableArea) {
+            removeArea((StellarControllableArea)area);
+        }
+    }
+
+    @Override
+    public void onOverwrite(AbstractControllableArea area) {
+        //area had major value changes, chunks might be changed =>
+        if (area instanceof StellarControllableArea) {
+            addArea((StellarControllableArea) area);
+        }
+    }
+
+    @Override
+    public void beforeDestroy(AbstractControllableArea area) {
+        //called by stellar areas BEFORE they have their values killed
+        if (area instanceof StellarControllableArea)
+            removeArea((StellarControllableArea) area);
+    }
+
+    @Override
+    public void onDestroy(AbstractControllableArea area) {
+
+    }
 
     private static void mutateToGrid(Vector3i sector) {
         //to system
@@ -62,7 +88,7 @@ public class ChunkManager implements IAreaEvent {
                 addArea((StellarControllableArea) child);
             } else {
                 System.out.println("remove stellar area from chunk");
-
+                removeArea((StellarControllableArea) child);
             }
         }
     }
@@ -73,7 +99,7 @@ public class ChunkManager implements IAreaEvent {
     }
 
     @Override
-    public void onAttacked(Timer t, AbstractControllableArea area, int attackerFaction, Vector3i position) {
+    public void onAttacked(long time, AbstractControllableArea area, int attackerFaction, Vector3i position) {
 
     }
 

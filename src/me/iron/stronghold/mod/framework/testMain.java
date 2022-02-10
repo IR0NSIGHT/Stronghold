@@ -7,14 +7,15 @@ import api.network.PacketWriteBuffer;
 import me.iron.stronghold.mod.ModMain;
 import java.io.*;
 import java.util.LinkedList;
+import java.util.Random;
 
 public class testMain {
     public static AreaManager server;
     public static AreaManager client;
     public static void main(String[] args) throws IOException {
-        new ModMain().onEnable();
-        new ModMain().onServerCreated(null);
-        new ModMain().onClientCreated(null);
+     //  new ModMain().onEnable();
+     //  new ModMain().onServerCreated(null);
+     //  new ModMain().onClientCreated(null);
     }
 
     public static void simulateNetwork(Packet object) {

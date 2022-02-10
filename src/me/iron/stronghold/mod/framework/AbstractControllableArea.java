@@ -102,10 +102,40 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
 
     @Override
     protected void destroy() {
+        beforeDestroy(this);
         super.destroy();
         for (SendableUpdateable child: children)
             child.destroy();
         children.clear();
+        onDestroy(this);
+    }
+
+    @Override
+    public void beforeDestroy(AbstractControllableArea area) {
+        if (getParent() instanceof AbstractControllableArea) {
+            ((AbstractControllableArea) getParent()).beforeDestroy(area);
+        }
+    }
+
+    @Override
+    public void onDestroy(AbstractControllableArea area) {
+        if (getParent() instanceof AbstractControllableArea) {
+            ((AbstractControllableArea) getParent()).onDestroy(area);
+        }
+    }
+
+    @Override
+    public void beforeOverwrite(AbstractControllableArea area) {
+        if (getParent() instanceof AbstractControllableArea) {
+            ((AbstractControllableArea) getParent()).beforeOverwrite(area);
+        }
+    }
+
+    @Override
+    public void onOverwrite(AbstractControllableArea area) {
+        if (getParent() instanceof AbstractControllableArea) {
+            ((AbstractControllableArea) getParent()).onOverwrite(area);
+        }
     }
 
     @Override
@@ -150,8 +180,9 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
             ((IAreaEvent)getParent()).onParentChanged(child,parent,removed);
     }
 
+    Timer t = new Timer();
     @Override
-    public void onAttacked(Timer t, AbstractControllableArea area, int attackerFaction, Vector3i position) {
+    public void onAttacked(long time, AbstractControllableArea area, int attackerFaction, Vector3i position) {
         if (this.equals(area)) { //only broadcast every 30 seconds for this area
             if (t.currentTime-lastAttackMssg<1000*30) {
                 setLastAttacked(t.currentTime);
@@ -160,10 +191,10 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
             lastAttackMssg = t.currentTime;
         }
         for (IAreaEvent e: listeners) {
-            e.onAttacked(t, area, attackerFaction, position);
+            e.onAttacked(time, area, attackerFaction, position);
         }
         if (this.getParent() != null && getParent() instanceof IAreaEvent)
-            ((IAreaEvent)getParent()).onAttacked(t,area,attackerFaction,position);
+            ((IAreaEvent)getParent()).onAttacked(time,area,attackerFaction,position);
     }
 
     public long getLastAttacked() {
@@ -177,12 +208,19 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         }
     }
 
+    @Override
+    public void updateFromObject(SendableUpdateable origin) {
+        beforeOverwrite(this);
+        super.updateFromObject(origin);
+        onOverwrite(this);
+    }
+
     /**
      * value clones input object into this object
      * @param a
      */
     @Override
-    public void updateFromObject(SendableUpdateable a) {
+    public void synch(SendableUpdateable a) {
         if (a instanceof AbstractControllableArea) {
             AbstractControllableArea area = (AbstractControllableArea)a;
             setName(area.getName());
@@ -190,6 +228,10 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
             setOwnerFaction(area.ownerFaction);
             setCanBeConquered(area.canBeConquered);
         }
+    }
 
+    @Override
+    public String toString() {
+        return super.toString()+", ownerF="+ getOwnerFaction();
     }
 }

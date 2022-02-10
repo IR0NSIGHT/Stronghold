@@ -1,13 +1,7 @@
 package me.iron.stronghold.mod.framework;
 
-import api.ModPlayground;
-import api.utils.game.PlayerUtils;
-import me.iron.stronghold.mod.framework.AbstractControllableArea;
-import me.iron.stronghold.mod.framework.IAreaEvent;
-import me.iron.stronghold.mod.framework.SendableUpdateable;
+import api.DebugFile;
 import org.schema.common.util.linAlg.Vector3i;
-import org.schema.game.server.data.GameServerState;
-import org.schema.schine.graphicsengine.core.Timer;
 
 public class GenericNewsCollector implements IAreaEvent {
     private String prefix;
@@ -26,7 +20,27 @@ public class GenericNewsCollector implements IAreaEvent {
 
     @Override
     public void onUpdate(AbstractControllableArea area) {
-        broadcast(area.getName()+" was updated by parent "+ (area.getParent()!=null?area.getParent().getName():"null"));
+        //broadcast(area.getName()+" was updated by parent "+ (area.getParent()!=null?area.getParent().getName():"null"));
+    }
+
+    @Override
+    public void beforeOverwrite(AbstractControllableArea area) {
+
+    }
+
+    @Override
+    public void onOverwrite(AbstractControllableArea area) {
+
+    }
+
+    @Override
+    public void beforeDestroy(AbstractControllableArea area) {
+
+    }
+
+    @Override
+    public void onDestroy(AbstractControllableArea area) {
+
     }
 
     @Override
@@ -36,19 +50,20 @@ public class GenericNewsCollector implements IAreaEvent {
 
     @Override
     public void onParentChanged(SendableUpdateable child, AbstractControllableArea parent, boolean removed) {
-       // broadcast("area"+child.getName()+" had parent changed: removed?"+removed+" parent: "+parent.getName());
+        broadcast("area"+child.getName()+" had parent changed: removed?"+removed+" parent: "+parent.getName());
     }
 
     @Override
-    public void onAttacked(Timer t, AbstractControllableArea area, int attackerFaction, Vector3i position) {
+    public void onAttacked(long time, AbstractControllableArea area, int attackerFaction, Vector3i position) {
         broadcast("area " + area.getName() +" is under attack at " + position + " by faction " + attackerFaction);
     }
 
 
     private void broadcast(String mssg) {
-        if (GameServerState.instance!=null) {
-            ModPlayground.broadcastMessage(mssg);
-        }
+        //if (GameServerState.instance!=null) {
+        //    ModPlayground.broadcastMessage(mssg);
+        //}
         System.out.println(prefix+mssg);
+        DebugFile.log(prefix+mssg);
     }
 }

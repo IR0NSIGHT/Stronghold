@@ -4,6 +4,7 @@ import api.network.Packet;
 import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
 import api.network.packets.PacketUtil;
+import me.iron.stronghold.mod.ModMain;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.server.data.GameServerState;
 
@@ -30,8 +31,7 @@ public class UpdatePacket extends Packet {
 
     @Override
     public void processPacketOnClient() {
-        AreaManager client = testMain.client;
-        client.loadFromContainer(container);
+        ModMain.areaManager.loadFromContainer(container);
     }
 
     @Override

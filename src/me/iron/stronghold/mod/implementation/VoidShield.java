@@ -1,5 +1,6 @@
 package me.iron.stronghold.mod.implementation;
 
+import api.DebugFile;
 import me.iron.stronghold.mod.framework.*;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.damage.DamageDealerType;
@@ -19,19 +20,39 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
     private int defPoints;
     private int requiredPoints = 60*60; //seconds
     transient private long lastUpdate;
-
+    private boolean sendMssg;
     public VoidShield() {
         super("VoidShield");
-        shields.add(this);
     }
 
     public double handleShieldHit(ShieldAddOn shieldAddOn, Damager damager, InterEffectSet defenseSet, Vector3f hitPoint, int projectileSectorId, DamageDealerType damageType, HitType hitType, double damage, long weaponId) throws SectorNotFoundException {
+        if (sendMssg && getParent() instanceof AbstractControllableArea) {
+            sendMssg = true;
+            onAttacked(lastUpdate, (AbstractControllableArea) getParent(), damager.getFactionId(), damager.getShootingEntity().getSector(new Vector3i()));
+        }
         return damage;
     }
 
     @Override
+    public void onOverwrite(AbstractControllableArea area) {
+
+    }
+
+    @Override
+    public void beforeDestroy(AbstractControllableArea area) {
+
+    }
+
+    boolean init;
+
+    @Override
     public void update(Timer timer) {
         super.update(timer);
+        if (!init) {
+            init = true;
+            shields.add(this);
+        }
+        sendMssg = false;
         if (getParent() instanceof StellarControllableArea && ((AbstractControllableArea)getParent()).getOwnerFaction() != 0) {
             long seconds = (timer.currentTime-lastUpdate)/1000;
             lastUpdate = timer.lastUpdate;
@@ -43,8 +64,8 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
     }
 
     @Override
-    public void updateFromObject(SendableUpdateable origin) {
-        super.updateFromObject(origin);
+    public void synch(SendableUpdateable origin) {
+        super.synch(origin);
         if (origin instanceof VoidShield) {
             VoidShield v = (VoidShield) origin;
             lastUpdate = v.lastUpdate;
@@ -58,8 +79,17 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
         shields.remove(this);
     }
 
+    @Override
+    public void onDestroy(AbstractControllableArea area) {
+
+    }
+
+    @Override
+    public void beforeOverwrite(AbstractControllableArea area) {
+
+    }
+
     private void reset() {
-        //System.out.println("VoidShield for area " + parent.getName() + " was reset");
         defPoints = 0;
         setActive(false);
     }
@@ -99,7 +129,8 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
     }
 
     @Override
-    public void onAttacked(Timer t, AbstractControllableArea area, int attackerFaction, Vector3i position) {
-        System.out.println("VoidShield under fire by " + attackerFaction);
+    public void onAttacked(long t, AbstractControllableArea area, int attackerFaction, Vector3i position) {
+        if (getParent() instanceof IAreaEvent)
+            ((IAreaEvent) getParent()).onAttacked(t,area,attackerFaction, position);
     }
 }

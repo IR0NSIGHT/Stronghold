@@ -10,5 +10,8 @@ public abstract class AbstractAreaEffect extends SendableUpdateable{
         super(AreaManager.getNextID(), name);
     }
 
-    public void update(Timer timer) {}
+    public void update(Timer timer) {
+        assert getParent() != null;
+        super.update(timer);
+    }
 }

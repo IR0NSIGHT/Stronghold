@@ -28,7 +28,7 @@ public class DebugUI implements CommandInterface {
 
     @Override
     public String getDescription() {
-        return "debug command: pve system 10 10 10\nprint_all\nget_area";
+        return "debug command: pve system 10 10 10\nprint\nget_area";
     }
 
     @Override
@@ -55,7 +55,7 @@ public class DebugUI implements CommandInterface {
             int multiply = 1;
             if (strings[1].equalsIgnoreCase("system"))
                 multiply = VoidSystem.SYSTEM_SIZE;
-            Vector3i start = playerState.getCurrentSector();
+            Vector3i start = new Vector3i(playerState.getCurrentSector());
             int x = Integer.parseInt(strings[2]), y =Integer.parseInt(strings[3]), z = Integer.parseInt(strings[4]);
             Vector3i end = new Vector3i(x,y,z);
             end.scale(multiply);
@@ -68,12 +68,10 @@ public class DebugUI implements CommandInterface {
             return true;
         }
         //print_all
-        if (strings.length==1&&strings[0].equalsIgnoreCase("print_all")) {
-            StringBuilder b =  new StringBuilder("AreaManager has has these areas:\n");
-            for (SendableUpdateable s: ModMain.areaManager.getChildren()) {
-                b.append(s.toString());
-            }
-            echo(b.toString(),playerState);
+        if (strings.length==1&&strings[0].contains("print")) {
+            String o = ModMain.areaManager.printObject(ModMain.areaManager);
+            o = o.replace("\t","__");
+            echo("\n"+o,playerState);
             return true;
         }
         if (strings.length==1&&strings[0].equalsIgnoreCase("save")) {

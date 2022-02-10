@@ -2,7 +2,6 @@ package me.iron.stronghold.mod.implementation;
 
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
-import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector3i;
 
 import java.util.Arrays;
@@ -59,8 +58,9 @@ public class StellarControllableArea extends AbstractControllableArea {
     }
 
     @Override
-    public void updateFromObject(SendableUpdateable a) {
-        super.updateFromObject(a);
+    public void synch(SendableUpdateable a) {
+
+        super.synch(a);
         assert a instanceof StellarControllableArea;
         Vector3i[] arr =((StellarControllableArea)a).dimensions;
         setDimensions(arr[0],arr[1]);
@@ -68,9 +68,7 @@ public class StellarControllableArea extends AbstractControllableArea {
 
     @Override
     public String toString() {
-        return "StellarControllableArea{" +
-                "ownerFaction=" + ownerFaction +
-                ", dimensions=" + Arrays.toString(dimensions) +super.toString()+
-                '}';
+        return super.toString() +
+                ", dimensions="+Arrays.toString(dimensions);
     }
 }
