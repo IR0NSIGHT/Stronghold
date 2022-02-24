@@ -20,13 +20,18 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
 
     public AbstractControllableArea() {
         super();
+        init();
     }; //serialization stuff
 
     protected AbstractControllableArea(String name) {
         super(AreaManager.getNextID(),name);
+        init();
     }
 
-    protected void init() { //call this after deserialzing to reconstruct circular references to children and effects
+    /**
+     * called after deserialzing to reconstruct circular references to children and effects
+     */
+    protected void init() {
         for (SendableUpdateable a: children)
             a.setParent(this);
     }
@@ -48,6 +53,8 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         }
         return out;
     }
+
+
 
     public void addListener(IAreaEvent e) {
         listeners.add(e);
@@ -85,12 +92,6 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         }
     }
 
-    @Override
-    public void requestSynchToClient(SendableUpdateable area) {
-        super.requestSynchToClient(area);
-        assert this.equals(area)||children.contains(area);
-    }
-
     public void setOwnerFaction(int ownerFaction) {
         int oldVal = this.ownerFaction;
         if (oldVal != ownerFaction) {
@@ -104,9 +105,8 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
     protected void destroy() {
         beforeDestroy(this);
         super.destroy();
-        for (SendableUpdateable child: children)
-            child.destroy();
-        children.clear();
+        //for (SendableUpdateable child: children)
+        //    child.destroy();
         onDestroy(this);
     }
 

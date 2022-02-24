@@ -87,6 +87,12 @@ public class AreaManager extends AbstractControllableArea {
         //destroy();
     }
 
+    @Override
+    public void onDestroy(AbstractControllableArea area) {
+        super.onDestroy(area);
+        //remove area from UID hashmap
+    }
+
     public void load() {
         if (ModMain.instance != null && server) {
             ArrayList<Object> os = PersistentObjectUtil.getObjects(ModMain.instance.getSkeleton(), container.getClass());
@@ -251,14 +257,22 @@ public class AreaManager extends AbstractControllableArea {
         }
     }
 
-    protected void removeObject(long UID) {
+
+    /**
+     * will safely destroy and remove this object, cascade destroy+remove into children.
+     * @param UID
+     */
+    public void removeObject(long UID) {
         SendableUpdateable obj = UID_to_object.get(UID);
         if (obj != null) {
-            SendableUpdateable a = obj.getParent();
-            if (a instanceof AbstractControllableArea) {
-                ((AbstractControllableArea)a).removeChildObject(obj);
+            obj.destroy(); //does NOT cascades automatically
+            //recursively remove childs
+            if (obj instanceof AbstractControllableArea) {
+                for (SendableUpdateable c: ((AbstractControllableArea) obj).children) {
+                    removeObject(c.getUID());
+                }
             }
-            obj.destroy();
+            UID_to_object.remove(obj.getUID());
         }
     }
 

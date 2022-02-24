@@ -21,6 +21,17 @@ public class StellarControllableArea extends AbstractControllableArea {
         setDimensions(start,end);
     }
 
+    @Override
+    protected void init() {
+        super.init();
+
+    }
+
+    @Override
+    protected void destroy() {
+        super.destroy();
+    }
+
     /**
      * stets the dimensions of the area in sector coordinates. start must be <= in all fields than end.
      * @param start
