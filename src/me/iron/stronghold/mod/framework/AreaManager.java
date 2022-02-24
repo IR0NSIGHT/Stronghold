@@ -251,7 +251,11 @@ public class AreaManager extends AbstractControllableArea {
         }
     }
 
-    protected void removeObject(long UID) {
+    /**
+     * will safely remove this object, cascade destroy into childs.
+     * @param UID
+     */
+    public void removeObject(long UID) {
         SendableUpdateable obj = UID_to_object.get(UID);
         if (obj != null) {
             SendableUpdateable a = obj.getParent();
@@ -325,6 +329,14 @@ public class AreaManager extends AbstractControllableArea {
 
     public LinkedList<StellarControllableArea> getAreaFromSector(Vector3i sector) {
         return chunkManager.getAreasFromSector(sector);
+    }
+
+    public String printObject(long UID) {
+        SendableUpdateable su= UID_to_object.get(UID);
+        if (su != null)
+            return printObject(su);
+        else
+            return "NULLOBJECT";
     }
 
     public String printObject(SendableUpdateable su) {
