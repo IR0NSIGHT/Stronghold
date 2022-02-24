@@ -28,7 +28,14 @@ public class DebugUI implements CommandInterface {
 
     @Override
     public String getDescription() {
-        return "debug command: pve system 10 10 10\nprint\nget_area";
+        return "debug command:" +
+                "\npve [system] 10 10 10 <name> (create pve protected area with x sectors/systems and name)" +
+                "\nremove <UID> (remove/delete area/object with this UID)" +
+                "\nprint (print all areas)" +
+                "\nget_area (print what area i am in right now)" +
+                "\nsave" +
+                "\nload" +
+                "\nclear (clear all)";
     }
 
     @Override
@@ -67,6 +74,13 @@ public class DebugUI implements CommandInterface {
             echo("area "+a,playerState);
             return true;
         }
+        if (strings.length==2 && strings[0].equalsIgnoreCase("remove")) {
+            long UID = Long.parseLong(strings[1]);
+            echo("removing object with UID:" + ModMain.areaManager.printObject(UID),playerState);
+            //remove
+            ModMain.areaManager.removeObject(UID);
+            return true;
+        }
         //print_all
         if (strings.length==1&&strings[0].contains("print")) {
             String o = ModMain.areaManager.printObject(ModMain.areaManager);
@@ -82,7 +96,7 @@ public class DebugUI implements CommandInterface {
         if (strings.length==1&&strings[0].equalsIgnoreCase("load")) {
             ModMain.areaManager.getChildren().clear();
             ModMain.areaManager.load();
-            echo("saving sthold areas.",playerState);
+            echo("loaded sthold areas.",playerState);
             return true;
         }
         if (strings.length==1 && strings[0].equalsIgnoreCase("clear")) {
