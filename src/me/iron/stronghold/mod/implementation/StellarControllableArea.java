@@ -38,6 +38,7 @@ public class StellarControllableArea extends AbstractControllableArea {
      * @param end
      */
     public void setDimensions(Vector3i start, Vector3i end) {
+        assert start!=null && end!=null;
         Vector3i dim = new Vector3i(end); dim.sub(start);
         if (dim.x < 0 || dim.y < 0 || dim.z < 0) {
             System.err.println("Dimensions start not smaller than end for Area "+ getName() +" start "+start+ " end " + end);

@@ -26,6 +26,10 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
         updateObjects.add(a);
     }
 
+    /** will add sendable to the container listed in -instantiate and -update
+     *
+     * @param su
+     */
     public void addForInstantiation(SendableUpdateable su) {
         assert !(su instanceof AreaManager);
         LinkedList<SendableUpdateable> chain = new LinkedList<>();
@@ -68,7 +72,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             }
             parent = child;
         }
-
+        addForSynch(su);
     }
 
     public void addForDeletion(SendableUpdateable obj) {
@@ -134,9 +138,9 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             }
 
             b.writeLongList(deleteUIDs);
-        //    deleteUIDs.clear();
-        //    updateObjects.clear();
-        //    newObjectTree = null;
+            deleteUIDs.clear();
+            updateObjects.clear();
+            newObjectTree = null;
 
         } catch ( IOException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();

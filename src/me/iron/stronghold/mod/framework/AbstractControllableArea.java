@@ -105,6 +105,10 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
     protected void destroy() {
         beforeDestroy(this);
         super.destroy();
+        if (getParent() instanceof AbstractControllableArea) {
+            ((AbstractControllableArea) getParent()).removeChildObject(this);
+            setParent(null);
+        }
         //for (SendableUpdateable child: children)
         //    child.destroy();
         onDestroy(this);

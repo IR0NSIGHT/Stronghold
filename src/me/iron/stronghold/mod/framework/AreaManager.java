@@ -219,9 +219,7 @@ public class AreaManager extends AbstractControllableArea {
             broadcast("child changed on client: class="+child+" name='"+child.getName() +"' was "+(removed?"removed":"added"));
 
         if (removed){
-            UID_to_object.remove(child.getUID());
-            if (server && !client)
-                container.addForDeletion(child);
+
         } else {
             //child was added
             UID_to_object.put(child.getUID(), child);
@@ -258,11 +256,16 @@ public class AreaManager extends AbstractControllableArea {
     public void removeObject(long UID) {
         SendableUpdateable obj = UID_to_object.get(UID);
         if (obj != null) {
-            SendableUpdateable a = obj.getParent();
-            if (a instanceof AbstractControllableArea) {
-                ((AbstractControllableArea)a).removeChildObject(obj);
+            if (obj instanceof AbstractControllableArea) {
+                for (SendableUpdateable s: ((AbstractControllableArea) obj).children) {
+                    removeObject(s.getUID());
+                }
             }
+            UID_to_object.remove(UID);
+            if (server && !client)
+                container.addForDeletion(obj);
             obj.destroy();
+
         }
     }
 
