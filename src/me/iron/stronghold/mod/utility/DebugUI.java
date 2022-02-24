@@ -40,7 +40,7 @@ public class DebugUI implements CommandInterface {
 
     @Override
     public boolean isAdminOnly() {
-        return false;
+        return true;
     }
 
     @Override

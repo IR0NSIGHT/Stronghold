@@ -1,8 +1,8 @@
 {
   "name": "Stronghold",
   "author": "IR0NSIGHT",
-  "description": "areas and stuff - experimental",
-  "version": "1.3.0",
+  "description": "Framework for conquering and defending space",
+  "version": "2.0.1",
   "starmade_version": "0.202.110",
   "client_mod": false,
   "server_mod": false,
