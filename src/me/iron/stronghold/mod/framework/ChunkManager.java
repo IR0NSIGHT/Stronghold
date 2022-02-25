@@ -14,6 +14,7 @@ import org.schema.game.server.data.Galaxy;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.Vector;
@@ -50,14 +51,18 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
                 Ship ship = (Ship)s;
 
                 //notify areas in relevant chunks //TODO jumping to warp causes wrong chunk maybe bc %arraylength??
+                HashSet<StellarControllableArea> areas = new HashSet<>(10);
                 if (startC!=null) {
                     for (SendableUpdateable c: startC.children)
-                        ((StellarControllableArea)c).onShipChangeSector(start,end,ship);
+                        areas.add((StellarControllableArea) c);
                 }
                 if (endC!=null && (startC==null || !startC.equals(endC))) {
                     for (SendableUpdateable c: endC.children)
-                        ((StellarControllableArea)c).onShipChangeSector(start,end,ship);
+                        areas.add((StellarControllableArea) c);
                 }
+                for (StellarControllableArea c: areas)
+                    c.onShipChangeSector(start,end,ship);
+
             }
         };
 
