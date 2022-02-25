@@ -29,7 +29,7 @@ public class DebugUI implements CommandInterface {
     @Override
     public String getDescription() {
         return "debug command:" +
-                "\npve [system] 10 10 10 <name> (create pve protected area with x sectors/systems and name)" +
+                "\npve [system/surround] 10 10 10 <name> (create pve protected area with x sectors/systems and name)" +
                 "\nremove <UID> (remove/delete area/object with this UID)" +
                 "\nprint (print all areas)" +
                 "\nget_area (print what area i am in right now)" +
@@ -60,11 +60,16 @@ public class DebugUI implements CommandInterface {
         //pve system 10 10 10 "my home" //pve sector -10 1 3
         if (strings.length==6 && strings[0].equalsIgnoreCase("pve")) {
             int multiply = 1;
-            if (strings[1].equalsIgnoreCase("system"))
-                multiply = VoidSystem.SYSTEM_SIZE;
             Vector3i start = new Vector3i(playerState.getCurrentSector());
             int x = Integer.parseInt(strings[2]), y =Integer.parseInt(strings[3]), z = Integer.parseInt(strings[4]);
             Vector3i end = new Vector3i(x,y,z);
+
+            if (strings[1].equalsIgnoreCase("system"))
+                multiply = VoidSystem.SYSTEM_SIZE;
+            else if (strings[1].equalsIgnoreCase("surround")) {
+                multiply = 2;
+                start.sub(end); //expand in both directions.
+            }
             end.scale(multiply);
             end.add(start);
             String name = strings[5];
