@@ -1,12 +1,17 @@
 package me.iron.stronghold.mod.implementation;
 
+import api.listener.Listener;
+import api.listener.events.player.PlayerChangeSectorEvent;
+import api.mod.StarLoader;
+import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.common.controller.Ship;
 
 import java.util.Arrays;
 
-public class StellarControllableArea extends AbstractControllableArea {
+public class StellarControllableArea extends AbstractControllableArea implements AreaShipMovementEvent{
     //has a position/size that belongs to it.
     private Vector3i[] dimensions = new Vector3i[2];
     //TODO config value
@@ -24,7 +29,13 @@ public class StellarControllableArea extends AbstractControllableArea {
     @Override
     protected void init() {
         super.init();
+        Listener<PlayerChangeSectorEvent> sectorChangeEH = new Listener<PlayerChangeSectorEvent>() {
+            @Override //TODO change event so that chunk manager filters out obsolete areas, only relevant areas get info.
+            public void onEvent(PlayerChangeSectorEvent event) {
 
+            }
+        };
+        StarLoader.registerListener(PlayerChangeSectorEvent.class, sectorChangeEH , ModMain.instance);
     }
 
     @Override
@@ -82,5 +93,54 @@ public class StellarControllableArea extends AbstractControllableArea {
     public String toString() {
         return super.toString() +
                 ", dimensions="+Arrays.toString(dimensions);
+    }
+
+    /**
+     * input for sector change of any ship, will call event methods internally for specific movement types
+     * @param oldPos
+     * @param newPos
+     * @param ship
+     */
+    public void onShipChangeSector(Vector3i oldPos, Vector3i newPos, Ship ship) {
+        boolean startInArea = isSectorInArea(oldPos), endInArea = isSectorInArea(newPos);
+        if (startInArea&&endInArea)
+            onAreaInnerMovement(this,oldPos,newPos, ship);
+
+        if (startInArea&& !endInArea)
+            onAreaLeft(this, oldPos, ship);
+
+        if (!startInArea && endInArea)
+            onAreaEntered(this, newPos, ship);
+
+    }
+
+    @Override
+    public void onAreaEntered(StellarControllableArea area, Vector3i enteredSector, Ship object) {
+        //cascade downwards to children
+        for (SendableUpdateable c: children) {
+            if (c instanceof AreaShipMovementEvent) {
+                ((AreaShipMovementEvent) c).onAreaEntered(area, enteredSector, object);
+            }
+        }
+    }
+
+    @Override
+    public void onAreaInnerMovement(StellarControllableArea area, Vector3i leftSector, Vector3i enteredSector, Ship object) {
+        //cascade downwards to children
+        for (SendableUpdateable c: children) {
+            if (c instanceof AreaShipMovementEvent) {
+                ((AreaShipMovementEvent) c).onAreaInnerMovement(area,leftSector ,enteredSector, object);
+            }
+        }
+    }
+
+    @Override
+    public void onAreaLeft(StellarControllableArea area, Vector3i leftSector, Ship object) {
+        //cascade downwards to children
+        for (SendableUpdateable c: children) {
+            if (c instanceof AreaShipMovementEvent) {
+                ((AreaShipMovementEvent) c).onAreaLeft(area,leftSector, object);
+            }
+        }
     }
 }

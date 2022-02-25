@@ -1,19 +1,60 @@
 package me.iron.stronghold.mod.framework;
 
+import api.listener.Listener;
+import api.listener.events.player.PlayerChangeSectorEvent;
+import api.mod.StarLoader;
+import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.implementation.StellarControllableArea;
 import org.newdawn.slick.util.pathfinding.navmesh.Link;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.common.controller.Ship;
+import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.data.Galaxy;
+import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.Vector;
 
 public class ChunkManager implements IAreaEvent {
     private int systemsPerGrid = 8;
     private AbstractChunk[] chunks;
-    public ChunkManager() {
+    private AreaManager manager;
+    public ChunkManager(AreaManager am) {
+        manager = am;
         chunks = new AbstractChunk[128*128*128/(systemsPerGrid*systemsPerGrid*systemsPerGrid)];
+
+        //if (am.isServer()) {
+            //add sector change Listener
+            StarLoader.registerListener(PlayerChangeSectorEvent.class, new Listener<PlayerChangeSectorEvent>() {
+                @Override
+                public void onEvent(PlayerChangeSectorEvent event) {
+                    //generate info, get chunks
+                    Vector3i start = new Vector3i(), end = new Vector3i();
+                    start.set(GameServerState.instance.getUniverse().getSector(event.getOldSectorId()).pos);
+                    end.set(GameServerState.instance.getUniverse().getSector(event.getNewSectorId()).pos);
+                    AbstractChunk startC = getChunkFromSector(start), endC = getChunkFromSector(end);
+
+                    //get intruding ship
+                    SimpleTransformableSendableObject s= event.getPlayerState().getFirstControlledTransformableWOExc();
+                    if (!(s instanceof Ship))
+                        return;
+                    Ship ship = (Ship)s;
+
+                    //notify areas in relevant chunks //TODO jumping to warp causes wrong chunk maybe bc %arraylength??
+                    if (startC!=null) {
+                        for (SendableUpdateable c: startC.children)
+                            ((StellarControllableArea)c).onShipChangeSector(start,end,ship);
+                    }
+                    if (endC!=null && (startC==null || !startC.equals(endC))) {
+                        for (SendableUpdateable c: endC.children)
+                            ((StellarControllableArea)c).onShipChangeSector(start,end,ship);
+                    }
+                }
+            }, ModMain.instance);
+        //}
+
     }
 
     @Override

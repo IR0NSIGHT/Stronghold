@@ -28,7 +28,7 @@ public class AbstractChunk extends AbstractControllableArea {
     }
 
     @Override
-    protected void addChildObject(SendableUpdateable child) {
+    public void addChildObject(SendableUpdateable child) {
         if (!(child instanceof StellarControllableArea)) //reject anything that doesnt have a physical dimension.
             return;
         children.add(child);

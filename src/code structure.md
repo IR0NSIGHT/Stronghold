@@ -28,17 +28,42 @@ strongholds with sufficient defense points can protect their stations with a voi
 # TODO
 - abstract framework
   - centralized structure
-    - can be updated
+    - can be updated <<
     - can be sent
-      - instantiate
-      - synch
+      - instantiate <<
+      - synch <<
       - delete <<
-  - area is a defined stellar area
+  - area is a defined stellar area <<
     - get abstractArea of this sector/position <<
+    - area is cubiod <<
+    - area is complex shape
   - centralized update for all areas through areaManager
-  - specific update for loaded chunks through chunkManager
+  - specific update for loaded chunks through chunkManager <<
+  
+  - welcome message when entering an area
+    - effect 
+    - list of welcome messages/message generator
+    - 
+    
+  - user interface
+    - admin 
+        - commands <<
+    - player
+        - gui 
+        - map with area border
+  - admin implementation
+    - pve area that block player-on-player damage
+        - ship damage <<
+        - astronaut damage
+        - torching
+        - pull beam
+        - warn violator <<
+        - log violation ~
+    - 
+  - Survival implementation
+  
 
 # ISSUES
 saves and loads properly BUT denies instantiating areas upon onServerccreated load from POU.
 Possibly related if old manager UID doesnt fit the new manager?
-
+Area Manager accepts multiple entries for same UID (f.e. if an effect is instantiated using the deseraialize method it gets UID  == 0)

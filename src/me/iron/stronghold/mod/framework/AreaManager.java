@@ -18,11 +18,19 @@ import org.schema.schine.graphicsengine.core.Timer;
 import javax.annotation.Nullable;
 import java.util.*;
 
+/**
+ * The area manager is the central manager/container that controls all areas and all effect objects => SendableUpdatable (SU).
+ * All objects build a single, non-cyclic tree with unlimited children, the area manager is the root. The AM calls operations on its children, which cascades into the whole tree.
+ * The AM is the Interface to access specific SUs. The AM has a chunkmanager, a supporting datastructure (grid system) to improve performance when finding all areas a player is in.
+ * The AM manages loading and saving to Persistence.
+ * The AM handles updating and synching the whole tree for update, instantiate and delete operations.
+ * All bubbling events go through the AreaManager, add listeners here to catch all events.
+ */
 public class AreaManager extends AbstractControllableArea {
     private boolean client;
     private boolean server;
     private final Timer timer = new Timer();
-    private ChunkManager chunkManager = new ChunkManager();
+    private ChunkManager chunkManager = new ChunkManager(this);
     private AbstractAreaContainer container = new AbstractAreaContainer();
     private HashMap<Long,SendableUpdateable> UID_to_object = new HashMap<>();
     public AreaManager() { //is a singelton (hopefully)
@@ -31,6 +39,11 @@ public class AreaManager extends AbstractControllableArea {
         assert getUID() == -1;
         addListener(chunkManager);
     }
+
+    /**
+     * AM is on a server (includes hosting a SP), not exclusive with setClient
+     * @param m
+     */
     public void setServer(StarMod m){
         server = true;
         new StarRunnable(){
@@ -65,11 +78,9 @@ public class AreaManager extends AbstractControllableArea {
         },ModMain.instance);
     };
 
-    @Override
-    public long getUID() {
-        return -1; //area manager has a locked UID, its a singelton and should be constant across machines and restarts.
-    }
-
+    /**
+     * AM is on a client (includes SP), not exclusive with setServer
+     */
     public void setClient(){
         client = true;
         new StarRunnable(){
@@ -80,6 +91,14 @@ public class AreaManager extends AbstractControllableArea {
         }.runTimer(ModMain.instance,100);
     };
 
+    @Override
+    public long getUID() {
+        return -1; //area manager has a locked UID, its a singelton and should be constant across machines and restarts.
+    }
+
+    /**
+     * call on shutdown to properly close AM
+     */
     public void onShutdown() {
         if (server) {
             save();
@@ -87,6 +106,9 @@ public class AreaManager extends AbstractControllableArea {
         //destroy();
     }
 
+    /**
+     * load from PersistenceObject file
+     */
     public void load() {
         if (ModMain.instance != null && server) {
             ArrayList<Object> os = PersistentObjectUtil.getObjects(ModMain.instance.getSkeleton(), container.getClass());
@@ -97,38 +119,9 @@ public class AreaManager extends AbstractControllableArea {
         }
     }
 
-    public void clear() {
-        UID_to_object.clear();
-        children.clear();
-    }
-
-    public void loadFromContainer(AbstractAreaContainer container) {
-        broadcast("load from container.");
-        //instantiate tree structure of empty object
-        if (container.getTree() != null) {
-            broadcast("instantiate from tree, start with"+container.getTree().className);
-            this.instantiateArea(container.getTree(),null);
-        }
-        else
-            broadcast("nothing to instantiate from container.");
-
-        broadcast("Loading: after instantiation:\n"+printObject(this));
-
-        //update objects with values
-        Iterator<SendableUpdateable> it = container.getSynchObjectIterator();
-        while (it.hasNext()) {
-            SendableUpdateable o2 = it.next();
-            this.updateObject(o2);
-        }
-
-        broadcast("Loading: After synching:\n"+printObject(this));
-
-        Iterator<Long> delete = container.getDeleteUIDIterator();
-        while (delete.hasNext()) {
-            this.removeObject(delete.next());
-        }
-    }
-
+    /**
+     * save to PersistenceObeject file
+     */
     public void save() {
         //the saving is basically all code reused from the network synching.
         if (ModMain.instance != null) {
@@ -141,6 +134,41 @@ public class AreaManager extends AbstractControllableArea {
             PersistentObjectUtil.removeAllObjects(ModMain.instance.getSkeleton(), container.getClass());
             PersistentObjectUtil.addObject(ModMain.instance.getSkeleton(), container);
             PersistentObjectUtil.save(ModMain.instance.getSkeleton());
+        }
+    }
+
+    /**
+     * clear Manager. DOES NOT SYNCH!
+     */
+    public void clear() {
+        UID_to_object.clear();
+        children.clear();
+    }
+
+    protected void loadFromContainer(AbstractAreaContainer container) {
+        log("load from container.");
+        //instantiate tree structure of empty object
+        if (container.getTree() != null) {
+            log("instantiate from tree, start with"+container.getTree().className);
+            this.instantiateArea(container.getTree(),null);
+        }
+        else
+            log("nothing to instantiate from container.");
+
+        log("Loading: after instantiation:\n"+printObject(this));
+
+        //update objects with values
+        Iterator<SendableUpdateable> it = container.getSynchObjectIterator();
+        while (it.hasNext()) {
+            SendableUpdateable o2 = it.next();
+            this.updateObject(o2);
+        }
+
+        log("Loading: After synching:\n"+printObject(this));
+
+        Iterator<Long> delete = container.getDeleteUIDIterator();
+        while (delete.hasNext()) {
+            this.removeObject(delete.next());
         }
     }
 
@@ -166,17 +194,14 @@ public class AreaManager extends AbstractControllableArea {
         //collect all children that want to be synched.
         if (container.isEmpty() || client)
             return;
-        broadcast("synching server->client");
+        log("synching server->client");
         UpdatePacket p = new UpdatePacket();
         p.addContainer(container);
         p.sendToAll();
         //testMain.simulateNetwork(p);
     }
 
-    public void updateAll(Timer timer) {
-        for (SendableUpdateable c: children)
-            c.update(timer);
-    }
+    //TODO update all on saving
 
     /**
      * will update any direct children (highest level areas) that a player is inside of.
@@ -198,6 +223,22 @@ public class AreaManager extends AbstractControllableArea {
 
     }
 
+    /**
+     * update this object
+     * @param origin
+     */
+    protected void updateObject(SendableUpdateable origin) {
+        long UID = origin.getUID();
+        SendableUpdateable target= UID_to_object.get(UID);
+        assert target.getClass().getName().equals(origin.getClass().getName()):"tried updating "+target.getClass().getName()+" with origin obj "+ origin.getClass().getName();
+        if (target != null) {
+            target.updateFromObject(origin);
+            log("updating object "+target.getName());
+        } else {
+            System.err.println("area "+origin.getName()+"("+origin.getUID()+") has no local counterpart. cant update.");
+        }
+    }
+
     @Override
     public void addChildObject(SendableUpdateable child) {
         super.addChildObject(child);
@@ -208,7 +249,7 @@ public class AreaManager extends AbstractControllableArea {
         super.requestSynchToClient(area);
         if (client)
             return;
-        broadcast("[manager]area " + area.getName() +" request synch");
+        log("[manager]area " + area.getName() +" request synch");
         container.addForSynch(area);
     }
 
@@ -216,7 +257,7 @@ public class AreaManager extends AbstractControllableArea {
     public void onChildChanged(AbstractControllableArea parent, SendableUpdateable child, boolean removed) {
         super.onChildChanged(parent, child, removed);
         if (client)
-            broadcast("child changed on client: class="+child+" name='"+child.getName() +"' was "+(removed?"removed":"added"));
+            log("child changed on client: class="+child+" name='"+child.getName() +"' was "+(removed?"removed":"added"));
 
         if (removed){
 
@@ -269,23 +310,15 @@ public class AreaManager extends AbstractControllableArea {
         }
     }
 
-    protected void updateObject(SendableUpdateable area) {
-        long UID = area.getUID();
-        SendableUpdateable target= UID_to_object.get(UID);
-        assert target.getClass().getName().equals(area.getClass().getName());
-        if (target != null) {
-            target.updateFromObject(area);
-            broadcast("updating object "+target.getName());
-        } else {
-            System.err.println("area "+area.getName()+"("+area.getUID()+") has no local counterpart. cant update.");
-        }
-    }
-
-    //will refuse to add any areas that it doesnt know the parent of.
+    /**
+     * instantiate empty area/sendable in the tree with this parent. parent HAS to exist.
+     * @param dummy dummy that carries information
+     * @param parent must exist in tree
+     */
     protected void instantiateArea(AbstractAreaContainer.DummyArea dummy,@Nullable Long parent) {
         long UID = dummy.UID;
         String className = dummy.className;
-        broadcast("instantiate area: UID=" + UID +" ,class="+ className );
+        log("instantiate area: UID=" + UID +" ,class="+ className );
         if (parent == null && className.equals(getClass().getName())) { //is new object a singelton, and exists already with a different UID?
             //c
             UID_to_object.put(UID, this); //schreibe selbst an parent UID im dictionary.
@@ -307,7 +340,7 @@ public class AreaManager extends AbstractControllableArea {
                 AbstractControllableArea parentObj = (AbstractControllableArea)UID_to_object.get(parent);
                 SendableUpdateable child = (SendableUpdateable) o;
                 child.setUID(UID);
-                broadcast("instantiating child type " + className + " to parent type " + parentObj.getClass().getName());
+                log("instantiating child type " + className + " to parent type " + parentObj.getClass().getName());
                 //link parent and child
                 parentObj.addChildObject(child);
 
@@ -321,11 +354,15 @@ public class AreaManager extends AbstractControllableArea {
                 e.printStackTrace();
             }
         } else {
-            broadcast("denied instantiating area: "+dummy.UID+" "+dummy.className+" bc parent dont match or UID already known.");
+            log("denied instantiating area: "+dummy.UID+" "+dummy.className+" bc parent dont match or UID already known.");
         }
     }
 
-    private void broadcast(String mssg) {
+    /**
+     * log this message
+     * @param mssg
+     */
+    private void log(String mssg) {
         System.out.println("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
         DebugFile.log("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
     }
@@ -358,5 +395,13 @@ public class AreaManager extends AbstractControllableArea {
             }
         }
         return out.toString();
+    }
+
+    public boolean isClient() {
+        return client;
+    }
+
+    public boolean isServer() {
+        return server;
     }
 }
