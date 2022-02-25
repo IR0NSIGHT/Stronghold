@@ -5,6 +5,11 @@ import org.schema.schine.graphicsengine.core.Timer;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * this class is the highest abstract object that everything derives from. its an object that can be updated, saved, sent and synched between server and client.
+ * The most important inherting classes are the AbstractControllableArea and teh AbstractAreaEffect.
+ * Create your own SendableUpdateable: add your own fields (they dont have to be serializable) and to have persistent fields, overwrite/extend the updateFromObject method, where you use to origin to copy the new, custom values into your object.
+ */
 public abstract class SendableUpdateable implements Serializable {
     private long UID;
     private String name;

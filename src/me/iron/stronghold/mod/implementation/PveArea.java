@@ -34,18 +34,9 @@ public class PveArea extends StellarControllableArea{
             addChildObject(new PveShield());
         if (!hasWelcome) {
             WelcomeMessageEffect hi = new WelcomeMessageEffect(this);
-            hi.setGeneratorEntry(new WelcomeMessageEffect.MessageGenerator(){
-                @Override
-                public String getMessage(AbstractControllableArea enteredArea, Ship ship) {
-                    return "You have entered the PVE area '"+enteredArea.getName()+"'. Player-to-player combat is strictly forbidden.";
-                }
-            });
-            hi.setGeneratorLeave(new WelcomeMessageEffect.MessageGenerator() {
-                @Override
-                public String getMessage(AbstractControllableArea enteredArea, Ship ship) {
-                    return "You are no longer in the PVE area '"+enteredArea.getName()+"'.";
-                }
-            });
+            hi.setGeneratorEntry("You have entered the PVE area '"+this.getName()+"'. Player-to-player combat is strictly forbidden.");
+
+            hi.setGeneratorLeave("You are no longer in the PVE area '"+this.getName()+"'.");
             addChildObject(hi);
         }
     }

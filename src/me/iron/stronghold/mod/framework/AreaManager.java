@@ -142,8 +142,14 @@ public class AreaManager extends AbstractControllableArea {
      * clear Manager. DOES NOT SYNCH!
      */
     public void clear() {
+        for (SendableUpdateable c: children) {
+            c.destroy();
+        }
         UID_to_object.clear();
         children.clear();
+        chunkManager.destroy();
+        chunkManager = new ChunkManager(this);
+        addListener(chunkManager);
     }
 
     protected void loadFromContainer(AbstractAreaContainer container) {
@@ -178,7 +184,7 @@ public class AreaManager extends AbstractControllableArea {
             if (su.equals(this))
                 continue;
             container.addForInstantiation(su);
-            container.addForSynch(su);
+           // container.addForSynch(su);
         }
     }
 

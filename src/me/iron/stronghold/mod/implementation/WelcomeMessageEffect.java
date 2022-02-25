@@ -8,6 +8,7 @@ import api.utils.game.PlayerUtils;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.framework.AbstractAreaEffect;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
+import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.apache.poi.ss.formula.functions.Even;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.Ship;
@@ -17,6 +18,7 @@ import org.schema.schine.common.language.Lng;
 import org.schema.schine.graphicsengine.core.Timer;
 import org.schema.schine.network.server.ServerMessage;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -27,31 +29,16 @@ import java.util.LinkedList;
  * TIME: 11:53
  */
 public class WelcomeMessageEffect extends AbstractAreaEffect implements AreaShipMovementEvent {
-    private transient MessageGenerator generatorEntry; //object with a .toString method that returns the message.
-    private transient MessageGenerator generatorLeave;
+    private String generatorEntry; //object with a .toString method that returns the message.
+    private String generatorLeave;
     public WelcomeMessageEffect() { //only use for serailization instantiation
         super();
     }
 
     public WelcomeMessageEffect(StellarControllableArea parent) {
         super("Welcome_"+parent.getUID());
-        init();
     }
 
-    private void init() {
-        generatorEntry = new MessageGenerator(){
-            @Override
-            public String getMessage(AbstractControllableArea enteredArea, Ship ship) {
-                return "You have entered "+enteredArea.getName();
-            }
-        };
-        generatorLeave = new MessageGenerator() {
-            @Override
-            public String getMessage(AbstractControllableArea enteredArea, Ship ship) {
-                return "You have left "+enteredArea.getName();
-            }
-        };
-    }
 
     /**
      * player enters
@@ -69,7 +56,7 @@ public class WelcomeMessageEffect extends AbstractAreaEffect implements AreaShip
     public void onAreaEntered(StellarControllableArea area, Vector3i enteredSector, Ship object) {
         if (getParent().equals(area) && generatorEntry != null) {
             if (GameServerState.instance != null)
-                notifyPilots(generatorEntry.getMessage(area, object), object);
+                notifyPilots(generatorEntry, object);
         }
     }
 
@@ -82,7 +69,7 @@ public class WelcomeMessageEffect extends AbstractAreaEffect implements AreaShip
     public void onAreaLeft(StellarControllableArea area, Vector3i leftSector, Ship object) {
         if (getParent().equals(area) && generatorLeave != null) {
             if (GameServerState.instance != null)
-                notifyPilots(generatorLeave.getMessage(area, object), object);
+                notifyPilots(generatorLeave, object);
         }
     }
 
@@ -90,24 +77,24 @@ public class WelcomeMessageEffect extends AbstractAreaEffect implements AreaShip
         ship.sendControllingPlayersServerMessage(Lng.astr(mssg), ServerMessage.MESSAGE_TYPE_SIMPLE);
     }
 
-    public MessageGenerator getGeneratorEntry() {
+    public String getGeneratorEntry() {
         return generatorEntry;
     }
 
-    public void setGeneratorEntry(MessageGenerator generatorEntry) {
+    public void setGeneratorEntry(String generatorEntry) {
         this.generatorEntry = generatorEntry;
     }
 
-    public MessageGenerator getGeneratorLeave() {
+    public String getGeneratorLeave() {
         return generatorLeave;
     }
 
-    public void setGeneratorLeave(MessageGenerator generatorLeave) {
+    public void setGeneratorLeave(String generatorLeave) {
         this.generatorLeave = generatorLeave;
     }
 
     //tiny generator class, returns a generated or hardcoded message (overwrite to add custom behaviour)
-    abstract static class MessageGenerator {
+    abstract static class MessageGenerator implements Serializable {
         MessageGenerator() {
 
         }
@@ -115,5 +102,20 @@ public class WelcomeMessageEffect extends AbstractAreaEffect implements AreaShip
         public String getMessage(AbstractControllableArea enteredArea, Ship ship) {
             return "You have entered "+ enteredArea.getName()+ ".";
         }
+    }
+
+    @Override
+    public void updateFromObject(SendableUpdateable origin) {
+        super.updateFromObject(origin);
+        assert origin instanceof WelcomeMessageEffect;
+        setGeneratorEntry (((WelcomeMessageEffect) origin).getGeneratorEntry());
+        setGeneratorLeave(((WelcomeMessageEffect) origin).getGeneratorLeave());
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() +
+                ", generatorEntry='" + generatorEntry + '\'' +
+                ", generatorLeave='" + generatorLeave + '\'';
     }
 }
