@@ -68,3 +68,4 @@ strongholds with sufficient defense points can protect their stations with a voi
 saves and loads properly BUT denies instantiating areas upon onServerccreated load from POU.
 Possibly related if old manager UID doesnt fit the new manager?
 Area Manager accepts multiple entries for same UID (f.e. if an effect is instantiated using the deseraialize method it gets UID  == 0)
+Stuff isnt saved on server shutdownn

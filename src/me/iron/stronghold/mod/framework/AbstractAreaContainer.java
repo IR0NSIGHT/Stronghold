@@ -82,6 +82,12 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
         return newObjectTree;
     }
 
+    public void clearData() {
+        deleteUIDs.clear();
+        updateObjects.clear();
+        newObjectTree = null;
+    }
+
     /**
      * iterator for accessing the received objects
      * @return
@@ -138,9 +144,9 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             }
 
             b.writeLongList(deleteUIDs);
-            deleteUIDs.clear();
-            updateObjects.clear();
-            newObjectTree = null;
+            //deleteUIDs.clear();
+            //updateObjects.clear();
+            //newObjectTree = null;
 
         } catch ( IOException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();

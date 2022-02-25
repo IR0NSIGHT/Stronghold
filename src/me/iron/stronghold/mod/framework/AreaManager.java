@@ -134,6 +134,7 @@ public class AreaManager extends AbstractControllableArea {
             PersistentObjectUtil.removeAllObjects(ModMain.instance.getSkeleton(), container.getClass());
             PersistentObjectUtil.addObject(ModMain.instance.getSkeleton(), container);
             PersistentObjectUtil.save(ModMain.instance.getSkeleton());
+            log("saved areamanager to POU");
         }
     }
 
@@ -198,6 +199,7 @@ public class AreaManager extends AbstractControllableArea {
         UpdatePacket p = new UpdatePacket();
         p.addContainer(container);
         p.sendToAll();
+        container.clearData();
         //testMain.simulateNetwork(p);
     }
 
