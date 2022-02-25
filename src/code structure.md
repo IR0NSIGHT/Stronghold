@@ -51,6 +51,7 @@ strongholds with sufficient defense points can protect their stations with a voi
     - player
         - gui 
         - map with area border
+            - draw outline of area !!important for debug!!
   - admin implementation
     - pve area that block player-on-player damage
         - ship damage <<
