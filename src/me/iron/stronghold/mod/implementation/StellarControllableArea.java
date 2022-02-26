@@ -1,5 +1,6 @@
 package me.iron.stronghold.mod.implementation;
 
+import api.DebugFile;
 import api.listener.Listener;
 import api.listener.events.player.PlayerChangeSectorEvent;
 import api.mod.StarLoader;
@@ -116,6 +117,8 @@ public class StellarControllableArea extends AbstractControllableArea implements
 
     @Override
     public void onAreaEntered(StellarControllableArea area, Vector3i enteredSector, Ship object) {
+        if (area.equals(this))
+           log("[AREA] ship "+object.getName()+" entered "+area.getName()+" at "+enteredSector);
         //cascade downwards to children
         for (SendableUpdateable c: children) {
             if (c instanceof AreaShipMovementEvent) {
@@ -136,11 +139,18 @@ public class StellarControllableArea extends AbstractControllableArea implements
 
     @Override
     public void onAreaLeft(StellarControllableArea area, Vector3i leftSector, Ship object) {
+        if (area.equals(this))
+            log("[AREA] ship "+object.getName()+" left "+area.getName()+" at "+leftSector);
+
         //cascade downwards to children
         for (SendableUpdateable c: children) {
             if (c instanceof AreaShipMovementEvent) {
                 ((AreaShipMovementEvent) c).onAreaLeft(area,leftSector, object);
             }
         }
+    }
+    private void log(String s) {
+        DebugFile.log(s,ModMain.instance);
+        System.out.println("[STRONGHOLDS]"+s);
     }
 }
