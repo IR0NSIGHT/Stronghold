@@ -5,10 +5,12 @@ import api.listener.events.controller.ServerInitializeEvent;
 import api.mod.StarLoader;
 import api.mod.StarMod;
 import api.network.packets.PacketUtil;
+import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
 import me.iron.stronghold.mod.framework.AreaManager;
 import me.iron.stronghold.mod.framework.GenericNewsCollector;
 import me.iron.stronghold.mod.framework.UpdatePacket;
 import me.iron.stronghold.mod.utility.DebugUI;
+import org.schema.schine.resource.ResourceLoader;
 
 public class ModMain extends StarMod {
     public static AreaManager areaManager;
@@ -39,10 +41,18 @@ public class ModMain extends StarMod {
         areaManager.setServer(this);
         StarLoader.registerCommand(new DebugUI());
     }
-
+    private RadarMapDrawer rmd;
     @Override
     public void onClientCreated(ClientInitializeEvent clientInitializeEvent) {
         super.onClientCreated(clientInitializeEvent);
         areaManager.setClient();
+    }
+
+    @Override
+    public void onResourceLoad(ResourceLoader resourceLoader) {
+        super.onResourceLoad(resourceLoader);
+        rmd = new RadarMapDrawer(this);
+
+        rmd.loadSprites(this);
     }
 }

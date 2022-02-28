@@ -1,8 +1,23 @@
 package me.iron.stronghold.mod.framework;
 
+import org.schema.schine.graphicsengine.core.Timer;
+
 public class ActivateableAreaEffect extends AbstractAreaEffect {
+    public ActivateableAreaEffect() {
+        super();
+    }
+
     public ActivateableAreaEffect(String name) {
         super(name);
+    }
+
+    @Override
+    public void update(Timer timer) {
+        super.update(timer);
+        if (isActive())
+            onActiveUpdate(timer);
+        else
+            onInactiveUpdate(timer);
     }
 
     boolean active;
@@ -14,6 +29,20 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
      */
     protected boolean canToggle(boolean to) {
         return true;
+    }
+
+    /**
+     * update + effect is active
+     */
+    protected void onActiveUpdate(Timer timer) {
+
+    }
+
+    /**
+     * update + effect is deactivated
+     */
+    protected void onInactiveUpdate(Timer timer) {
+
     }
 
     protected void onActivate(ActivateableAreaEffect effect) {

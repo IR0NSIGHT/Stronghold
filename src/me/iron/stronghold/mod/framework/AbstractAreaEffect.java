@@ -1,5 +1,6 @@
 package me.iron.stronghold.mod.framework;
 
+import me.iron.stronghold.mod.ModMain;
 import org.schema.schine.graphicsengine.core.Timer;
 
 public abstract class AbstractAreaEffect extends SendableUpdateable{
@@ -14,4 +15,6 @@ public abstract class AbstractAreaEffect extends SendableUpdateable{
         assert getParent() != null;
         super.update(timer);
     }
+
+
 }

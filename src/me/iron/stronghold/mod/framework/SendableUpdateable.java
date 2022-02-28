@@ -1,5 +1,6 @@
 package me.iron.stronghold.mod.framework;
 
+import me.iron.stronghold.mod.ModMain;
 import org.schema.schine.graphicsengine.core.Timer;
 
 import java.io.Serializable;
@@ -47,6 +48,14 @@ public abstract class SendableUpdateable implements Serializable {
 
     public void updateFromObject(SendableUpdateable origin) { //yes a wrapper, its necessary.
         synch(origin);//gets overritten by descendendats
+    }
+
+    protected boolean isServer() {
+        return ModMain.areaManager.isServer();
+    }
+
+    protected boolean isClient() {
+        return ModMain.areaManager.isClient();
     }
 
     protected void synch(SendableUpdateable origin){

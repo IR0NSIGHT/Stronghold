@@ -205,7 +205,7 @@ public class AreaManager extends AbstractControllableArea {
         UpdatePacket p = new UpdatePacket();
         p.addContainer(container);
         p.sendToAll();
-        container.clearData();
+        container = new AbstractAreaContainer(); //cant clear old one bc serialization is on other thread, takes longer
         //testMain.simulateNetwork(p);
     }
 
