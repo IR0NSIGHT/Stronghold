@@ -217,18 +217,33 @@ public class AreaManager extends AbstractControllableArea {
      */
     public void updateLoaded(Timer timer) {
         if (GameServerState.instance != null) {
-            //collect all loaded areas => areas that players are currently in.
-            HashSet<SendableUpdateable> loadedAreas = new HashSet<>(GameServerState.instance.getPlayerStatesByName().size()*4);
+            //collect all loaded areas => all areas in chunks that players are currently in.
+            HashSet<SendableUpdateable> loadedAreas = new HashSet<>(getChildren().size());
             for (PlayerState p: GameServerState.instance.getPlayerStatesByName().values()) {
-                loadedAreas.addAll(chunkManager.getAreasFromSector(p.getCurrentSector()));
-            }
-            for (SendableUpdateable child: getChildren()) {
-                if (loadedAreas.contains(child)) {
-                    child.update(timer);
+                for (StellarControllableArea a: chunkManager.getAreasFromSector(p.getCurrentSector())) {
+                    loadedAreas.add(getRoot(a));
                 }
             }
-        }
 
+            for (SendableUpdateable child: loadedAreas) {
+                System.out.println("updating loaded stellar area: "+child.getName());
+                child.update(timer);
+            }
+            //problem: if player is inside of an area, that is not a direct child to area manager, the area isnt updated.
+            //=> climb up in tree until hitting a direct child of areamanager
+        }
+    }
+
+    /**
+     * walk up tree until root (child of area manager) is found or no more parent (illegal)
+     * @param area in tree.
+     * @return root of tree this area is in.
+     */
+    public SendableUpdateable getRoot(SendableUpdateable area) {
+        if (area.getParent()!=null && !(area.getParent() instanceof AreaManager))
+            return getRoot(area.getParent());
+        else
+            return area;
     }
 
     /**
