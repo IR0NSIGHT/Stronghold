@@ -1,15 +1,13 @@
 package me.iron.stronghold.mod.implementation;
 
-import libpackage.drawer.MapDrawer;
+import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.framework.ActivateableAreaEffect;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
-import org.lwjgl.Sys;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,6 +29,7 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
 
     @Override
     protected void onActiveUpdate(Timer timer) {
+        cooldown = 3000;
         super.onActiveUpdate(timer);
         //collect all player ships and all fleetships in area
         assert signals != null;
@@ -44,10 +43,10 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
 
                 lastScan = timer.currentTime;
                 requestSynchToClient(this);
+                if (isClient()) {
+                    drawContacts(signals);
+                }
             }
-        if (isClient()) {
-
-        }
     }
 
     @Override
@@ -89,60 +88,15 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
         if (origin instanceof LongRangeScannerEffect) {
             signals.clear();
             signals.addAll(((LongRangeScannerEffect) origin).signals);
+            if (isClient()) {
+                drawContacts(signals);
+            }
         }
     }
-
-    static class RadarContact implements Serializable {
-        String uid;
-        String name;
-        Vector3i sector;
-        SimpleTransformableSendableObject.EntityType type;
-        long timestamp;
-        int factionid;
-
-        public RadarContact(String uid, String name, SimpleTransformableSendableObject.EntityType type, int factionid, Vector3i sector, long timestamp) {
-            this.uid = uid;
-            this.name = name;
-            this.sector = sector;
-            this.type = type;
-            this.timestamp = timestamp;
-            this.factionid = factionid;
-        }
-
-        public String getUid() {
-            return uid;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Vector3i getSector() {
-            return sector;
-        }
-
-        public SimpleTransformableSendableObject.EntityType getType() {
-            return type;
-        }
-
-        public long getTimestamp() {
-            return timestamp;
-        }
-
-        public int getFactionid() {
-            return factionid;
-        }
-
-        @Override
-        public String toString() {
-            return "RadarContact{" +
-                    "uid='" + uid + '\'' +
-                    ", name='" + name + '\'' +
-                    ", sector=" + sector +
-                    ", type=" + type +
-                    ", timestamp=" + timestamp +
-                    ", factionid=" + factionid +
-                    '}';
+    private void drawContacts(ArrayList<RadarContact> signal) {
+        ModMain.rmd.clearRadarContacts();
+        for (RadarContact c: signals) {
+            ModMain.rmd.addRadarContact(c);
         }
     }
 }
