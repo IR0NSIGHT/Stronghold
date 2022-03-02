@@ -14,7 +14,6 @@ public class PveArea extends StellarControllableArea{
     public PveArea(Vector3i start, Vector3i end, String name) {
         super(start, end, name);
     }
-    private boolean init;
 
     @Override
     protected void onFirstUpdatePersistent() {
@@ -38,7 +37,9 @@ public class PveArea extends StellarControllableArea{
 
             hi.setGeneratorLeave("You are no longer in the PVE area '"+this.getName()+"'.");
             addChildObject(hi);
-            addChildObject(new LongRangeScannerEffect());
+            LongRangeScannerEffect radar = new LongRangeScannerEffect();
+            radar.setActive(true);
+            addChildObject(radar);
         }
     }
 

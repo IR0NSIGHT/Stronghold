@@ -14,6 +14,7 @@ import javax.vecmath.Vector4f;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Vector;
 
 public class RadarMapDrawer extends MapDrawer {
     private Sprite radarSprite;
@@ -40,12 +41,46 @@ public class RadarMapDrawer extends MapDrawer {
     public void addRadarContact(RadarContact radarContact) {
         addMarker(new RadarContactMarker(
                 radarSprite,
-                0,//Math.min(radarContact.getAmount(),3),
+                getSpriteIndexFromRelation(radarContact.getRelation()),
+                getColorFromRelation(radarContact.getRelation()),
                 radarContact
         ));
     }
 
     public void clearRadarContacts() {
         clearMarkers();
+    }
+
+    private int getSpriteIndexFromRelation(FactionRelation relation) {
+        switch (relation) {
+            case OWN: return 1;
+            case ALLY:
+            case NEUTRAL:
+                return 3;
+            case ENEMY: return 2;
+            case UNKNOWN:
+            default:
+                return 0;
+        }
+    }
+
+    private Vector4f getColorFromRelation(FactionRelation relation) {
+        switch (relation) {
+            case OWN:
+                return new Vector4f(0,1,0.052f,1);
+            case ALLY:
+                return new Vector4f(0,0.45f,1,1);
+
+            case ENEMY:
+                return new Vector4f(1,0f,0,1);
+
+            case NEUTRAL:
+                return new Vector4f(0.658f,0.0f,0.57f,1);
+
+            case UNKNOWN:
+
+            default:
+                return new Vector4f(1,1,1,1);
+        }
     }
 }

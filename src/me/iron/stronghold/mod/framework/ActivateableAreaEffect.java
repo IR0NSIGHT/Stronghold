@@ -57,7 +57,7 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
         return active;
     }
 
-    protected void setActive(boolean active) {
+    public void setActive(boolean active) {
         if (isActive()!=active && canToggle(active)) {
             this.active = active;
             if (isActive())

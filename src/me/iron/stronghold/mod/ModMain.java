@@ -41,7 +41,7 @@ public class ModMain extends StarMod {
         areaManager.setServer(this);
         StarLoader.registerCommand(new DebugUI());
     }
-    public static RadarMapDrawer rmd;
+    public static RadarMapDrawer radarMapDrawer;
     @Override
     public void onClientCreated(ClientInitializeEvent clientInitializeEvent) {
         super.onClientCreated(clientInitializeEvent);
@@ -51,8 +51,8 @@ public class ModMain extends StarMod {
     @Override
     public void onResourceLoad(ResourceLoader resourceLoader) {
         super.onResourceLoad(resourceLoader);
-        rmd = new RadarMapDrawer(this);
+        radarMapDrawer = new RadarMapDrawer(this);
 
-        rmd.loadSprites(this);
+        radarMapDrawer.loadSprites(this);
     }
 }

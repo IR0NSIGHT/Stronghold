@@ -11,25 +11,30 @@ import javax.vecmath.Vector4f;
 public class RadarContactMarker extends SimpleMapMarker {
     private float size;
     private RadarContact contact;
-    public RadarContactMarker(Sprite sprite, int subSpriteIndex, RadarContact contact) {
+    private Vector4f displayColor;
+    public RadarContactMarker(Sprite sprite, int subSpriteIndex, Vector4f color, RadarContact contact) {
         super(sprite, subSpriteIndex, new Vector4f(1,1,1,1), MapDrawer.posFromSector(contact.getSector(),true));
+        displayColor = color;
         sprite.setBillboard(true);
         sprite.setDepthTest(true);
         sprite.setBlend(true);
         sprite.setFlip(true);
         this.contact = contact;
-        size = getScale()/20*contact.getAmount();
+        size = 0.025f;
+        size*=(0.3f+0.1f*Math.min(contact.getAmount(),7));
+        if (contact.getFactionid()==1) //roids
+            size*=1.5f;
         setScale(size);
     }
 
     @Override
     public void preDraw(GameMapDrawer drawer) {
         float point = (System.currentTimeMillis()-contact.getTimestamp())/1000f;
-        float lifePercent = (-1/4f*point+1);
-        setScale((float) (size * (0.5f+0.5f*Math.abs(Math.cos(point*2f)))));
+        float lifePercent = (-1/8f*point+1);
+        setScale((float) (size * (0.7f+0.3f*Math.abs(Math.cos(point*2f)))));
 
 
-        Vector4f colorNew = new Vector4f(1,1,1,1); colorNew.w = lifePercent;
+        Vector4f colorNew = displayColor; colorNew.w = Math.max(0.2f,lifePercent);
         setColor(colorNew);
         //ModPlayground.broadcastMessage("y val="+lifePercent);
         super.preDraw(drawer);

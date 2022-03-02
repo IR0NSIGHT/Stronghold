@@ -48,7 +48,7 @@ public class PveShield extends VoidShield {
     }
 
     @Override
-    protected void setActive(boolean active) {
+    public void setActive(boolean active) {
         super.setActive(true); //only ON allowed.
     }
 }
