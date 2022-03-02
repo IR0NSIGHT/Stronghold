@@ -213,7 +213,7 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
                     }
                 }
             }
-            assert chunks.size()>0;
+            assert chunks.size()>0:"area "+area+" couldnt find any chunks.";
         }
         return chunks;
     }

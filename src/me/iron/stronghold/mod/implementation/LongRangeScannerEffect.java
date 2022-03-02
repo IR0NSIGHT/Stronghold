@@ -93,9 +93,9 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
         }
     }
     private void drawContacts(ArrayList<RadarContact> signal) {
-        ModMain.rmd.clearRadarContacts();
+        ModMain.radarMapDrawer.clearRadarContacts();
         for (RadarContact c: signals) {
-            ModMain.rmd.addRadarContact(c);
+            ModMain.radarMapDrawer.addRadarContact(c);
             //break;
         }
     }

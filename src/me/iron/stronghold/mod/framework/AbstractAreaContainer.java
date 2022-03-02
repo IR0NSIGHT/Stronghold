@@ -112,6 +112,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             int size = b.readInt();
             for (int i = 0; i < size; i++) {
                 String className = b.readString();
+                System.out.println("deserializing " +className);
                 Class<?> c = Class.forName(className);
                 Object o = b.readObject(c);
                 updateObjects.add((SendableUpdateable) o);

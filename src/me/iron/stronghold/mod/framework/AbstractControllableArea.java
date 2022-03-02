@@ -14,6 +14,7 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
     protected boolean canBeConquered;
     protected int ownerFaction;
     protected long lastAttackMssg;
+    protected long lastConquered;
 
     transient protected ArrayList<SendableUpdateable> children = new ArrayList<>();
     transient protected ArrayList<IAreaEvent> listeners = new ArrayList<>();
@@ -38,12 +39,15 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
             a.setParent(this);
     }
 
+    /**
+     * adds child to this area. sets childs parent to this. child gets pushed to back of children arraylist
+     * @param child
+     */
     public void addChildObject(SendableUpdateable child) {
         if (!children.contains(child)) {
             children.add(child);
             child.setParent(this);
             onChildChanged(this, child, false);
-        //    System.out.println("adding child"+child.getName()+" to parent "+getName());
         }
     }
 
@@ -165,6 +169,10 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
 
     @Override
     public void onConquered(AbstractControllableArea area, int oldOwner) {
+        if (area.equals(this)) {
+            lastConquered = System.currentTimeMillis();
+        }
+
         for (IAreaEvent e: listeners) {
             e.onConquered(area,oldOwner);
         }
@@ -220,6 +228,10 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         }
         if (this.getParent() != null && getParent() instanceof IAreaEvent)
             ((IAreaEvent)getParent()).onAttacked(time,area,attackerFaction,position);
+    }
+
+    public long getLastConquered() {
+        return lastConquered;
     }
 
     public long getLastAttacked() {

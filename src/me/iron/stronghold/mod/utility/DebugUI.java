@@ -7,6 +7,7 @@ import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import me.iron.stronghold.mod.implementation.PveArea;
 import me.iron.stronghold.mod.implementation.StellarControllableArea;
+import me.iron.stronghold.mod.implementation.StrongholdArea;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.common.data.world.VoidSystem;
@@ -58,7 +59,7 @@ public class DebugUI implements CommandInterface {
             }
         }
         //pve system 10 10 10 "my home" //pve sector -10 1 3
-        if (strings.length==6 && strings[0].equalsIgnoreCase("pve")) {
+        if (strings.length==6 && (strings[0].equalsIgnoreCase("pve")||strings[0].equalsIgnoreCase("hold"))) {
             int multiply = 1;
             Vector3i start = new Vector3i(playerState.getCurrentSector());
             int x = Integer.parseInt(strings[2]), y =Integer.parseInt(strings[3]), z = Integer.parseInt(strings[4]);
@@ -73,11 +74,22 @@ public class DebugUI implements CommandInterface {
             end.scale(multiply);
             end.add(start);
             String name = strings[5];
-            echo("create PVE area from sector "+start+" to "+end+" with name "+ name,playerState);
-            PveArea a = new PveArea(start,end,name);
-            ModMain.areaManager.addChildObject(a);
-            echo("area "+a,playerState);
-            return true;
+            echo("create area from sector "+start+" to "+end+" with name "+ name,playerState);
+            SendableUpdateable a = null;
+            if (strings[0].equalsIgnoreCase("pve")) {
+                a = new PveArea(start,end,name);
+            } else if (strings[0].equalsIgnoreCase("hold")) {
+                a = new StrongholdArea(start,end);
+            }
+            if (a != null) {
+                ModMain.areaManager.addChildObject(a);
+                echo("area "+a,playerState);
+                return true;
+            } else {
+                echo("error, idk :(",playerState);
+                return false;
+            }
+
         }
         if (strings.length==2 && strings[0].equalsIgnoreCase("remove")) {
             long UID = Long.parseLong(strings[1]);
@@ -123,6 +135,7 @@ public class DebugUI implements CommandInterface {
     }
 
     private void echo(String mssg, PlayerState p) {
+        System.out.println("[TO:"+p.getName()+"]"+ mssg);
         PlayerUtils.sendMessage(p,mssg);
     }
 }

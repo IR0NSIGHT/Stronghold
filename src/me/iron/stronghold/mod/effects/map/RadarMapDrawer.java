@@ -52,6 +52,7 @@ public class RadarMapDrawer extends MapDrawer {
     }
 
     private int getSpriteIndexFromRelation(FactionRelation relation) {
+        assert relation!=null;
         switch (relation) {
             case OWN: return 1;
             case ALLY:
