@@ -1082,7 +1082,7 @@ public class GameMapDrawer implements Drawable, InputHandler {
                 Vector3f selectedPos = MapDrawer.posFromSector(gameMapPosition.get(new Vector3i()),false);
                 campos.sub(selectedPos);
                 float dist = campos.length()/100;//Math.round(campos.length()/200)*200;
-                float multi = Math.min(0.25f,(float) (1/150f* Math.pow(dist,2)));//Math.min(1,dist/1000f)*0.2f + 0.05f;
+                float multi = (float) Math.max(0, Math.min(0.25f,(float) (1/300f* Math.pow(dist,2))-0.025));//Math.min(1,dist/1000f)*0.2f + 0.05f;
                 galaxy.draw(camera, (int) size, multi); //multi descides stars drawn
             }
 

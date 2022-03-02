@@ -27,19 +27,6 @@ public class RadarMapDrawer extends MapDrawer {
     @Override
     public void galaxy_DrawSprites(GameMapDrawer gameMapDrawer) {
         super.galaxy_DrawSprites(gameMapDrawer);
-        generateMarkers(); //for next frame
-
-    }
-
-    private void generateMarkers() {
-        clearMarkers();
-        synchronized (sectors_contacts) {
-            for (Map.Entry<Vector3i,Integer> sector: sectors_contacts.entrySet()) {
-                RadarContactMarker m = new RadarContactMarker(radarSprite, 0,posFromSector(sector.getKey(),true), sector.getValue());
-                m.setSize(0.015f);
-                addMarker(m);
-            }
-        }
     }
 
     public void loadSprites(StarMod mod) {
@@ -50,21 +37,15 @@ public class RadarMapDrawer extends MapDrawer {
         msl.loadSprite(mod);
         radarSprite = msl.getSprite();
     }
-    private HashMap<Vector3i,Integer> sectors_contacts = new HashMap<>(20);
     public void addRadarContact(RadarContact radarContact) {
-        synchronized (sectors_contacts) {
-            int amount = 0;
-            if (sectors_contacts.containsKey(radarContact.getSector())) {
-                amount = sectors_contacts.get(radarContact.getSector());
-            }
-            sectors_contacts.put(radarContact.getSector(),amount+1);
-        }
+        addMarker(new RadarContactMarker(
+                radarSprite,
+                0,//Math.min(radarContact.getAmount(),3),
+                radarContact
+        ));
     }
 
     public void clearRadarContacts() {
         clearMarkers();
-        synchronized (sectors_contacts) {
-            sectors_contacts.clear();
-        }
     }
 }

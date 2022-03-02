@@ -1,34 +1,38 @@
 package me.iron.stronghold.mod.effects.map;
 
+import api.ModPlayground;
 import libpackage.drawer.MapDrawer;
 import libpackage.markers.SimpleMapMarker;
 import me.iron.stronghold.mod.implementation.RadarContact;
 import org.schema.game.client.view.gamemap.GameMapDrawer;
 import org.schema.schine.graphicsengine.forms.Sprite;
-
-import javax.vecmath.Vector3f;
 import javax.vecmath.Vector4f;
 
 public class RadarContactMarker extends SimpleMapMarker {
-    private int amount;
-    public RadarContactMarker(Sprite sprite, int subSpriteIndex, Vector3f mapPos, int amount) {
-        super(sprite, subSpriteIndex, new Vector4f(1,1,1,1), mapPos);
-        size =getScale();
-        this.amount =amount;
+    private float size;
+    private RadarContact contact;
+    public RadarContactMarker(Sprite sprite, int subSpriteIndex, RadarContact contact) {
+        super(sprite, subSpriteIndex, new Vector4f(1,1,1,1), MapDrawer.posFromSector(contact.getSector(),true));
+        sprite.setBillboard(true);
+        sprite.setDepthTest(true);
+        sprite.setBlend(true);
+        sprite.setFlip(true);
+        this.contact = contact;
+        size = getScale()/20*contact.getAmount();
+        setScale(size);
     }
 
-    public RadarContactMarker(RadarContact contact, Sprite sprite, int subSpriteIndex, Vector4f color) {
-        super(sprite, subSpriteIndex, color, MapDrawer.posFromSector(contact.getSector(),true));
-    }
-    public void setSize(float size) {
-        this.size = (0.5f+1f*(amount/4f))*size;
-    }
-    private float size;
     @Override
     public void preDraw(GameMapDrawer drawer) {
+        float point = (System.currentTimeMillis()-contact.getTimestamp())/1000f;
+        float lifePercent = (-1/4f*point+1);
+        setScale((float) (size * (0.5f+0.5f*Math.abs(Math.cos(point*2f)))));
+
+
+        Vector4f colorNew = new Vector4f(1,1,1,1); colorNew.w = lifePercent;
+        setColor(colorNew);
+        //ModPlayground.broadcastMessage("y val="+lifePercent);
         super.preDraw(drawer);
-        float point = (-1000+System.currentTimeMillis()%2000)/1000f;
-        float amplitude = 0.5f;
-        setScale(size *((amplitude*(float) Math.abs(Math.sin(point)))+amplitude));
+
     }
 }

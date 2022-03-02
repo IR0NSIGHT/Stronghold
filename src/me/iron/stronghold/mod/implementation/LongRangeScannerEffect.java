@@ -59,19 +59,18 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
         Vector3i start = area.getDimensionsStart(), end = area.getDimensionsEnd();
         LinkedList<RadarContact> contacts = new LinkedList<>();
         try {
-            String q = String.format("SELECT e.uid, e.name, e.type, e.faction, X,Y,Z \nFROM ENTITIES as e\n WHERE" +
+            String q = String.format("SELECT faction, count(*), X,Y,Z \nFROM ENTITIES as e\n WHERE" +
                     " e.docked_root = -1 and " + //not docked to anything
                     " e.X >= %s AND e.X <= %s and" +
                     " e.Y >= %s AND e.Y <= %s and" +
-                    " e.Z >= %s AND e.Z <= %s ",start.x,end.x,start.y,end.y,start.z,end.z);
-            //System.out.println(q);
+                    " e.Z >= %s AND e.Z <= %s " +
+                    " group by faction, x, y, z; ",start.x,end.x,start.y,end.y,start.z,end.z);
             ResultSet r = c.createStatement().executeQuery(q);
             while(r.next()) {
-                RadarContact radarContact = new RadarContact(r.getString(1), //uid
-                        r.getString(2), //name
-                        SimpleTransformableSendableObject.EntityType.values()[r.getInt(3)], //type
-                        r.getInt(4) ,//faction
-                        new Vector3i(r.getInt(5),r.getInt(6),r.getInt(7)),
+                RadarContact radarContact = new RadarContact(
+                        r.getInt(1) ,//faction
+                        r.getInt(2), //amount
+                        new Vector3i(r.getInt(3),r.getInt(4),r.getInt(5)), //sector
                         currentTime
                 );
                 contacts.add(radarContact);
@@ -97,6 +96,7 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
         ModMain.rmd.clearRadarContacts();
         for (RadarContact c: signals) {
             ModMain.rmd.addRadarContact(c);
+            //break;
         }
     }
 }

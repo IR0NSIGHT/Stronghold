@@ -6,36 +6,19 @@ import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import java.io.Serializable;
 
 public class RadarContact implements Serializable {
-    String uid;
-    String name;
     Vector3i sector;
-    SimpleTransformableSendableObject.EntityType type;
+    int amount; //of contacts in sector
     long timestamp;
     int factionid;
 
-    public RadarContact(String uid, String name, SimpleTransformableSendableObject.EntityType type, int factionid, Vector3i sector, long timestamp) {
-        this.uid = uid;
-        this.name = name;
+    public RadarContact(int factionid, int amount, Vector3i sector,long timestamp) {
         this.sector = sector;
-        this.type = type;
         this.timestamp = timestamp;
         this.factionid = factionid;
+        this.amount = amount;
     }
-
-    public String getUid() {
-        return uid;
-    }
-
-    public String getName() {
-        return name;
-    }
-
     public Vector3i getSector() {
         return sector;
-    }
-
-    public SimpleTransformableSendableObject.EntityType getType() {
-        return type;
     }
 
     public long getTimestamp() {
@@ -46,15 +29,7 @@ public class RadarContact implements Serializable {
         return factionid;
     }
 
-    @Override
-    public String toString() {
-        return "RadarContact{" +
-                "uid='" + uid + '\'' +
-                ", name='" + name + '\'' +
-                ", sector=" + sector +
-                ", type=" + type +
-                ", timestamp=" + timestamp +
-                ", factionid=" + factionid +
-                '}';
+    public int getAmount() {
+        return amount;
     }
 }
