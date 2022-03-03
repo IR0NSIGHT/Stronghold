@@ -4,15 +4,26 @@ import api.DebugFile;
 import api.listener.Listener;
 import api.listener.events.player.PlayerChangeSectorEvent;
 import api.mod.StarLoader;
+import com.bulletphysics.linearmath.Transform;
+import libpackage.markers.SimpleMapMarker;
 import me.iron.stronghold.mod.ModMain;
+
+import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
+import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.AbstractMapDrawer;
+import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapDrawable;
+import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapLine;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.client.view.effects.ConstantIndication;
+import org.schema.game.client.view.effects.Indication;
 import org.schema.game.common.controller.Ship;
 
+import javax.vecmath.Vector4f;
 import java.util.Arrays;
+import java.util.LinkedList;
 
-public class StellarControllableArea extends AbstractControllableArea implements AreaShipMovementEvent{
+public class StellarControllableArea extends AbstractControllableArea implements AreaShipMovementEvent, MapDrawable {
     //has a position/size that belongs to it.
     private Vector3i[] dimensions = new Vector3i[2];
     //TODO config value
@@ -93,7 +104,7 @@ public class StellarControllableArea extends AbstractControllableArea implements
     @Override
     public String toString() {
         return super.toString() +
-                ", dimensions="+Arrays.toString(dimensions);
+                ", dimensions="+Arrays.toString(dimensions)+" ";
     }
 
     /**
@@ -152,5 +163,43 @@ public class StellarControllableArea extends AbstractControllableArea implements
     private void log(String s) {
         DebugFile.log(s,ModMain.instance);
         System.out.println("[STRONGHOLDS]"+s);
+    }
+
+    @Override
+    public LinkedList<SimpleMapMarker> getMarkers() {
+        LinkedList<SimpleMapMarker> out = new LinkedList<>();
+        for (SendableUpdateable u: children) {
+            if (u instanceof MapDrawable)
+                out.addAll(((MapDrawable) u).getMarkers());
+        }
+        return out;
+    }
+
+    @Override
+    public LinkedList<MapLine> getLines() {
+        LinkedList<MapLine> out = new LinkedList<>();
+        for (SendableUpdateable u: children) {
+            if (u instanceof MapDrawable)
+                out.addAll(((MapDrawable) u).getLines());
+        }
+        out.addAll(AreaMapDrawer.outlineSquare(getDimensionsStart().toVector3f(), getDimensionsEnd().toVector3f(),new Vector4f(1,1,1,1)));
+        return out;
+    }
+
+    @Override
+    public LinkedList<Indication> getIndications() {
+        LinkedList<Indication> out = new LinkedList<>();
+        Transform t = new Transform(); t.setIdentity(); t.origin.set(AbstractMapDrawer.posFromSector(getDimensionsStart().toVector3f(),true));
+        out.add(new ConstantIndication(t,getName()+"["+ AbstractMapDrawer.getFactionName(getOwnerFaction())+"]"));
+        for (SendableUpdateable u: children) {
+            if (u instanceof MapDrawable)
+                out.addAll(((MapDrawable) u).getIndications());
+        }
+        return out;
+    }
+
+    @Override
+    public boolean isVisibleOnMap() {
+        return false;
     }
 }

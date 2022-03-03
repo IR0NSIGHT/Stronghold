@@ -52,7 +52,9 @@ public class RadarMapDrawer extends MapDrawer {
     }
 
     private int getSpriteIndexFromRelation(FactionRelation relation) {
-        assert relation!=null;
+        //assert relation!=null; //TODO fix and assert
+        if (relation == null)
+            return 0;
         switch (relation) {
             case OWN: return 1;
             case ALLY:
@@ -65,7 +67,9 @@ public class RadarMapDrawer extends MapDrawer {
         }
     }
 
-    private Vector4f getColorFromRelation(FactionRelation relation) {
+    public static Vector4f getColorFromRelation(FactionRelation relation) {
+        if (relation == null)
+            return new Vector4f(1,1,1,1);
         switch (relation) {
             case OWN:
                 return new Vector4f(0,1,0.052f,1);

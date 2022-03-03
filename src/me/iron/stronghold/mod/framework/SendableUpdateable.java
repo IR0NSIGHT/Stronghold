@@ -86,6 +86,7 @@ public abstract class SendableUpdateable implements Serializable {
     public String toString() {
         return getClass().getSimpleName() +"{" +
                 "UID=" + getUID() +
-                ", name='" + getName() + '\'';
+                ", name='" + getName() + '\''+
+                ", parent='"+(getParent()!=null?getParent().getName():"NULL")+"\'";
     }
 }

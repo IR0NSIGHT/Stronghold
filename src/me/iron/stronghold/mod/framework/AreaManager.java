@@ -288,7 +288,6 @@ public class AreaManager extends AbstractControllableArea {
             //child was added
             UID_to_object.put(child.getUID(), child);
             if (server && !client) {
-            //    System.out.println("child added, make a chain: " + child.getName());
                 //request that clientmanager instantiates an empty child and creates the parent->child and child->parent connections.
                 //collect parent chain from child to manager and the parents classes
 
@@ -392,6 +391,10 @@ public class AreaManager extends AbstractControllableArea {
 
     public LinkedList<StellarControllableArea> getAreaFromSector(Vector3i sector) {
         return chunkManager.getAreasFromSector(sector);
+    }
+
+    public Collection<SendableUpdateable> getAllObjects() {
+        return UID_to_object.values();
     }
 
     public String printObject(long UID) {

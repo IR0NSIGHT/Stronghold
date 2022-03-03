@@ -1,7 +1,10 @@
 package me.iron.stronghold.mod.implementation;
 
+import libpackage.markers.SimpleMapMarker;
+import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapDrawable;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
+import org.newdawn.slick.util.pathfinding.navmesh.Link;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.world.VoidSystem;
 import org.schema.game.server.data.GameServerState;
@@ -29,9 +32,14 @@ public class StrongholdArea extends StellarControllableArea {
 
     public StrongholdArea(Vector3i from, Vector3i to) {
         super(from, to, "Stronghold");
-        //generate the contorlpoints.
+    }
+
+    @Override
+    protected void onFirstUpdatePersistent() {
+        super.onFirstUpdatePersistent();
+        //generate child objects
         int i = 0;
-        for (Vector3i pos: getCPSectors(from, to,6)) {
+        for (Vector3i pos: getCPSectors(getDimensionsStart(), getDimensionsEnd(),6)) {
             ControlPointArea a = new ControlPointArea(pos,i);
             i++;
             addChildObject(a);
@@ -57,14 +65,16 @@ public class StrongholdArea extends StellarControllableArea {
         long code =from.code()*to.code();
         LinkedList<Vector3i> out = new LinkedList<>();
         Random r = new Random(code);
-        Vector3i center = new Vector3i(from);
-        center.sub(from); center.scaleFloat(0.5f); center.add(from);
+
+        Vector3f basis = to.toVector3f();
+        basis.sub(from.toVector3f());
         for (int i = 0; i < amount; i++) {
-            Vector3f dir = new Vector3f(r.nextFloat(),r.nextFloat(),r.nextFloat());
-            dir.normalize(); dir.scale(6);
-            Vector3i p =new Vector3i(dir);
-            p.add(center);
-            out.add(p);
+            Vector3f dir = new Vector3f(
+                    basis.x*0.1f+0.8f*Math.abs(r.nextFloat()),
+                    basis.y*0.1f+0.8f*Math.abs(r.nextFloat()),
+                    basis.z*0.1f+0.8f*Math.abs(r.nextFloat()));
+            dir.add(from.toVector3f());
+            out.add(new Vector3i(dir));
         }
         return out;
     }
@@ -105,4 +115,10 @@ public class StrongholdArea extends StellarControllableArea {
             lastOwned = ((StrongholdArea) a).getLastOwned();
         }
     }
+
+    @Override
+    public boolean isVisibleOnMap() {
+        return true;
+    }
+
 }

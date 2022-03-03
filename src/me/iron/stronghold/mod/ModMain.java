@@ -5,6 +5,7 @@ import api.listener.events.controller.ServerInitializeEvent;
 import api.mod.StarLoader;
 import api.mod.StarMod;
 import api.network.packets.PacketUtil;
+import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
 import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
 import me.iron.stronghold.mod.framework.AreaManager;
 import me.iron.stronghold.mod.framework.GenericNewsCollector;
@@ -30,6 +31,8 @@ public class ModMain extends StarMod {
         areaManager.onShutdown();
     }
 
+
+
     @Override
     public void onLoad() {
         super.onLoad();
@@ -51,6 +54,8 @@ public class ModMain extends StarMod {
     @Override
     public void onResourceLoad(ResourceLoader resourceLoader) {
         super.onResourceLoad(resourceLoader);
+        new AreaMapDrawer(this);
+
         radarMapDrawer = new RadarMapDrawer(this);
 
         radarMapDrawer.loadSprites(this);

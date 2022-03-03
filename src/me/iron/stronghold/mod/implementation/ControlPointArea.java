@@ -1,13 +1,25 @@
 package me.iron.stronghold.mod.implementation;
 
+import libpackage.markers.SimpleMapMarker;
+import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
+import me.iron.stronghold.mod.effects.map.FactionRelation;
+import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.AbstractMapDrawer;
+import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
+import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.client.data.GameClientState;
+import org.schema.game.client.view.effects.Indication;
 import org.schema.game.common.controller.SpaceStation;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
+import javax.vecmath.Vector4f;
+import java.awt.geom.Area;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Vector;
 
 /**
  * STARMADE MOD
@@ -32,6 +44,7 @@ public class ControlPointArea extends StellarControllableArea {
         if (isServer() && GameServerState.instance.getUniverse().isSectorLoaded(getDimensionsStart())) {
             updateLoaded(timer);
         }
+    //    requestSynchToClient(this);
     }
 
     private void updateLoaded(Timer timer) {
@@ -68,14 +81,14 @@ public class ControlPointArea extends StellarControllableArea {
 
     private static String getNameFromIndex(int index) {
         switch (index) {
-            case 0: return "Alpha";
-            case 1: return "Bravo";
-            case 2: return "Charlie";
-            case 3: return "Delta";
-            case 4: return "Echo";
-            case 5: return "Foxtrot";
-            case 6: return "Gamma";
-            default: return "Zulu";
+            case 0: return "CP Alpha";
+            case 1: return "CP Bravo";
+            case 2: return "CP Charlie";
+            case 3: return "CP Delta";
+            case 4: return "CP Echo";
+            case 5: return "CP Foxtrot";
+            case 6: return "CP Gamma";
+            default: return "CP Zulu";
         }
     }
 
@@ -91,4 +104,25 @@ public class ControlPointArea extends StellarControllableArea {
         if (a instanceof ControlPointArea)
             idx = ((ControlPointArea) a).getIdx();
     }
+
+    @Override
+    public LinkedList<SimpleMapMarker> getMarkers() {
+        LinkedList<SimpleMapMarker> out = super.getMarkers();
+        SimpleMapMarker m =  new SimpleMapMarker(
+                AreaMapDrawer.areaSprite,
+                0,
+                RadarMapDrawer.getColorFromRelation(
+                        FactionRelation.getRelation(
+                                getOwnerFaction(),
+                                ((AbstractControllableArea)getParent()).getOwnerFaction(),
+                                GameClientState.instance.getFactionManager()
+                        )),
+                AbstractMapDrawer.posFromSector(getDimensionsStart(),true)
+        );
+        m.setScale(0.01f);
+        out.add(m);
+
+        return out;
+    }
+
 }
