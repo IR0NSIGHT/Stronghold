@@ -1,19 +1,13 @@
 package me.iron.stronghold.mod.implementation;
 
-import libpackage.markers.SimpleMapMarker;
-import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapDrawable;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
-import org.newdawn.slick.util.pathfinding.navmesh.Link;
 import org.schema.common.util.linAlg.Vector3i;
-import org.schema.game.common.data.world.VoidSystem;
 import org.schema.game.server.data.GameServerState;
 
 import javax.vecmath.Vector3f;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
-import java.util.Vector;
 
 
 /**
@@ -40,7 +34,7 @@ public class StrongholdArea extends StellarControllableArea {
         //generate child objects
         int i = 0;
         for (Vector3i pos: getCPSectors(getDimensionsStart(), getDimensionsEnd(),6)) {
-            ControlPointArea a = new ControlPointArea(pos,i);
+            ControlZoneArea a = new ControlZoneArea(pos,i);
             i++;
             addChildObject(a);
         }
@@ -70,9 +64,9 @@ public class StrongholdArea extends StellarControllableArea {
         basis.sub(from.toVector3f());
         for (int i = 0; i < amount; i++) {
             Vector3f dir = new Vector3f(
-                    basis.x*0.1f+0.8f*Math.abs(r.nextFloat()),
-                    basis.y*0.1f+0.8f*Math.abs(r.nextFloat()),
-                    basis.z*0.1f+0.8f*Math.abs(r.nextFloat()));
+                    basis.x*    (0.1f+0.8f*Math.abs(r.nextFloat())),
+                    basis.y*    (0.1f+0.8f*Math.abs(r.nextFloat())),
+                    basis.z*    (0.1f+0.8f*Math.abs(r.nextFloat())));
             dir.add(from.toVector3f());
             out.add(new Vector3i(dir));
         }
@@ -82,12 +76,12 @@ public class StrongholdArea extends StellarControllableArea {
     @Override
     public void onConquered(AbstractControllableArea area, int oldOwner) {
         super.onConquered(area, oldOwner);
-        if (area instanceof ControlPointArea) {
+        if (area instanceof ControlZoneArea) {
             boolean ally =GameServerState.instance.getFactionManager().isFriend(area.getOwnerFaction(),this.getOwnerFaction());
             if (area.getOwnerFaction()==this.getOwnerFaction() || ally)
-                lastOwned =((ControlPointArea) area).getIdx();
+                lastOwned =((ControlZoneArea) area).getIdx();
             else
-                lastOwned = ((ControlPointArea) area).getIdx()-1;
+                lastOwned = ((ControlZoneArea) area).getIdx()-1;
         }
     }
 
@@ -96,7 +90,7 @@ public class StrongholdArea extends StellarControllableArea {
      * @param next
      * @return
      */
-    public boolean getVulnerable(ControlPointArea next) {
+    public boolean getVulnerable(ControlZoneArea next) {
         int idx = next.getIdx();
         return  (idx==lastOwned || idx==lastOwned+1); //TODO forced timeout for conquerin after a conquering -> no blitzkrieg allowed
     }

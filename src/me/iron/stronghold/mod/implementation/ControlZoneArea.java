@@ -9,17 +9,13 @@ import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;
-import org.schema.game.client.view.effects.Indication;
 import org.schema.game.common.controller.SpaceStation;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
-import javax.vecmath.Vector4f;
-import java.awt.geom.Area;
 import java.io.IOException;
 import java.util.LinkedList;
-import java.util.Vector;
 
 /**
  * STARMADE MOD
@@ -27,13 +23,13 @@ import java.util.Vector;
  * DATE: 02.03.2022
  * TIME: 19:01
  */
-public class ControlPointArea extends StellarControllableArea {
+public class ControlZoneArea extends StellarControllableArea {
     private int idx;
-    public ControlPointArea() {
+    public ControlZoneArea() {
         super();
     }
 
-    public ControlPointArea(Vector3i sector, int index) {
+    public ControlZoneArea(Vector3i sector, int index) {
         super(sector,sector,getNameFromIndex(index));
         this.idx = index;
     }
@@ -81,14 +77,14 @@ public class ControlPointArea extends StellarControllableArea {
 
     private static String getNameFromIndex(int index) {
         switch (index) {
-            case 0: return "CP Alpha";
-            case 1: return "CP Bravo";
-            case 2: return "CP Charlie";
-            case 3: return "CP Delta";
-            case 4: return "CP Echo";
-            case 5: return "CP Foxtrot";
-            case 6: return "CP Gamma";
-            default: return "CP Zulu";
+            case 0: return "CZ Alpha";
+            case 1: return "CZ Bravo";
+            case 2: return "CZ Charlie";
+            case 3: return "CZ Delta";
+            case 4: return "CZ Echo";
+            case 5: return "CZ Foxtrot";
+            case 6: return "CZ Gamma";
+            default: return"CZ Zulu";
         }
     }
 
@@ -101,8 +97,8 @@ public class ControlPointArea extends StellarControllableArea {
     @Override
     public void synch(SendableUpdateable a) {
         super.synch(a);
-        if (a instanceof ControlPointArea)
-            idx = ((ControlPointArea) a).getIdx();
+        if (a instanceof ControlZoneArea)
+            idx = ((ControlZoneArea) a).getIdx();
     }
 
     @Override

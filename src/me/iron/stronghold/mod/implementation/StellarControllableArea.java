@@ -182,6 +182,7 @@ public class StellarControllableArea extends AbstractControllableArea implements
             if (u instanceof MapDrawable)
                 out.addAll(((MapDrawable) u).getLines());
         }
+        assert getDimensionsStart() != null && getDimensionsEnd() != null;
         out.addAll(AreaMapDrawer.outlineSquare(getDimensionsStart().toVector3f(), getDimensionsEnd().toVector3f(),new Vector4f(1,1,1,1)));
         return out;
     }
