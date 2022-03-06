@@ -4,6 +4,7 @@ import libpackage.markers.SimpleMapMarker;
 import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
 import me.iron.stronghold.mod.effects.map.FactionRelation;
 import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.AbstractMapDrawer;
+import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapLine;
 import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
@@ -99,6 +100,11 @@ public class ControlZoneArea extends StellarControllableArea {
         super.synch(a);
         if (a instanceof ControlZoneArea)
             idx = ((ControlZoneArea) a).getIdx();
+    }
+
+    @Override
+    public LinkedList<MapLine> getLines() {
+        return new LinkedList<>();
     }
 
     @Override
