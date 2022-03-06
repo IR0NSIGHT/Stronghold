@@ -9,12 +9,15 @@ import libpackage.markers.SimpleMapMarker;
 import me.iron.stronghold.mod.ModMain;
 
 import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
+import me.iron.stronghold.mod.effects.map.FactionRelation;
 import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.AbstractMapDrawer;
 import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapDrawable;
 import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapLine;
+import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.client.data.GameClientState;
 import org.schema.game.client.view.effects.ConstantIndication;
 import org.schema.game.client.view.effects.Indication;
 import org.schema.game.common.controller.Ship;
@@ -25,7 +28,7 @@ import java.util.LinkedList;
 
 public class StellarControllableArea extends AbstractControllableArea implements AreaShipMovementEvent, MapDrawable {
     //has a position/size that belongs to it.
-    private Vector3i[] dimensions = new Vector3i[2];
+    private final Vector3i[] dimensions = new Vector3i[2];
     //TODO config value
     public static Vector3i maxDimension = new Vector3i(16*8,16*8,16*8); //in sectors
 
@@ -94,7 +97,6 @@ public class StellarControllableArea extends AbstractControllableArea implements
 
     @Override
     public void synch(SendableUpdateable a) {
-
         super.synch(a);
         assert a instanceof StellarControllableArea;
         Vector3i[] arr =((StellarControllableArea)a).dimensions;
@@ -183,7 +185,11 @@ public class StellarControllableArea extends AbstractControllableArea implements
                 out.addAll(((MapDrawable) u).getLines());
         }
         assert getDimensionsStart() != null && getDimensionsEnd() != null;
-        out.addAll(AreaMapDrawer.outlineSquare(getDimensionsStart().toVector3f(), getDimensionsEnd().toVector3f(),new Vector4f(1,1,1,1)));
+        FactionRelation r = FactionRelation.getRelation(
+                GameClientState.instance.getPlayer().getFactionId(),
+                getOwnerFaction(),
+                GameClientState.instance.getFactionManager());
+        out.addAll(AreaMapDrawer.outlineSquare(getDimensionsStart().toVector3f(), getDimensionsEnd().toVector3f(),RadarMapDrawer.getColorFromRelation(r)));
         return out;
     }
 

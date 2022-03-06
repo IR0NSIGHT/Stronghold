@@ -180,6 +180,7 @@ public class StrongholdArea extends StellarControllableArea {
         if (a instanceof StrongholdArea) {
             timeoutAfterConquer = ((StrongholdArea) a).getTimeoutAfterConquer();
             lastOwned = ((StrongholdArea) a).getLastOwned();
+            ownerMap = ((StrongholdArea) a).ownerMap;
         }
     }
     public static void main(String[] args) {
