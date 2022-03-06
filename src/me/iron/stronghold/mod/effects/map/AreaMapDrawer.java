@@ -79,6 +79,7 @@ public class AreaMapDrawer extends AbstractMapDrawer {
             return;
         lines.clear();
         clearMarkers();
+        indications.clear();
         for (SendableUpdateable su: ModMain.areaManager.getAllObjects()) {
             if (su instanceof MapDrawable && ((MapDrawable) su).isVisibleOnMap()) {
                 //TODO filter out areas that i am not in/switch to chunk based drawing.
