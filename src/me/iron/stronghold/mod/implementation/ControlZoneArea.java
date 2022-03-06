@@ -68,7 +68,7 @@ public class ControlZoneArea extends StellarControllableArea {
 
     @Override
     public boolean canBeConquered() {
-        return super.canBeConquered() && ( (StrongholdArea)getParent()).getVulnerable(this);
+        return true;// super.canBeConquered() && ( (StrongholdArea)getParent()).getVulnerable(this);
     }
 
     public int getIdx() {
@@ -104,15 +104,15 @@ public class ControlZoneArea extends StellarControllableArea {
     @Override
     public LinkedList<SimpleMapMarker> getMarkers() {
         LinkedList<SimpleMapMarker> out = super.getMarkers();
+        FactionRelation r = FactionRelation.getRelation(
+                getOwnerFaction(),
+                GameClientState.instance.getPlayer().getFactionId(),
+                GameClientState.instance.getFactionManager()
+        );
         SimpleMapMarker m =  new SimpleMapMarker(
                 AreaMapDrawer.areaSprite,
                 0,
-                RadarMapDrawer.getColorFromRelation(
-                        FactionRelation.getRelation(
-                                getOwnerFaction(),
-                                ((AbstractControllableArea)getParent()).getOwnerFaction(),
-                                GameClientState.instance.getFactionManager()
-                        )),
+                RadarMapDrawer.getColorFromRelation(r),
                 AbstractMapDrawer.posFromSector(getDimensionsStart(),true)
         );
         m.setScale(0.01f);

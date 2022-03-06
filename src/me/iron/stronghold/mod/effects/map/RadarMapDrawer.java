@@ -72,20 +72,20 @@ public class RadarMapDrawer extends MapDrawer {
             return new Vector4f(1,1,1,1);
         switch (relation) {
             case OWN:
-                return new Vector4f(0,1,0.052f,1);
+                return new Vector4f(0,1,0.052f,1); //green
             case ALLY:
-                return new Vector4f(0,0.45f,1,1);
+                return new Vector4f(0,0.45f,1,1); //blue
 
             case ENEMY:
-                return new Vector4f(1,0f,0,1);
+                return new Vector4f(1,0f,0,1); //red
 
             case NEUTRAL:
-                return new Vector4f(0.658f,0.0f,0.57f,1);
+                return new Vector4f(0.658f,0.0f,0.57f,1); //purple
 
             case UNKNOWN:
 
             default:
-                return new Vector4f(1,1,1,1);
+                return new Vector4f(1,1,1,1); //white
         }
     }
 }

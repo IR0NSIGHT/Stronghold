@@ -25,8 +25,8 @@ public enum FactionRelation {
             relation = FactionRelation.OWN;
         }else if(fm.isFriend(ownF, factionid)) {
             relation = FactionRelation.ALLY;
-            // } else if (fm.isEnemy(ownF,factionid)) {
-            //     relation = FactionRelation.ENEMY;
+        } else if (fm.isEnemy(ownF,factionid)) {
+             relation = FactionRelation.ENEMY;
         } else {
             relation = FactionRelation.UNKNOWN;
         }
