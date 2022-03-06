@@ -6,7 +6,7 @@ import org.schema.schine.graphicsengine.core.Timer;
 import java.util.ArrayList;
 
 public abstract class AbstractControllableArea extends SendableUpdateable implements IAreaEvent {
-    private static long nextID = -1;
+    private static long nextID = 1;
     protected static long getNextID() {
         return nextID++;
     }

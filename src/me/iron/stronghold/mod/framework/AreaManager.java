@@ -406,6 +406,7 @@ public class AreaManager extends AbstractControllableArea {
     }
 
     public String printObject(SendableUpdateable su) {
+
         return printRecursion(su,"");
     }
 
