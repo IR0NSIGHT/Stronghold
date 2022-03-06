@@ -142,7 +142,8 @@ public class AreaManager extends AbstractControllableArea {
      * clear Manager. DOES NOT SYNCH!
      */
     public void clear() {
-        for (SendableUpdateable c: children) {
+        ArrayList<SendableUpdateable> sus = new ArrayList<>(getChildren());
+        for (SendableUpdateable c: sus) {
             c.destroy();
         }
         UID_to_object.clear();
@@ -177,14 +178,17 @@ public class AreaManager extends AbstractControllableArea {
         while (delete.hasNext()) {
             this.removeObject(delete.next());
         }
+
+        log("Loading: After deletion:\n"+printObject(this));
+
     }
 
     private void addAllToContainer(AbstractAreaContainer container) {
         for (SendableUpdateable su: UID_to_object.values()) {
             if (su.equals(this))
                 continue;
+            assert getRoot(su).getParent().equals(this):"invalid root for "+su+":\n "+getRoot(su).getParent();
             container.addForInstantiation(su);
-           // container.addForSynch(su);
         }
     }
 
@@ -320,15 +324,18 @@ public class AreaManager extends AbstractControllableArea {
         SendableUpdateable obj = UID_to_object.get(UID);
         if (obj != null) {
             if (obj instanceof AbstractControllableArea) {
-                for (SendableUpdateable s: ((AbstractControllableArea) obj).children) {
+                Collection<SendableUpdateable> children = new ArrayList<> (((AbstractControllableArea) obj).getChildren());
+                for (SendableUpdateable s: children) {
                     removeObject(s.getUID());
                 }
             }
-            UID_to_object.remove(UID);
-            if (server && !client)
-                container.addForDeletion(obj);
-            obj.destroy();
 
+            obj.destroy();
+            removeChildObject(obj);
+            UID_to_object.remove(UID);
+            if (isServer() && !isClient())
+                container.addForDeletion(obj);
+            assert !UID_to_object.containsKey(UID) &&  !getChildren().contains(obj);
         }
     }
 

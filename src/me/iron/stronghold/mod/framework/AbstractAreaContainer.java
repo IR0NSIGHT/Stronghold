@@ -3,6 +3,7 @@ package me.iron.stronghold.mod.framework;
 import api.mod.config.SimpleSerializerWrapper;
 import api.network.PacketReadBuffer;
 import api.network.PacketWriteBuffer;
+import org.lwjgl.Sys;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -127,6 +128,13 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
 
     @Override
     public void onSerialize(PacketWriteBuffer b) {
+
+        System.out.println("DELETE UIDS: {");
+        Iterator<Long> it = deleteUIDs.iterator();
+        while (it.hasNext()) {
+            System.out.println("\t"+it.next());
+        }
+        System.out.println("}");
         try {
             b.writeBoolean(newObjectTree != null);
             if (newObjectTree != null)

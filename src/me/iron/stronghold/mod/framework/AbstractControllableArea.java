@@ -19,8 +19,8 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
     transient protected ArrayList<SendableUpdateable> children = new ArrayList<>();
     transient protected ArrayList<IAreaEvent> listeners = new ArrayList<>();
     private transient boolean firstUpdateRuntime = false;
-    private boolean firstUpdatePersistent = false
-            ;
+    private boolean firstUpdatePersistent = false;
+
     public AbstractControllableArea() {
         super();
         init();
@@ -266,6 +266,7 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
             setUID(area.getUID());
             setOwnerFaction(area.ownerFaction);
             setCanBeConquered(area.canBeConquered);
+            firstUpdatePersistent = ((AbstractControllableArea) a).firstUpdatePersistent;
         }
     }
 
