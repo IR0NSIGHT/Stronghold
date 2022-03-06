@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public abstract class AbstractControllableArea extends SendableUpdateable implements IAreaEvent {
     private static long nextID = 1;
-    protected static long getNextID() {
+    protected static long getNextUID() {
         return nextID++;
     }
 
@@ -27,7 +27,7 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
     }; //serialization stuff
 
     protected AbstractControllableArea(String name) {
-        super(AreaManager.getNextID(),name);
+        super(AreaManager.getNextUID(),name);
         init();
     }
 
