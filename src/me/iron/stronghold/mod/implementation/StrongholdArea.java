@@ -4,8 +4,10 @@ import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.server.data.GameServerState;
+import org.schema.schine.graphicsengine.core.Timer;
 
 import javax.vecmath.Vector3f;
+import java.io.Serializable;
 import java.util.*;
 
 
@@ -16,7 +18,7 @@ import java.util.*;
  * TIME: 18:58
  */
 public class StrongholdArea extends StellarControllableArea {
-    private transient OwnerMap ownerMap;
+    private OwnerMap ownerMap;
     private int lastOwned;
 
     private long timeoutAfterConquer = 1000*60*60*24;
@@ -33,7 +35,7 @@ public class StrongholdArea extends StellarControllableArea {
         super.onFirstUpdatePersistent();
         //generate child objects
         int i = 0;
-        LinkedList<Vector3i> sector = getCPSectors(getDimensionsStart(), getDimensionsEnd(),6);
+        LinkedList<Vector3i> sector = getCPSectors(getDimensionsStart(), getDimensionsEnd(),3);
         ownerMap = new OwnerMap(sector.size());
         for (Vector3i pos: sector) {
             ControlZoneArea a = new ControlZoneArea(pos,i);
@@ -47,6 +49,10 @@ public class StrongholdArea extends StellarControllableArea {
     @Override
     protected void onFirstUpdateRuntime() {
         super.onFirstUpdateRuntime();
+        initOwnership();
+    }
+
+    private void initOwnership() {
         int i = 0;
         for (SendableUpdateable child: getChildren()) {
             if (child instanceof ControlZoneArea) {
@@ -56,7 +62,7 @@ public class StrongholdArea extends StellarControllableArea {
         ownerMap = new OwnerMap(i);
         for (SendableUpdateable child: getChildren()) {
             if (child instanceof ControlZoneArea) {
-               ownerMap.setOwner (((ControlZoneArea) child).getIdx() ,((ControlZoneArea) child).getOwnerFaction());
+                ownerMap.setOwner (((ControlZoneArea) child).getIdx() ,((ControlZoneArea) child).getOwnerFaction());
             }
         }
         System.out.println("OWNERMAP AFTER INIT: "+ownerMap.toString());
@@ -104,6 +110,12 @@ public class StrongholdArea extends StellarControllableArea {
         return out;
     }
 
+    @Override
+    public void update(Timer timer) {
+        super.update(timer);
+        updateOwnership(); //alliances might have changed, update ownership.
+    }
+
     /**
      * if owning faction and allies hold no more territory, area is conquered by faction that owned the most CZs.
      * @param area
@@ -113,12 +125,13 @@ public class StrongholdArea extends StellarControllableArea {
     public void onConquered(AbstractControllableArea area, int oldOwner) {
         super.onConquered(area, oldOwner);
         if (area instanceof ControlZoneArea) {
-            boolean ally =GameServerState.instance.getFactionManager().isFriend(area.getOwnerFaction(),this.getOwnerFaction());
-            if (area.getOwnerFaction()==this.getOwnerFaction() || ally)
-                lastOwned =((ControlZoneArea) area).getIdx();
-            else
-                lastOwned = ((ControlZoneArea) area).getIdx()-1;
+            ownerMap.setOwner(((ControlZoneArea) area).getIdx(),area.getOwnerFaction());
+            System.out.println("onConquered for Stronghold "+ getName());
         }
+    }
+
+    private void updateOwnership() {
+        System.out.println("Update Ownership in Stronghold\nBEFORE OwnerMap: " + ownerMap);
 
         //test if the owning faction and its allies still hold any control zones.
         boolean lostAll = true;
@@ -137,7 +150,7 @@ public class StrongholdArea extends StellarControllableArea {
         if (lostAll) {
             setOwnerFaction(mostOwner);
         }
-
+        System.out.println("AFTER OwnerMap: " + ownerMap);
     }
 
     private boolean isAllied(int faction) {
@@ -188,7 +201,7 @@ public class StrongholdArea extends StellarControllableArea {
     public boolean isVisibleOnMap() {
         return true;
     }
-    static class OwnerMap {
+    static class OwnerMap implements Serializable {
         private HashMap<Integer,LinkedList<Integer>> factions;
         private int[] indices; //idx[0] = 10001> idx 0 is owned by factionid 10001
 
