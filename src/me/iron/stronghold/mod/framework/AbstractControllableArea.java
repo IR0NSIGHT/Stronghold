@@ -89,13 +89,13 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
     }
 
     public void update(Timer timer) {
-        if (!firstUpdateRuntime) {
-            firstUpdateRuntime = true;
-            onFirstUpdateRuntime();
-        }
         if (!firstUpdatePersistent) {
             firstUpdatePersistent = true;
             onFirstUpdatePersistent();
+        }
+        if (!firstUpdateRuntime) {
+            firstUpdateRuntime = true;
+            onFirstUpdateRuntime();
         }
 
         for (SendableUpdateable c: children) {
