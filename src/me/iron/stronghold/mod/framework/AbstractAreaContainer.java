@@ -42,7 +42,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
         //System.out.println(""+iterator.getName());
         chain.add(iterator); //add manager
         Collections.reverse(chain); //manager->...->child
-        assert (iterator instanceof AreaManager); //all areas MUST be children of the manager.
+        assert (iterator instanceof AreaManager):"root for SU "+su+" is not area manager but "+iterator; //all areas MUST be children of the manager.
 
 
         //every chain start with the manager
