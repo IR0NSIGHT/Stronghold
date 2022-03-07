@@ -9,6 +9,7 @@ import org.schema.game.client.view.gamemap.GameMapDrawer;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector4f;
 import java.util.LinkedList;
+import java.util.Vector;
 
 /**
  * STARMADE MOD
@@ -27,7 +28,7 @@ public class AbstractMapDrawer extends MapDrawer {
     }
     private Vector3i sector = new Vector3i();
     private Vector3i system = new Vector3i();
-
+    private Vector3i cameraSector = new Vector3i();
     protected boolean sectorChanged;
     protected boolean systemChanged;
     //TODO galaxy changed
@@ -44,7 +45,16 @@ public class AbstractMapDrawer extends MapDrawer {
                 onSystemChanged(system,GameClientState.instance.getPlayer().getCurrentSystem());
             }
         }
+        Vector3i temp = new Vector3i();
+        if (!gameMapDrawer.getGameMapPosition().get(temp).equals(cameraSector)) {
+            onCameraPosChanged(cameraSector,temp);
+            gameMapDrawer.getGameMapPosition().get(cameraSector);
+        }
         super.galaxy_PreDraw(gameMapDrawer);
+    }
+
+    protected void onCameraPosChanged(Vector3i oldS, Vector3i newS) {
+
     }
 
     /**

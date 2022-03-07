@@ -67,6 +67,10 @@ public class AreaMapDrawer extends AbstractMapDrawer implements IAreaEvent {
         HudIndicatorOverlay.toDrawMapTexts.addAll(indications);
     }
 
+    private synchronized void setUpdateFlag() {
+        updateFlag = true;
+    }
+
     /**
      * must happen in GL context during a draw listener.
      * @param from mappos
@@ -105,14 +109,16 @@ public class AreaMapDrawer extends AbstractMapDrawer implements IAreaEvent {
         }
     }
 
-
-
-
-
     @Override
     protected void onSectorChanged(Vector3i oldS, Vector3i newS) {
         super.onSectorChanged(oldS, newS);
-        updateFlag = true;
+       setUpdateFlag();
+    }
+
+    @Override
+    protected void onCameraPosChanged(Vector3i oldS, Vector3i newS) {
+        super.onCameraPosChanged(oldS, newS);
+       setUpdateFlag();
     }
 
     @Override
@@ -127,7 +133,7 @@ public class AreaMapDrawer extends AbstractMapDrawer implements IAreaEvent {
 
     @Override
     public void onUpdate(AbstractControllableArea area) {
-        updateFlag = true;
+       setUpdateFlag();
     }
 
     @Override
@@ -137,7 +143,7 @@ public class AreaMapDrawer extends AbstractMapDrawer implements IAreaEvent {
 
     @Override
     public void onOverwrite(AbstractControllableArea area) {
-        updateFlag = true;
+       setUpdateFlag();
     }
 
     @Override
