@@ -148,7 +148,10 @@ public class StrongholdArea extends StellarControllableArea {
             }
         }
         if (lostAll) {
-            setOwnerFaction(mostOwner);
+            if (mostOwned == ownerMap.getAmountIndices())
+                setOwnerFaction(mostOwner);
+            else
+                setOwnerFaction(0);
         }
         System.out.println("AFTER OwnerMap: " + ownerMap);
     }
