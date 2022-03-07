@@ -1,26 +1,16 @@
 package me.iron.stronghold.mod.implementation;
 
-import api.listener.Listener;
-import api.listener.events.Event;
-import api.listener.events.player.PlayerChangeSectorEvent;
-import api.mod.StarLoader;
-import api.utils.game.PlayerUtils;
-import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.framework.AbstractAreaEffect;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
-import org.apache.poi.ss.formula.functions.Even;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.Ship;
-import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.common.language.Lng;
 import org.schema.schine.graphicsengine.core.Timer;
 import org.schema.schine.network.server.ServerMessage;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedList;
 
 /**
  * STARMADE MOD

@@ -42,18 +42,6 @@ public class StellarControllableArea extends AbstractControllableArea implements
     }
 
     @Override
-    protected void init() {
-        super.init();
-        Listener<PlayerChangeSectorEvent> sectorChangeEH = new Listener<PlayerChangeSectorEvent>() {
-            @Override //TODO change event so that chunk manager filters out obsolete areas, only relevant areas get info.
-            public void onEvent(PlayerChangeSectorEvent event) {
-
-            }
-        };
-        StarLoader.registerListener(PlayerChangeSectorEvent.class, sectorChangeEH , ModMain.instance);
-    }
-
-    @Override
     protected void destroy() {
         super.destroy();
     }
