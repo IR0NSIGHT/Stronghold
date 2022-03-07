@@ -73,10 +73,9 @@ public class AreaManager extends AbstractControllableArea {
                         }
                     }
                 }.runTimer(ModMain.instance,10);
-
             }
         },ModMain.instance);
-    };
+    }
 
     /**
      * AM is on a client (includes SP), not exclusive with setServer
@@ -393,7 +392,7 @@ public class AreaManager extends AbstractControllableArea {
      */
     private void log(String mssg) {
         System.out.println("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
-        DebugFile.log("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
+        //DebugFile.log("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
     }
 
     public LinkedList<StellarControllableArea> getAreaFromSector(Vector3i sector) {
@@ -424,8 +423,6 @@ public class AreaManager extends AbstractControllableArea {
             for (int i = 0; i < max; i++) {
                 SendableUpdateable c = ((AbstractControllableArea) su).getChildren().get(i);
                 out.append(printRecursion(c, prefix + "\t"));
-                if (i != 0 && i != max-1)
-                    out.append("\n");
             }
         }
         return out.toString();

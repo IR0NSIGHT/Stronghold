@@ -163,7 +163,7 @@ public class StellarControllableArea extends AbstractControllableArea implements
         }
     }
     private void log(String s) {
-        DebugFile.log(s,ModMain.instance);
+        //DebugFile.log(s,ModMain.instance);
         System.out.println("[STRONGHOLDS]"+s);
     }
 

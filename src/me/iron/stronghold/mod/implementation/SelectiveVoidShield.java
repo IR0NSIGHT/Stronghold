@@ -20,6 +20,13 @@ import java.util.HashSet;
  */
 public class SelectiveVoidShield extends VoidShield{
     private final HashSet<Integer> protectFactions = new HashSet<>();
+    public SelectiveVoidShield() {
+        super();
+    }
+    public SelectiveVoidShield(String name) {
+        super(name);
+    }
+
     public void addProtectedFaction(int factionID) {
         protectFactions.add(factionID);
     }
@@ -32,6 +39,8 @@ public class SelectiveVoidShield extends VoidShield{
     public boolean isProtectedFaction(int factionID) {
         return protectFactions.contains(factionID);
     }
+
+
 
     @Override
     public double handleShieldHit(ShieldAddOn shieldAddOn, Damager damager, InterEffectSet defenseSet, Vector3f hitPoint, int projectileSectorId, DamageDealerType damageType, HitType hitType, double damage, long weaponId) throws SectorNotFoundException {

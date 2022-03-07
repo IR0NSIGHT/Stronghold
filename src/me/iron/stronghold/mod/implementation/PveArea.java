@@ -37,14 +37,14 @@ public class PveArea extends StellarControllableArea{
             }
         }
         if (!hasShield)
-            addChildObject(new PveShield());
+            addChildObject(new PveShield("PVE-Shield"));
         if (!hasWelcome) {
             WelcomeMessageEffect hi = new WelcomeMessageEffect(this);
             hi.setGeneratorEntry("You have entered the PVE area '"+this.getName()+"'. Player-to-player combat is strictly forbidden.");
 
             hi.setGeneratorLeave("You are no longer in the PVE area '"+this.getName()+"'.");
             addChildObject(hi);
-            LongRangeScannerEffect radar = new LongRangeScannerEffect();
+            LongRangeScannerEffect radar = new LongRangeScannerEffect("LongRangeScanner for "+getName());
             radar.setActive(true);
             addChildObject(radar);
         }
@@ -53,13 +53,13 @@ public class PveArea extends StellarControllableArea{
     @Override
     public void onAreaEntered(StellarControllableArea area, Vector3i enteredSector, Ship object) {
         super.onAreaEntered(area, enteredSector, object);
-        DebugFile.log("[PVE AREA ENTERED]"+object.getUniqueIdentifier()+"["+object.getFactionId()+"]");
+        //DebugFile.log("[PVE AREA ENTERED]"+object.getUniqueIdentifier()+"["+object.getFactionId()+"]");
     }
 
     @Override
     public void onAreaLeft(StellarControllableArea area, Vector3i leftSector, Ship object) {
         super.onAreaLeft(area, leftSector, object);
-        DebugFile.log("[PVE AREA LEFT]"+object.getUniqueIdentifier()+"["+object.getFactionId()+"]");
+        //DebugFile.log("[PVE AREA LEFT]"+object.getUniqueIdentifier()+"["+object.getFactionId()+"]");
     }
 
     @Override

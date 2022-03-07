@@ -21,10 +21,12 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
     private long lastScan;
 
     //clientside stuff
-
-
     public LongRangeScannerEffect() {
-        super("LongRangeScanner");
+        super();
+    }
+
+    public LongRangeScannerEffect(String name) {
+        super(name);
     }
 
     @Override

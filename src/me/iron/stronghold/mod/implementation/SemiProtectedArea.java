@@ -27,8 +27,8 @@ public class SemiProtectedArea extends StellarControllableArea {
         super.onFirstUpdatePersistent();
 
         //create shield that only blocks damage to specific factions.
-        SelectiveVoidShield s = new SelectiveVoidShield();
+        SelectiveVoidShield s = new SelectiveVoidShield("svs");
         s.addProtectedFaction(Arrays.asList(protectedFactions));
-        addChildObject(new SelectiveVoidShield());
+        addChildObject(s);
     }
 }

@@ -21,8 +21,12 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
     private int requiredPoints = 60*60; //seconds
     transient private long lastUpdate;
     private boolean sendMssg;
+
     public VoidShield() {
-        super("VoidShield");
+        super();
+    }
+    public VoidShield(String name) {
+        super(name);
     }
 
     public double handleShieldHit(ShieldAddOn shieldAddOn, Damager damager, InterEffectSet defenseSet, Vector3f hitPoint, int projectileSectorId, DamageDealerType damageType, HitType hitType, double damage, long weaponId) throws SectorNotFoundException {

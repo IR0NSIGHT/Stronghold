@@ -19,7 +19,9 @@ public class PveShield extends VoidShield {
     public PveShield() {
         super();
     }
-
+    public PveShield(String name) {
+        super(name);
+    }
     @Override
     public double handleShieldHit(ShieldAddOn shieldAddOn, Damager damager, InterEffectSet defenseSet, Vector3f hitPoint, int projectileSectorId, DamageDealerType damageType, HitType hitType, double damage, long weaponId) throws SectorNotFoundException {
         assert getParent() != null;
@@ -44,7 +46,7 @@ public class PveShield extends VoidShield {
 
     protected void onPeaceViolated(Damager d) {
         d.sendServerMessage(Lng.astr("This is a PVE area. No PVP allowed."), ServerMessage.MESSAGE_TYPE_WARNING);
-        DebugFile.log("[PVE VIOLATION]"+d.getShootingEntity().getUniqueIdentifier()+"["+d.getShootingEntity().getFaction().getName()+"] violated PVE rules ", ModMain.instance);
+        //DebugFile.log("[PVE VIOLATION]"+d.getShootingEntity().getUniqueIdentifier()+"["+d.getShootingEntity().getFaction().getName()+"] violated PVE rules ", ModMain.instance);
     }
 
     @Override

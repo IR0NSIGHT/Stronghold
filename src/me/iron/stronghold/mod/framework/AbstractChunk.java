@@ -7,10 +7,15 @@ import org.schema.common.util.linAlg.Vector3i;
 
 import java.util.LinkedList;
 
+/**
+ * this class is a chunk, represents one cube of a fixed grid in the galaxy with fixed sidelengths. It has references to stellarareas that are fully or partly inside of the chunk.
+ * Its a supporting datastructure to quickly collect all areas a position is inside of. All chunks are managed by the chunkmanager.
+ * The chunk is not accessible from outside and only used by the CM.
+ */
 public class AbstractChunk extends AbstractControllableArea {
     Vector3i gridPos; //position in own grid
     public AbstractChunk(Vector3i gridPos) {
-        super("Chunk"+gridPos);
+        //super("Chunk"+gridPos);
         this.gridPos = gridPos;
     }
 

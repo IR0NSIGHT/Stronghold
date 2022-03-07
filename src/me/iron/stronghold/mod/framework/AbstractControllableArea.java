@@ -1,5 +1,6 @@
 package me.iron.stronghold.mod.framework;
 
+import api.DebugFile;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.schine.graphicsengine.core.Timer;
 
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 public abstract class AbstractControllableArea extends SendableUpdateable implements IAreaEvent {
     private static long nextID = 1;
     protected static long getNextUID() {
+        dlog("NEXT UID REQUESTED:"+(nextID));
         return nextID++;
     }
 
@@ -27,7 +29,8 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
     }; //serialization stuff
 
     protected AbstractControllableArea(String name) {
-        super(AreaManager.getNextUID(),name);
+        super(AbstractControllableArea.getNextUID(),name);
+        AbstractControllableArea.dlog(" NEXT UID " + getUID()+ " FOR "+ this.toString());
         init();
     }
 
@@ -273,5 +276,9 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
     @Override
     public String toString() {
         return super.toString()+", ownerF="+ getOwnerFaction();
+    }
+
+    public static void dlog(String mssg) {
+        DebugFile.log("[STDB]########## "+mssg);
     }
 }

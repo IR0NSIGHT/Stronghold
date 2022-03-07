@@ -64,6 +64,6 @@ public class GenericNewsCollector implements IAreaEvent {
         //    ModPlayground.broadcastMessage(mssg);
         //}
         System.out.println(prefix+mssg);
-        DebugFile.log(prefix+mssg);
+        //DebugFile.log(prefix+mssg);
     }
 }
