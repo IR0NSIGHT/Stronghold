@@ -5,28 +5,24 @@ import api.listener.events.player.PlayerChangeSectorEvent;
 import api.mod.StarLoader;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.implementation.StellarControllableArea;
-import org.newdawn.slick.util.pathfinding.navmesh.Link;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.Ship;
 import org.schema.game.common.data.world.Sector;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.data.Galaxy;
 import org.schema.game.server.data.GameServerState;
-import org.schema.schine.graphicsengine.core.Timer;
 
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Random;
-import java.util.Vector;
 
 public class ChunkManager extends SendableUpdateable implements IAreaEvent {
     private int systemsPerGrid = 8;
-    private AbstractChunk[] chunks;
+    private AreaChunk[] chunks;
     private AreaManager manager;
     private Listener<PlayerChangeSectorEvent> listener;
     public ChunkManager(AreaManager am) {
         manager = am;
-        chunks = new AbstractChunk[128*128*128/(systemsPerGrid*systemsPerGrid*systemsPerGrid)];
+        chunks = new AreaChunk[128*128*128/(systemsPerGrid*systemsPerGrid*systemsPerGrid)];
 
         //if (am.isServer()) {
             //add sector change Listener
@@ -42,7 +38,7 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
                     return;
                 start.set(s1.pos);
                 end.set(s2.pos);
-                AbstractChunk startC = getChunkFromSector(start), endC = getChunkFromSector(end);
+                AreaChunk startC = getChunkFromSector(start), endC = getChunkFromSector(end);
 
                 //get intruding ship
                 SimpleTransformableSendableObject s= event.getPlayerState().getFirstControlledTransformableWOExc();
@@ -171,7 +167,7 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
         assert area != null;
         LinkedList<Vector3i> grids = getChunkGridsForArea(area);
         for (Vector3i gridP: grids) {
-            AbstractChunk c = getChunkFromGrid(gridP);
+            AreaChunk c = getChunkFromGrid(gridP);
             if (c != null) { //remove area from chunk
                 c.removeChildObject(area);
                 if (c.isEmpty())
@@ -189,9 +185,9 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
         assert area != null;
         LinkedList<Vector3i> grids = getChunkGridsForArea(area);
         for (Vector3i gridP: grids) {
-            AbstractChunk c = getChunkFromGrid(gridP); //mutates vec to gridpos
+            AreaChunk c = getChunkFromGrid(gridP); //mutates vec to gridpos
             if (c == null) { //create new chunk if doesnt exist yet.
-                c = new AbstractChunk(gridP);
+                c = new AreaChunk(gridP);
                 addChunk(c);
             }
             c.addChildObject(area);
@@ -220,7 +216,7 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
 
     public LinkedList<StellarControllableArea> getAreasFromSector(Vector3i sector) {
         //get all chunks
-        AbstractChunk chunk = getChunkFromSector(sector);
+        AreaChunk chunk = getChunkFromSector(sector);
         if (chunk == null)
             return new LinkedList<>();
         return chunk.getAreasFromSector(sector);
@@ -242,13 +238,13 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
         return idx;
     }
 
-    private void addChunk(AbstractChunk c) {
+    private void addChunk(AreaChunk c) {
         int idx = getIndexFromGridPos(c.gridPos);
         System.out.println("add chunk at grid "+c.gridPos);
         chunks[idx] = c;
     }
 
-    private void removeChunk(AbstractChunk c) {
+    private void removeChunk(AreaChunk c) {
         int idx = getIndexFromGridPos(c.gridPos);
         System.out.println("removing chunk "+c.gridPos);
         chunks[idx] = null;
@@ -259,18 +255,18 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
      * @param sector will be mutated to gridpos
      * @return
      */
-    private AbstractChunk getChunkFromSector(Vector3i sector) {
+    private AreaChunk getChunkFromSector(Vector3i sector) {
         sector = new Vector3i(sector);
         mutateToGrid(sector);
         return getChunkFromGrid(sector);
     }
 
-    private AbstractChunk getChunkFromGrid(Vector3i grid) {
+    private AreaChunk getChunkFromGrid(Vector3i grid) {
         return chunks[getIndexFromGridPos(grid)];
     }
 
     protected void printChunks() {
-        for (AbstractChunk c: chunks) {
+        for (AreaChunk c: chunks) {
             if (c == null)
                 continue;
             System.out.print(c.getName()+":\n");

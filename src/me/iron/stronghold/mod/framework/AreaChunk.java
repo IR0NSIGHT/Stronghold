@@ -10,11 +10,11 @@ import java.util.LinkedList;
 /**
  * this class is a chunk, represents one cube of a fixed grid in the galaxy with fixed sidelengths. It has references to stellarareas that are fully or partly inside of the chunk.
  * Its a supporting datastructure to quickly collect all areas a position is inside of. All chunks are managed by the chunkmanager.
- * The chunk is not accessible from outside and only used by the CM.
+ * The chunk is not accessible from outside and only used by the CM. Chunks are Areas on paper, but are really just data containers. They dont have UIDs and are not updated by the AM.
  */
-public class AbstractChunk extends AbstractControllableArea {
+ class AreaChunk extends AbstractControllableArea {
     Vector3i gridPos; //position in own grid
-    public AbstractChunk(Vector3i gridPos) {
+    public AreaChunk(Vector3i gridPos) {
         //super("Chunk"+gridPos);
         this.gridPos = gridPos;
     }
