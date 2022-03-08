@@ -35,7 +35,7 @@ public class StrongholdArea extends StellarControllableArea {
         super.onFirstUpdatePersistent();
         //generate child objects
         int i = 0;
-        LinkedList<Vector3i> sector = getCPSectors(getDimensionsStart(), getDimensionsEnd(),3);
+        LinkedList<Vector3i> sector = getCPSectors(getDimensionsStart(), getDimensionsEnd(),5);
         ownerMap = new OwnerMap(sector.size());
         for (Vector3i pos: sector) {
             ControlZoneArea a = new ControlZoneArea(pos,i);
@@ -184,20 +184,6 @@ public class StrongholdArea extends StellarControllableArea {
             timeoutAfterConquer = ((StrongholdArea) a).getTimeoutAfterConquer();
             lastOwned = ((StrongholdArea) a).getLastOwned();
             ownerMap = ((StrongholdArea) a).ownerMap;
-        }
-    }
-    public static void main(String[] args) {
-        OwnerMap m = new OwnerMap(10);
-        Random r = new Random(420);
-        for (int x = 0; x < 10; x++) {
-            for (int i = 0; i < m.getAmountIndices(); i++) {
-                m.setOwner(i,r.nextInt(4)-1);
-            }
-            m.setOwner(4,0);
-            System.out.println(m);
-        }
-        for (Integer faction: m.getOwningFactions()) {
-            System.out.println(String.format("Faction %s owns %s cp's",faction,m.getOwnedBy(faction).size()));
         }
     }
 
