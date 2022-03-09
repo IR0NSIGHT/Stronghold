@@ -5,18 +5,34 @@ import api.utils.game.PlayerUtils;
 import api.utils.game.chat.CommandInterface;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
-import me.iron.stronghold.mod.implementation.PveArea;
-import me.iron.stronghold.mod.implementation.StellarControllableArea;
-import me.iron.stronghold.mod.implementation.StrongholdArea;
+import me.iron.stronghold.mod.implementation.*;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.common.data.world.VoidSystem;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 public class DebugUI implements CommandInterface {
+    HashSet<String> classNames = new HashSet<>();
+    public DebugUI() {
+        //effects
+        classNames.add(SelectiveVoidShield.class.getName());
+        classNames.add(LongRangeScannerEffect.class.getName());
+        classNames.add(PveShield.class.getName());
+        classNames.add(WelcomeMessageEffect.class.getName());
+        classNames.add(VoidShield.class.getName());
+
+        //areas
+        classNames.add(SemiProtectedArea.class.getName());
+        classNames.add(StrongholdArea.class.getName());
+        classNames.add(PveArea.class.getName());
+        classNames.add(ControlZoneArea.class.getName());
+    }
+
     @Override
     public String getCommand() {
         return "stronghold_debug";
@@ -30,8 +46,10 @@ public class DebugUI implements CommandInterface {
     @Override
     public String getDescription() {
         return "debug command:" +
-                "\npve [system/surround] 10 10 10 <name> (create pve protected area with x sectors/systems and name)" +
+                "\n<pve/hold> [system/surround] 10 10 10 <name> (create pve protected area with x sectors/systems and name)" +
                 "\nremove <UID> (remove/delete area/object with this UID)" +
+                "\nclasses: prints all classes available to 'add' commands"+
+                "\nadd <Classname simple> <UID> [params]: add new Object of this class as child to UID" +
                 "\nprint (print all areas)" +
                 "\nget_area (print what area i am in right now)" +
                 "\nsave" +
@@ -58,6 +76,31 @@ public class DebugUI implements CommandInterface {
                 return true;
             }
         }
+        if (strings.length==1&&strings[0].equalsIgnoreCase("classes")) {
+            //print all classes available to "add" command
+
+
+        }
+
+        if (strings.length>=3 && strings[0].equalsIgnoreCase("add")) {
+            LinkedList<String> args = new LinkedList<>(Arrays.asList(strings));
+            args.removeFirst();args.removeFirst();args.removeFirst();//remove idx 0,1,3 (add classname UID)
+            try {
+                boolean success = addChild(strings[1],Long.parseLong(strings[2]),args);
+                if (success) {
+                    echo("instantiated object of class "+ strings[1]+ " as child of UID "+strings[2],playerState);
+                    return true;
+                }else {
+                    echo("instantiation failed without an error.",playerState);
+                    return false;
+                }
+            }catch (Exception e) {
+                echo("Error for instantiation: "+ e.getMessage()+"\ncause:"+e.getCause(),playerState);
+                return false;
+            }
+
+        }
+
         //pve system 10 10 10 "my home" //pve sector -10 1 3
         if (strings.length==6 && (strings[0].equalsIgnoreCase("pve")||strings[0].equalsIgnoreCase("hold"))) {
             int multiply = 1;
@@ -121,6 +164,15 @@ public class DebugUI implements CommandInterface {
             echo("clearing area manager: "+ModMain.areaManager,playerState);
             return true;
         }
+        return false;
+    }
+
+    private Collection<String> getClasses() {
+
+        return new LinkedList<String>(Arrays.asList(SelectiveVoidShield.class.getSimpleName()));
+    }
+
+    private boolean addChild(String className, long UID, Collection<String> args) {
         return false;
     }
 
