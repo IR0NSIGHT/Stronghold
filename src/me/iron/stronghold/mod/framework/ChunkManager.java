@@ -262,7 +262,7 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
     }
 
     private AreaChunk getChunkFromGrid(Vector3i grid) {
-        return chunks[getIndexFromGridPos(grid)];
+        return chunks[Math.abs(getIndexFromGridPos(grid)% chunks.length)];
     }
 
     protected void printChunks() {
