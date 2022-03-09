@@ -48,9 +48,6 @@ public class AreaMapDrawer extends AbstractMapDrawer implements IAreaEvent {
         areaSprite = msl.getSprite();
         ModMain.areaManager.addListener(this);
     }
-    //TODO onSectorChange
-    //TODO onSystemChange
-    //TODO onGalaxyChange
 
     @Override
     public void system_PreDraw(GameMapDrawer gameMapDrawer, Vector3i vector3i, boolean b) {

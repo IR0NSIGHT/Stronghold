@@ -3,6 +3,7 @@ package me.iron.stronghold.mod.implementation;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
@@ -44,6 +45,9 @@ public class StrongholdArea extends StellarControllableArea {
 
             i++;
         }
+        SelectiveVoidShield shield = new SelectiveVoidShield("shield");
+        shield.setProtected(SimpleTransformableSendableObject.EntityType.SPACE_STATION,true);
+        addChildObject(shield);
     }
 
     @Override
