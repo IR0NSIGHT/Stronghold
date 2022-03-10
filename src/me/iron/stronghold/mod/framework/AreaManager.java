@@ -141,8 +141,7 @@ public class AreaManager extends AbstractControllableArea {
      * clear Manager. DOES NOT SYNCH!
      */
     public void clear() {
-        ArrayList<SendableUpdateable> sus = new ArrayList<>(getChildren());
-        for (SendableUpdateable c: sus) {
+        for (SendableUpdateable c: UID_to_object.values()) {
             c.destroy();
         }
         UID_to_object.clear();

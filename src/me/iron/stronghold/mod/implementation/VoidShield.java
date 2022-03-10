@@ -59,7 +59,7 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
     }
 
     @Override
-    protected void destroy() {
+    protected void destroy() { //TODO give "cascade" param.
         super.destroy();
         shields.remove(this);
     }
