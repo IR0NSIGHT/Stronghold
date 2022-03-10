@@ -1,6 +1,5 @@
 package me.iron.stronghold.mod.implementation;
 
-import api.DebugFile;
 import me.iron.stronghold.mod.framework.*;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.damage.DamageDealerType;
@@ -9,7 +8,6 @@ import org.schema.game.common.controller.damage.HitType;
 import org.schema.game.common.controller.damage.effects.InterEffectSet;
 import org.schema.game.common.controller.elements.ShieldAddOn;
 import org.schema.game.common.data.world.SectorNotFoundException;
-import org.schema.schine.graphicsengine.core.Timer;
 
 import javax.vecmath.Vector3f;
 import java.util.LinkedList;
@@ -45,15 +43,10 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
 
     }
 
-    boolean init;
-
     @Override
-    public void update(Timer timer) {
-        super.update(timer);
-        if (!init) {
-            init = true;
-            shields.add(this);
-        }
+    protected void onFirstUpdateRuntime() {
+        super.onFirstUpdateRuntime();
+        shields.add(this);
     }
 
     @Override

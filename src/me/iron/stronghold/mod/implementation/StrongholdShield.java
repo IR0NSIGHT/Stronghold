@@ -3,9 +3,6 @@ package me.iron.stronghold.mod.implementation;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.SegmentController;
 import org.schema.schine.graphicsengine.core.Timer;
-
-import java.util.HashMap;
-
 public class StrongholdShield extends SelectiveVoidShield {
     public StrongholdShield() {
         super();
