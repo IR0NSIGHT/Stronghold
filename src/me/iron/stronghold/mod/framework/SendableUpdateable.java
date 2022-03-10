@@ -14,14 +14,39 @@ import java.util.Objects;
 public abstract class SendableUpdateable implements Serializable {
     private long UID;
     private String name;
-    transient private SendableUpdateable parent;
+    private SendableUpdateable parent;
+    private transient boolean firstUpdateRuntime = false;
+    private boolean firstUpdatePersistent = false;
+
     public SendableUpdateable(){}
     public SendableUpdateable(long UID, String name) {
         this.UID = UID;
         this.name = name;
     }
 
-    protected void update(Timer t){};
+    protected void update(Timer t){
+        if (!firstUpdatePersistent) {
+            firstUpdatePersistent = true;
+            onFirstUpdatePersistent();
+        }
+        if (!firstUpdateRuntime) {
+            firstUpdateRuntime = true;
+            onFirstUpdateRuntime();
+        }
+    }
+
+    /**
+     * called right before the first ever update after every server restart.
+     */
+    protected void onFirstUpdateRuntime() {}
+
+    /**
+     * called once after initial creation before very fisrt update.
+     */
+    protected void onFirstUpdatePersistent() {
+
+    }
+
     public long getUID(){
         return UID;
     };
@@ -61,6 +86,7 @@ public abstract class SendableUpdateable implements Serializable {
     protected void synch(SendableUpdateable origin){
         setUID(origin.getUID());
         setName(origin.getName());
+        firstUpdatePersistent = origin.firstUpdatePersistent;
     };
 
     public void requestSynchToClient(SendableUpdateable area) {
