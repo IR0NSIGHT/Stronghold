@@ -17,8 +17,6 @@ import java.util.LinkedList;
 //will make shields unbreakable if active
 public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
     public static LinkedList<VoidShield> shields = new LinkedList<>();
-    private int defPoints;
-    private int requiredPoints = 60*60; //seconds
     transient private long lastUpdate;
     private boolean sendMssg;
 
@@ -56,15 +54,6 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
             init = true;
             shields.add(this);
         }
-        sendMssg = false;
-        if (getParent() instanceof StellarControllableArea && ((AbstractControllableArea)getParent()).getOwnerFaction() != 0) {
-            long seconds = (timer.currentTime-lastUpdate)/1000;
-            lastUpdate = timer.lastUpdate;
-            defPoints += seconds;
-            setActive(defPoints>=requiredPoints);
-        } else {
-            setActive(false);
-        }
     }
 
     @Override
@@ -73,7 +62,6 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
         if (origin instanceof VoidShield) {
             VoidShield v = (VoidShield) origin;
             lastUpdate = v.lastUpdate;
-            this.defPoints = v.defPoints;
         }
     }
 
@@ -94,8 +82,7 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
     }
 
     private void reset() {
-        defPoints = 0;
-        setActive(false);
+        //setActive(false);
     }
 
  //is listening to parent for internal use

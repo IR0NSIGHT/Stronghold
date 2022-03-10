@@ -48,6 +48,7 @@ public class StrongholdArea extends StellarControllableArea {
         }
         StrongholdShield shield = new StrongholdShield("shield");
         shield.setProtected(SimpleTransformableSendableObject.EntityType.SPACE_STATION,true);
+        shield.setActive(true);
         addChildObject(shield);
     }
 

@@ -80,4 +80,10 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
             setActive (((ActivateableAreaEffect) origin).isActive());
         }
     }
+
+    @Override
+    public String toString() {
+        return super.toString() +
+                ", active=" + active;
+    }
 }

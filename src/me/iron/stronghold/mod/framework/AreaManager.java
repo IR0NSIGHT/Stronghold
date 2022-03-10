@@ -122,6 +122,7 @@ public class AreaManager extends AbstractControllableArea {
      * save to PersistenceObeject file
      */
     public void save() {
+        //TODO save next UID
         //the saving is basically all code reused from the network synching.
         if (ModMain.instance != null) {
             //update all areas on last time

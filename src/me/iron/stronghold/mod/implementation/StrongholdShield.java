@@ -17,7 +17,6 @@ public class StrongholdShield extends SelectiveVoidShield {
     @Override
     public void update(Timer timer) {
         super.update(timer);
-
     }
 
     @Override

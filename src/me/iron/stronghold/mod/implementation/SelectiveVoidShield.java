@@ -28,8 +28,8 @@ import java.util.HashSet;
  * TIME: 16:42
  */
 public class SelectiveVoidShield extends VoidShield{
-    private final HashSet<Integer> protectFactions = new HashSet<>();
-    private final boolean[] protectedTypes = new boolean[SimpleTransformableSendableObject.EntityType.values().length];
+    private HashSet<Integer> protectFactions = new HashSet<>();
+    private boolean[] protectedTypes = new boolean[SimpleTransformableSendableObject.EntityType.values().length];
      public SelectiveVoidShield() {
         super();
     }
@@ -93,6 +93,15 @@ public class SelectiveVoidShield extends VoidShield{
     }
 
     @Override
+    public void synch(SendableUpdateable origin) {
+        super.synch(origin);
+        if (origin instanceof SelectiveVoidShield) {
+            protectedTypes = ((SelectiveVoidShield) origin).protectedTypes;
+            protectFactions = ((SelectiveVoidShield) origin).protectFactions;
+        }
+    }
+
+    @Override
     public double handleShieldHit(ShieldAddOn shieldAddOn, Damager damager, InterEffectSet defenseSet, Vector3f hitPoint, int projectileSectorId, DamageDealerType damageType, HitType hitType, double damage, long weaponId) throws SectorNotFoundException {
         if  (isActive() &&
             ((StellarControllableArea)getParent()).isSectorInArea(shieldAddOn.getSegmentController().getSector(new Vector3i())) &&
@@ -105,8 +114,21 @@ public class SelectiveVoidShield extends VoidShield{
 
     @Override
     public String toString() {
+        StringBuilder b = new StringBuilder("[");
+        int i = 0;
+        for (int idx = 0; idx < protectedTypes.length; idx++) {
+            if (protectedTypes[idx]) {
+                if (i > 0)
+                    b.append(", ");
+                i++;
+                b.append(SimpleTransformableSendableObject.EntityType.values()[idx].getName());
+
+            }
+
+        }
+        b.append("]");
         return super.toString() +
                 ", protectFactions=" + protectFactions +
-                ", protectedTypes=" + Arrays.toString(protectedTypes);
+                ", protectedTypes=" + b.toString();
     }
 }
