@@ -21,7 +21,7 @@ public enum FactionRelation {
     public static FactionRelation getRelation(int ownF, int factionid, FactionManager fm) {
         assert fm != null;
         FactionRelation relation = null;
-        if (ownF == factionid) {
+        if (ownF == factionid && ownF != 0) {
             relation = FactionRelation.OWN;
         }else if(fm.isFriend(ownF, factionid)) {
             relation = FactionRelation.ALLY;
