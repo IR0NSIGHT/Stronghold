@@ -1,6 +1,5 @@
 package me.iron.stronghold.mod.framework;
 
-import api.DebugFile;
 import api.listener.Listener;
 import api.listener.events.player.PlayerJoinWorldEvent;
 import api.mod.StarLoader;
@@ -85,7 +84,7 @@ public class AreaManager extends AbstractControllableArea {
         new StarRunnable(){
             @Override
             public void run() {
-                update(t);
+               // update(t); //TODO does the client need updating?
             }
         }.runTimer(ModMain.instance,100);
     };
@@ -199,6 +198,7 @@ public class AreaManager extends AbstractControllableArea {
 
     @Override
     public void update(Timer timer) {
+        super.update(timer);
         timer.lastUpdate = timer.currentTime;
         timer.currentTime = System.currentTimeMillis();
         updateLoaded(timer);

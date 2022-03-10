@@ -126,7 +126,7 @@ public class StrongholdArea extends StellarControllableArea {
     }
 
     @Override
-    public void update(Timer timer) {
+    protected void update(Timer timer) {
         super.update(timer);
         updateOwnership(); //alliances might have changed, update ownership.
     }

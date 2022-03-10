@@ -6,7 +6,6 @@ import me.iron.stronghold.mod.effects.map.FactionRelation;
 import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.AbstractMapDrawer;
 import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapLine;
 import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
-import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.client.data.GameClientState;

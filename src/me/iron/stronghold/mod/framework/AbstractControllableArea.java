@@ -20,8 +20,7 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
 
     transient protected ArrayList<SendableUpdateable> children = new ArrayList<>();
     transient protected ArrayList<IAreaEvent> listeners = new ArrayList<>();
-    private transient boolean firstUpdateRuntime = false;
-    private boolean firstUpdatePersistent = false;
+
 
     public AbstractControllableArea() {
         super();
@@ -63,18 +62,6 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         return out;
     }
 
-    /**
-     * called right before the first ever update after every server restart.
-     */
-    protected void onFirstUpdateRuntime() {}
-
-    /**
-     * called once after initial creation before very fisrt update.
-     */
-    protected void onFirstUpdatePersistent() {
-
-    }
-
     public void addListener(IAreaEvent e) {
         listeners.add(e);
     }
@@ -91,18 +78,11 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         return ownerFaction;
     }
 
-    public void update(Timer timer) {
-        if (!firstUpdatePersistent) {
-            firstUpdatePersistent = true;
-            onFirstUpdatePersistent();
-        }
-        if (!firstUpdateRuntime) {
-            firstUpdateRuntime = true;
-            onFirstUpdateRuntime();
-        }
-
+    @Override
+    protected void update(Timer t) {
+        super.update(t);
         for (SendableUpdateable c: children) {
-            c.update(timer);
+            c.update(t);
         }
         onUpdate(this);
     }
@@ -269,7 +249,6 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
             setUID(area.getUID());
             setOwnerFaction(area.ownerFaction);
             setCanBeConquered(area.canBeConquered);
-            firstUpdatePersistent = ((AbstractControllableArea) a).firstUpdatePersistent;
         }
     }
 
