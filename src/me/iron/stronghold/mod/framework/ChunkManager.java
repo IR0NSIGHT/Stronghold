@@ -113,7 +113,7 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
         //AbstractChunk root = new AbstractChunk();
      /*   Vector3i v1 = new Vector3i(-16*8*128,-16*8,-1), v2 = new Vector3i(32,16,1);
         mutateToGrid(v1); mutateToGrid(v2);
-        System.out.println(v1 +""+v2);
+        //System.out.println(v1 +""+v2);
         //cm.initChunks();
         for (int i = 0; i < 7; i++) {
             int from = -1*16*128-1;
@@ -143,10 +143,10 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
     public void onChildChanged(AbstractControllableArea parent, SendableUpdateable child, boolean removed) {
         if (child instanceof StellarControllableArea) {
             if (!removed) {
-                System.out.println("add stellar area to chunk");
+                //System.out.println("add stellar area to chunk");
                 addArea((StellarControllableArea) child);
             } else {
-                System.out.println("remove stellar area from chunk");
+                //System.out.println("remove stellar area from chunk");
                 removeArea((StellarControllableArea) child);
             }
         }
@@ -240,13 +240,13 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
 
     private void addChunk(AreaChunk c) {
         int idx = getIndexFromGridPos(c.gridPos);
-        System.out.println("add chunk at grid "+c.gridPos);
+        //System.out.println("add chunk at grid "+c.gridPos);
         chunks[idx] = c;
     }
 
     private void removeChunk(AreaChunk c) {
         int idx = getIndexFromGridPos(c.gridPos);
-        System.out.println("removing chunk "+c.gridPos);
+        //System.out.println("removing chunk "+c.gridPos);
         chunks[idx] = null;
     }
 
@@ -273,7 +273,7 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
             for (SendableUpdateable a: c.children) {
                 System.out.print("\t"+a.getName());
             }
-            System.out.println();
+            //System.out.println();
         }
     }
 }

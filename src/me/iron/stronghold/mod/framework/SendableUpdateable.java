@@ -64,7 +64,7 @@ public abstract class SendableUpdateable implements Serializable {
     };
 
     public void requestSynchToClient(SendableUpdateable area) {
-    //    System.out.println("request synch for area "+area.getName()+" at level " +this.getName());
+    //    //System.out.println("request synch for area "+area.getName()+" at level " +this.getName());
         if (this.getParent() != null )
             getParent().requestSynchToClient(area);
     }

@@ -229,7 +229,7 @@ public class AreaManager extends AbstractControllableArea {
             }
 
             for (SendableUpdateable child: loadedAreas) {
-                System.out.println("updating loaded stellar area: "+child.getName());
+                //System.out.println("updating loaded stellar area: "+child.getName());
                 child.update(timer);
             }
             //problem: if player is inside of an area, that is not a direct child to area manager, the area isnt updated.
@@ -263,6 +263,10 @@ public class AreaManager extends AbstractControllableArea {
         } else {
             System.err.println("area "+origin.getName()+"("+origin.getUID()+") has no local counterpart. cant update.");
         }
+    }
+
+    public SendableUpdateable getObjectFromUID(long UID) {
+        return UID_to_object.get(UID);
     }
 
     @Override
@@ -358,7 +362,7 @@ public class AreaManager extends AbstractControllableArea {
         //manager->parent->...->parent->child/leaf
         //UID is unknown, parent UID is known.
         if (UID_to_object.containsKey(UID)) {
-            System.out.println("warning: instantiating area with existing UID. predecessor: "+UID_to_object.get(UID)+" new obj:"+dummy);
+            //System.out.println("warning: instantiating area with existing UID. predecessor: "+UID_to_object.get(UID)+" new obj:"+dummy);
         }
         if (UID_to_object.containsKey(parent)) {
             try {
@@ -391,7 +395,7 @@ public class AreaManager extends AbstractControllableArea {
      * @param mssg
      */
     private void log(String mssg) {
-        System.out.println("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
+        //System.out.println("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
         //DebugFile.log("[Manager]"+(client?"[client]":"")+(server?"[server]":"")+mssg);
     }
 

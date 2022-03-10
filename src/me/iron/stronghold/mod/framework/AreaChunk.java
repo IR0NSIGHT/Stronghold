@@ -42,7 +42,7 @@ import java.util.LinkedList;
     @Override
     protected boolean removeChildObject(SendableUpdateable child) {
         boolean out =  children.remove(child);
-        System.out.println(""+getName()+" has " + children.size() + " left.");
+        //System.out.println(""+getName()+" has " + children.size() + " left.");
         return out;
     }
 

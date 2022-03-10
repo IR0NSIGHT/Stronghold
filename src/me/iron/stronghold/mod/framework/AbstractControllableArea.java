@@ -201,13 +201,13 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
 
     @Override
     public void onChildChanged(AbstractControllableArea parent, SendableUpdateable child, boolean removed) {
-        //System.out.println("child changed: p="+parent.getName()+",c="+child.getName()+" level:"+this.getName());
+        ////System.out.println("child changed: p="+parent.getName()+",c="+child.getName()+" level:"+this.getName());
         for (IAreaEvent e: listeners)
             e.onChildChanged(parent,child,removed);
         if (this.getParent() != null && getParent() instanceof IAreaEvent)
             ((IAreaEvent)getParent()).onChildChanged(parent, child, removed);
-        else
-            System.out.println("AREA_CHILD "+ child+ " passing area "+this+" that is non-bubble parent "+getParent()+" for onChildChanged.");
+        //else
+            //System.out.println("AREA_CHILD "+ child+ " passing area "+this+" that is non-bubble parent "+getParent()+" for onChildChanged.");
     }
 
     @Override

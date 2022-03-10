@@ -40,7 +40,7 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
                 signals.clear();
                 signals.addAll(getObjectsInArea((StellarControllableArea) getParent(),timer.currentTime));
                 for (RadarContact o: signals) {
-                    System.out.println(o);
+                    //System.out.println(o);
                 }
 
                 lastScan = timer.currentTime;

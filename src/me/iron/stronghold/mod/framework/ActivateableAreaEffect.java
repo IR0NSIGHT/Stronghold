@@ -46,11 +46,11 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
     }
 
     protected void onActivate(ActivateableAreaEffect effect) {
-        System.out.println(getName()+" activated");
+        //System.out.println(getName()+" activated");
     }
 
     protected void onDeactivate(ActivateableAreaEffect effect) {
-        System.out.println(getName()+" deactivated");
+        //System.out.println(getName()+" deactivated");
     }
 
     public boolean isActive() {

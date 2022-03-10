@@ -26,6 +26,7 @@ public class StrongholdArea extends StellarControllableArea {
     public StrongholdArea() {
         super();
     }
+    private HashMap<Vector3i, ControlZoneArea> czs = new HashMap<>();
 
     public StrongholdArea(Vector3i from, Vector3i to) {
         super(from, to, "Stronghold");
@@ -45,7 +46,7 @@ public class StrongholdArea extends StellarControllableArea {
 
             i++;
         }
-        SelectiveVoidShield shield = new SelectiveVoidShield("shield");
+        StrongholdShield shield = new StrongholdShield("shield");
         shield.setProtected(SimpleTransformableSendableObject.EntityType.SPACE_STATION,true);
         addChildObject(shield);
     }
@@ -54,6 +55,14 @@ public class StrongholdArea extends StellarControllableArea {
     protected void onFirstUpdateRuntime() {
         super.onFirstUpdateRuntime();
         initOwnership();
+    }
+
+    public ControlZoneArea getCZAt(Vector3i pos) {
+        return czs.get(pos);
+    }
+
+    public Collection<ControlZoneArea> getAllCzs() {
+        return czs.values();
     }
 
     private void initOwnership() {
@@ -67,9 +76,10 @@ public class StrongholdArea extends StellarControllableArea {
         for (SendableUpdateable child: getChildren()) {
             if (child instanceof ControlZoneArea) {
                 ownerMap.setOwner (((ControlZoneArea) child).getIdx() ,((ControlZoneArea) child).getOwnerFaction());
+                czs.put(((ControlZoneArea) child).getDimensionsStart(), (ControlZoneArea) child);
             }
         }
-        System.out.println("OWNERMAP AFTER INIT: "+ownerMap.toString());
+        //System.out.println("OWNERMAP AFTER INIT: "+ownerMap.toString());
     }
 
     /**
@@ -130,12 +140,12 @@ public class StrongholdArea extends StellarControllableArea {
         super.onConquered(area, oldOwner);
         if (area instanceof ControlZoneArea) {
             ownerMap.setOwner(((ControlZoneArea) area).getIdx(),area.getOwnerFaction());
-            System.out.println("onConquered for Stronghold "+ getName());
+            //System.out.println("onConquered for Stronghold "+ getName());
         }
     }
 
     private void updateOwnership() {
-        System.out.println("Update Ownership in Stronghold\nBEFORE OwnerMap: " + ownerMap);
+        //System.out.println("Update Ownership in Stronghold\nBEFORE OwnerMap: " + ownerMap);
 
         //test if the owning faction and its allies still hold any control zones.
         boolean lostAll = true;
@@ -157,7 +167,7 @@ public class StrongholdArea extends StellarControllableArea {
             else
                 setOwnerFaction(0);
         }
-        System.out.println("AFTER OwnerMap: " + ownerMap);
+        //System.out.println("AFTER OwnerMap: " + ownerMap);
     }
 
     private boolean isAllied(int faction) {

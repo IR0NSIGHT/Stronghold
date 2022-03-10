@@ -24,7 +24,7 @@ public class testMain {
             PacketWriteBuffer buf = new PacketWriteBuffer(new DataOutputStream(bArray));
             object.writePacketData(buf);
             //object is written to buffer
-            //System.out.println("barray='"+Arrays.toString(bArray.toByteArray())+"'");
+            ////System.out.println("barray='"+Arrays.toString(bArray.toByteArray())+"'");
             ByteArrayInputStream inputStream = new ByteArrayInputStream( bArray.toByteArray());
             PacketReadBuffer rb = new PacketReadBuffer(new DataInputStream(inputStream));
             Packet receiver = object.getClass().newInstance();
@@ -45,7 +45,7 @@ class testSer extends SimpleSerializerWrapper {
             int size = buffer.readInt();
             for (int i=0; i<size; i++) {
                 String className = buffer.readString();
-                System.out.println("try reading class " + className);
+                //System.out.println("try reading class " + className);
                 Serializable o =(Serializable) buffer.readObject(Class.forName(className));
                 if (o instanceof SimpleSerializerWrapper)
                     ((SimpleSerializerWrapper) o).onDeserialize(buffer);

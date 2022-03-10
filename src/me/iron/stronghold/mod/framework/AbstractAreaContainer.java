@@ -23,7 +23,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
         return updateObjects.isEmpty() && newObjectTree == null;
     }
     public void addForSynch(SendableUpdateable a) {
-        System.out.println("added sendable "+a.getName()+" to container for synch.");
+        //System.out.println("added sendable "+a.getName()+" to container for synch.");
         updateObjects.add(a);
     }
 
@@ -40,7 +40,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             //  System.out.print(iterator.getName()+">>");
             iterator = iterator.getParent();
         }
-        //System.out.println(""+iterator.getName());
+        ////System.out.println(""+iterator.getName());
         chain.add(iterator); //add manager
         Collections.reverse(chain); //manager->...->child
         assert (iterator instanceof AreaManager):"root for SU "+su+" is not area manager but "+iterator; //all areas MUST be children of the manager.
@@ -69,7 +69,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             }
             if (!exists) {
                 parent.children.add(child);
-                //System.out.println("added " +child.className+ " to parent "+ parent.className);
+                ////System.out.println("added " +child.className+ " to parent "+ parent.className);
             }
             parent = child;
         }
@@ -113,7 +113,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             int size = b.readInt();
             for (int i = 0; i < size; i++) {
                 String className = b.readString();
-                System.out.println("deserializing " +className);
+                //System.out.println("deserializing " +className);
                 Class<?> c = Class.forName(className);
                 Object o = b.readObject(c);
                 updateObjects.add((SendableUpdateable) o);
@@ -129,12 +129,12 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
     @Override
     public void onSerialize(PacketWriteBuffer b) {
 
-        System.out.println("DELETE UIDS: {");
+        //System.out.println("DELETE UIDS: {");
         Iterator<Long> it = deleteUIDs.iterator();
         while (it.hasNext()) {
-            System.out.println("\t"+it.next());
+            //System.out.println("\t"+it.next());
         }
-        System.out.println("}");
+        //System.out.println("}");
         try {
             b.writeBoolean(newObjectTree != null);
             if (newObjectTree != null)
@@ -148,7 +148,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
                 dummy.updateFromObject(o); //write values we want
 
                 b.writeString(dummy.getClass().getName());
-                System.out.println("writing object"+ o);
+                //System.out.println("writing object"+ o);
                 b.writeObject(dummy);
             }
 

@@ -4,6 +4,7 @@ import api.mod.StarMod;
 import api.utils.game.PlayerUtils;
 import api.utils.game.chat.CommandInterface;
 import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import me.iron.stronghold.mod.implementation.*;
 import org.schema.common.util.linAlg.Vector3i;
@@ -164,6 +165,31 @@ public class DebugUI implements CommandInterface {
             echo("clearing area manager: "+ModMain.areaManager,playerState);
             return true;
         }
+        if (strings.length==4 && strings[0].equalsIgnoreCase("conquer")) {
+            //conquer UID faction cascade => conquer 4 -1 true
+            try {
+                long UID = Long.parseLong(strings[1]);
+                int faction = Integer.parseInt(strings[2]);
+                boolean cascade = Boolean.parseBoolean(strings[3]);
+                echo("conquer area " +UID+" for faction "+ faction+" cascade: "+ cascade,playerState);
+                return conquerArea(UID,faction,cascade);
+            } catch (Exception e) {
+                echo("Execption caught:"+e.getCause()+"\n"+e.getMessage(),playerState);
+            }
+        }
+        return false;
+    }
+
+    private boolean conquerArea(long UID, int faction, boolean cascade) {
+        SendableUpdateable su = ModMain.areaManager.getObjectFromUID(UID);
+        if (su instanceof AbstractControllableArea) {
+            if (cascade)
+                for (SendableUpdateable c: ((AbstractControllableArea) su).getChildren()) {
+                    conquerArea(c.getUID(), faction, true);
+                }
+            ((AbstractControllableArea) su).setOwnerFaction(faction);
+            return true;
+        }
         return false;
     }
 
@@ -187,7 +213,7 @@ public class DebugUI implements CommandInterface {
     }
 
     private void echo(String mssg, PlayerState p) {
-        System.out.println("[TO:"+p.getName()+"]"+ mssg);
+        //System.out.println("[TO:"+p.getName()+"]"+ mssg);
         PlayerUtils.sendMessage(p,mssg);
     }
 }

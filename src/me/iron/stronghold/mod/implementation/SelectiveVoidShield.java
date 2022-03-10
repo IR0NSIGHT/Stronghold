@@ -1,6 +1,7 @@
 package me.iron.stronghold.mod.implementation;
 
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
+import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.SegmentController;
 import org.schema.game.common.controller.damage.DamageDealerType;
@@ -15,7 +16,9 @@ import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
 import javax.vecmath.Vector3f;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -27,8 +30,7 @@ import java.util.HashSet;
 public class SelectiveVoidShield extends VoidShield{
     private final HashSet<Integer> protectFactions = new HashSet<>();
     private final boolean[] protectedTypes = new boolean[SimpleTransformableSendableObject.EntityType.values().length];
-
-    public SelectiveVoidShield() {
+     public SelectiveVoidShield() {
         super();
     }
     public SelectiveVoidShield(String name) {
@@ -99,5 +101,12 @@ public class SelectiveVoidShield extends VoidShield{
             return 0;
         }
         return super.handleShieldHit(shieldAddOn, damager, defenseSet, hitPoint, projectileSectorId, damageType, hitType, damage, weaponId);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() +
+                ", protectFactions=" + protectFactions +
+                ", protectedTypes=" + Arrays.toString(protectedTypes);
     }
 }
