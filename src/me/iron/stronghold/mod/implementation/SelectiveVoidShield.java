@@ -16,9 +16,7 @@ import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
 
 import javax.vecmath.Vector3f;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -116,15 +114,15 @@ public class SelectiveVoidShield extends VoidShield{
     public String toString() {
         StringBuilder b = new StringBuilder("[");
         int i = 0;
-        for (int idx = 0; idx < protectedTypes.length; idx++) {
-            if (protectedTypes[idx]) {
-                if (i > 0)
-                    b.append(", ");
-                i++;
-                b.append(SimpleTransformableSendableObject.EntityType.values()[idx].getName());
-
+        if (protectedTypes != null) {
+            for (int idx = 0; idx < protectedTypes.length; idx++) {
+                if (protectedTypes[idx]) {
+                    if (i > 0)
+                        b.append(", ");
+                    i++;
+                    b.append(SimpleTransformableSendableObject.EntityType.values()[idx].getName());
+                }
             }
-
         }
         b.append("]");
         return super.toString() +
