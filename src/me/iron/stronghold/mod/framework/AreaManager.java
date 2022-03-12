@@ -32,6 +32,8 @@ public class AreaManager extends AbstractControllableArea {
     private ChunkManager chunkManager = new ChunkManager(this);
     private AbstractAreaContainer container = new AbstractAreaContainer();
     private HashMap<Long,SendableUpdateable> UID_to_object = new HashMap<>();
+    private StarRunnable updater;
+    private Listener<PlayerJoinWorldEvent> listener;
     public AreaManager() { //is a singelton (hopefully)
         super("AbstractAreaManager");
         UID_to_object.put(getUID(),this);
@@ -45,16 +47,17 @@ public class AreaManager extends AbstractControllableArea {
      */
     public void setServer(StarMod m){
         server = true;
-        new StarRunnable(){
+        updater = new StarRunnable(){
             @Override
             public void run() {
                 if (timer.currentTime + 5000<System.currentTimeMillis()) {
                     update(timer);
                 }
             }
-        }.runTimer(m,10);
+        };
+        updater.runTimer(m,10);
         load();
-        StarLoader.registerListener(PlayerJoinWorldEvent.class, new Listener<PlayerJoinWorldEvent>() {
+        listener =new Listener<PlayerJoinWorldEvent>() {
             @Override
             public void onEvent(PlayerJoinWorldEvent playerJoinWorldEvent) {
                 final String playername = playerJoinWorldEvent.getPlayerName();
@@ -73,7 +76,8 @@ public class AreaManager extends AbstractControllableArea {
                     }
                 }.runTimer(ModMain.instance,10);
             }
-        },ModMain.instance);
+        };
+        StarLoader.registerListener(PlayerJoinWorldEvent.class, listener,ModMain.instance);
     }
 
     /**
@@ -101,7 +105,15 @@ public class AreaManager extends AbstractControllableArea {
         if (server) {
             save();
         }
-        //destroy();
+        destroy();
+    }
+
+    @Override
+    protected void destroy() {
+        super.destroy();
+        updater.cancel();
+        StarLoader.unregisterListener(PlayerJoinWorldEvent.class,listener);
+        clear(); //will destroy all children too
     }
 
     /**

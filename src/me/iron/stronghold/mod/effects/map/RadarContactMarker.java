@@ -3,6 +3,7 @@ package me.iron.stronghold.mod.effects.map;
 import api.ModPlayground;
 import libpackage.drawer.MapDrawer;
 import libpackage.markers.SimpleMapMarker;
+import me.iron.stronghold.mod.implementation.LongRangeScannerEffect;
 import me.iron.stronghold.mod.implementation.RadarContact;
 import org.schema.game.client.view.gamemap.GameMapDrawer;
 import org.schema.schine.graphicsengine.forms.Sprite;
@@ -29,9 +30,10 @@ public class RadarContactMarker extends SimpleMapMarker {
 
     @Override
     public void preDraw(GameMapDrawer drawer) {
-        float point = (System.currentTimeMillis()-contact.getTimestamp())/1000f;
-        float lifePercent = (-1/8f*point+1);
-        setScale((float) (size * (0.7f+0.3f*Math.abs(Math.cos(point*2f)))));
+        float point = (System.currentTimeMillis()-contact.getTimestamp());
+        float lifePercent = 1-(point/ LongRangeScannerEffect.cooldown);
+        //pulse at a 1 second frequency
+        setScale((float) (size * (0.7f+0.3f*Math.abs(Math.cos(((System.currentTimeMillis()%1000)-500)/500f)))));
 
 
         Vector4f colorNew = displayColor; colorNew.w = Math.max(0.2f,lifePercent);

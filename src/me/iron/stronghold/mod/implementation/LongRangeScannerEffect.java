@@ -26,7 +26,7 @@ import java.util.LinkedList;
 
 public class LongRangeScannerEffect extends ActivateableAreaEffect implements MapDrawable {
     private ArrayList<RadarContact> signals = new ArrayList<>(20);
-    private long cooldown = 60*1000;
+    public static long cooldown = 60*1000;
     private long lastScan;
 
     //clientside stuff

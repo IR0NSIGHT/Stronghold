@@ -32,7 +32,7 @@ public class UpdatePacket extends Packet {
         AreaManager.dlog("writing packet data");
         container.onSerialize(packetWriteBuffer); //FIXME server dies here.
         AreaManager.dlog("done writing packet data");
-
+        container = null;
     }
 
     @Override
