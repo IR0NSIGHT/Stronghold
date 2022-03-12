@@ -180,7 +180,7 @@ public class AreaManager extends AbstractControllableArea {
             this.removeObject(UID);
         }
 
-        dlog("Loading: After deletion:\n"+printObject(this));
+        dlog("Loading: After deletion:\n"+printObject(this)+"\n UIDMAP "+ printUIDMap("\n"));
 
     }
 

@@ -108,6 +108,7 @@ public class StrongholdArea extends StellarControllableArea {
      * @return
      */
     protected static LinkedList<Vector3i> getCPSectors(Vector3i from, Vector3i to, int amount) {
+        assert from != null && to != null;
         long code =from.code()*to.code();
         LinkedList<Vector3i> out = new LinkedList<>();
         Random r = new Random(code);
