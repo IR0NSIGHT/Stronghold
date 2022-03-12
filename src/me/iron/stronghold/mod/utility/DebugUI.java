@@ -51,6 +51,7 @@ public class DebugUI implements CommandInterface {
                 "\nremove <UID> (remove/delete area/object with this UID)" +
                 "\nclasses: prints all classes available to 'add' commands"+
                 "\nadd <Classname simple> <UID> [params]: add new Object of this class as child to UID" +
+                "\nconquer <UID> <faction> <cascade>: conquer 4 -1 true"+
                 "\nprint (print all areas)" +
                 "\nget_area (print what area i am in right now)" +
                 "\nsave" +

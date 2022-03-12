@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Vector;
 
 public class RadarMapDrawer extends MapDrawer {
-    private Sprite radarSprite;
+    public static Sprite radarSprite;
     private SimpleMapMarker marker;
     public RadarMapDrawer(StarMod mod) {
         super(mod);
@@ -51,7 +51,7 @@ public class RadarMapDrawer extends MapDrawer {
         clearMarkers();
     }
 
-    private int getSpriteIndexFromRelation(FactionRelation relation) {
+    public static int getSpriteIndexFromRelation(FactionRelation relation) {
         //assert relation!=null; //TODO fix and assert
         if (relation == null)
             return 0;

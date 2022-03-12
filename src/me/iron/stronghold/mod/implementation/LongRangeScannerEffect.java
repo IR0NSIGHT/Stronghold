@@ -1,9 +1,18 @@
 package me.iron.stronghold.mod.implementation;
 
+import libpackage.markers.SimpleMapMarker;
 import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.effects.map.FactionRelation;
+import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapDrawable;
+import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.MapLine;
+import me.iron.stronghold.mod.effects.map.RadarContactMarker;
+import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
+import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.ActivateableAreaEffect;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.client.data.GameClientState;
+import org.schema.game.client.view.effects.Indication;
 import org.schema.game.common.data.world.SimpleTransformableSendableObject;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.graphicsengine.core.Timer;
@@ -15,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
-public class LongRangeScannerEffect extends ActivateableAreaEffect {
+public class LongRangeScannerEffect extends ActivateableAreaEffect implements MapDrawable {
     private ArrayList<RadarContact> signals = new ArrayList<>(20);
     private long cooldown = 10*1000;
     private long lastScan;
@@ -45,15 +54,7 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
 
                 lastScan = timer.currentTime;
                 requestSynchToClient(this);
-                if (isClient()) {
-                    drawContacts(signals);
-                }
             }
-    }
-
-    @Override
-    public boolean isActive() {
-        return true;
     }
 
     private Collection<RadarContact> getObjectsInArea(StellarControllableArea area, long currentTime) {
@@ -89,16 +90,40 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect {
         if (origin instanceof LongRangeScannerEffect) {
             signals.clear();
             signals.addAll(((LongRangeScannerEffect) origin).signals);
-            if (isClient()) {
-                drawContacts(signals);
-            }
         }
     }
-    private void drawContacts(ArrayList<RadarContact> signal) {
-        ModMain.radarMapDrawer.clearRadarContacts();
+
+    @Override
+    public LinkedList<SimpleMapMarker> getMarkers() {
+        LinkedList<SimpleMapMarker> markers = new LinkedList<>();
         for (RadarContact c: signals) {
-            ModMain.radarMapDrawer.addRadarContact(c);
-            //break;
+            markers.add(new RadarContactMarker(
+                    RadarMapDrawer.radarSprite,
+                    RadarMapDrawer.getSpriteIndexFromRelation(c.getRelation()),
+                    RadarMapDrawer.getColorFromRelation(c.getRelation()),
+                    c
+            ));
         }
+        return markers;
+    }
+
+    @Override
+    public LinkedList<MapLine> getLines() {
+        return new LinkedList<>();
+    }
+
+    @Override
+    public LinkedList<Indication> getIndications() {
+        return new LinkedList<>();
+    }
+
+    private boolean isAlliedOrOwn(int faction) {
+        FactionRelation r = FactionRelation.getRelation(faction,((AbstractControllableArea)getParent()).getOwnerFaction(),GameClientState.instance.getFactionManager());
+        return r.equals(FactionRelation.OWN)|| r.equals(FactionRelation.ALLY);
+    }
+    //TODO allow mapdrawables to decide when to update the markers.
+    @Override
+    public boolean isVisibleOnMap() {
+        return isAlliedOrOwn(GameClientState.instance.getPlayer().getFactionId());
     }
 }

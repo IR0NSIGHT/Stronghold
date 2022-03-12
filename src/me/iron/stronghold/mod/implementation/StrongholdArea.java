@@ -50,6 +50,11 @@ public class StrongholdArea extends StellarControllableArea {
         shield.setProtected(SimpleTransformableSendableObject.EntityType.SPACE_STATION,true);
         shield.setActive(true);
         addChildObject(shield);
+
+        LongRangeScannerEffect radar = new LongRangeScannerEffect("radar");
+        addChildObject(radar);
+        radar.setActive(true);
+
     }
 
     @Override
@@ -174,7 +179,6 @@ public class StrongholdArea extends StellarControllableArea {
 
     private boolean isAllied(int faction) {
         return GameServerState.instance.getFactionManager().isFriend(faction,this.getOwnerFaction());
-
     }
 
     /**
