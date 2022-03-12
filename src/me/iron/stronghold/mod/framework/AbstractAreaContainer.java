@@ -16,12 +16,22 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
     transient private LinkedList<SendableUpdateable> updateObjects;
     transient private LinkedList<Long> deleteUIDs = new LinkedList<>();
     transient private DummyArea newObjectTree;
+    transient private long UID;
     public AbstractAreaContainer() {
         updateObjects = new LinkedList<>();
     }
     public boolean isEmpty() {
         return updateObjects.isEmpty() && newObjectTree == null;
     }
+
+    public void setCurrentUID(long UID) {
+        this.UID = UID;
+    }
+
+    public long getCurrentUID() {
+        return UID;
+    }
+
     public void addForSynch(SendableUpdateable a) {
         //System.out.println("added sendable "+a.getName()+" to container for synch.");
         updateObjects.add(a);
@@ -104,6 +114,8 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
     @Override
     public void onDeserialize(PacketReadBuffer b) {
         try {
+            this.UID = b.readLong();
+            AreaManager.dlog("read "+ UID+ " as current UID from buffer");
             updateObjects = new LinkedList<>();
             deleteUIDs = new LinkedList<>();
             if (b.readBoolean())
@@ -135,7 +147,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
 
     @Override
     public void onSerialize(PacketWriteBuffer b) {
-
+        ;
         //System.out.println("DELETE UIDS: {");
         Iterator<Long> it = deleteUIDs.iterator();
         while (it.hasNext()) {
@@ -143,6 +155,9 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
         }
         System.out.println("}");
         try {
+            b.writeLong(UID);
+            AreaManager.dlog("wrote "+ UID+ " as current UID to buffer");
+
             b.writeBoolean(newObjectTree != null);
             if (newObjectTree != null)
                 b.writeObject(newObjectTree);

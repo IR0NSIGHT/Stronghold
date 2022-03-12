@@ -149,6 +149,7 @@ public class DebugUI implements CommandInterface {
             o = o.replace("\t","__");
             o+=" \nUIDMAP\n";
             o+= ModMain.areaManager.printUIDMap("\n");
+            o+= "current UID: "+AbstractControllableArea.getCurrentUID();
             echo("\n"+o,playerState);
             return true;
         }

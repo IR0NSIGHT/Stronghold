@@ -129,6 +129,7 @@ public class AreaManager extends AbstractControllableArea {
             //mark all areas as synch so they get saved to container.
             AbstractAreaContainer container = new AbstractAreaContainer();
             addAllToContainer(container);
+            container.setCurrentUID(getCurrentUID());
             //save the whole container.
             PersistentObjectUtil.removeAllObjects(ModMain.instance.getSkeleton(), container.getClass());
             PersistentObjectUtil.addObject(ModMain.instance.getSkeleton(), container);
@@ -138,7 +139,7 @@ public class AreaManager extends AbstractControllableArea {
     }
 
     /**
-     * clear Manager. DOES NOT SYNCH!
+     * clear Manager. synchs to client too.does not resolve out-of-synch-issues.
      */
     public void clear() {
         dlog("clear AM");
@@ -154,6 +155,9 @@ public class AreaManager extends AbstractControllableArea {
 
     protected void loadFromContainer(AbstractAreaContainer container) {
         dlog("load from container.");
+        if (container.getCurrentUID()!=0)
+            setCurrentUID(container.getCurrentUID());
+
         //instantiate tree structure of empty object
         if (container.getTree() != null) {
                 dlog("instantiate from tree, start with"+container.getTree().className);
