@@ -26,7 +26,7 @@ import java.util.LinkedList;
 
 public class LongRangeScannerEffect extends ActivateableAreaEffect implements MapDrawable {
     private ArrayList<RadarContact> signals = new ArrayList<>(20);
-    private long cooldown = 10*1000;
+    private long cooldown = 60*1000;
     private long lastScan;
 
     //clientside stuff
@@ -40,7 +40,7 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect implements Ma
 
     @Override
     protected void onActiveUpdate(Timer timer) {
-        cooldown = 3000;
+        cooldown = 60000;
         super.onActiveUpdate(timer);
         //collect all player ships and all fleetships in area
         assert signals != null;
