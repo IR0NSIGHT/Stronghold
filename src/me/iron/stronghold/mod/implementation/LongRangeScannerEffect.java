@@ -40,7 +40,6 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect implements Ma
 
     @Override
     protected void onActiveUpdate(Timer timer) {
-        cooldown = 60000;
         super.onActiveUpdate(timer);
         //collect all player ships and all fleetships in area
         assert signals != null;
@@ -95,8 +94,11 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect implements Ma
 
     @Override
     public LinkedList<SimpleMapMarker> getMarkers() {
+        //TODO add ping effect on synch.
         LinkedList<SimpleMapMarker> markers = new LinkedList<>();
         for (RadarContact c: signals) {
+            //update the relation
+            c.setRelationWith(GameClientState.instance.getPlayer().getFactionId());
             markers.add(new RadarContactMarker(
                     RadarMapDrawer.radarSprite,
                     RadarMapDrawer.getSpriteIndexFromRelation(c.getRelation()),
