@@ -71,7 +71,6 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
     @Override
     protected void destroy() {
         super.destroy();
-        setActive(false);
     }
 
     @Override

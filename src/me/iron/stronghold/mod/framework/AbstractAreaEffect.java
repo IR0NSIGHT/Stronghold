@@ -8,8 +8,7 @@ public abstract class AbstractAreaEffect extends SendableUpdateable{
     }//for deserializing
     public AbstractAreaEffect(String name) {
         super(AreaManager.getNextUID(), name);
-        AbstractControllableArea.dlog(" NEXT UID " + getUID()+ " FOR "+ this.toString());
-
+        //AbstractControllableArea.dlog(" NEXT UID " + getUID()+ " FOR "+ this.toString());
     }
 
     public void update(Timer timer) {

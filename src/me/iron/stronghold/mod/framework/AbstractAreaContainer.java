@@ -87,7 +87,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
     }
 
     public void addForDeletion(SendableUpdateable obj) {
-        AreaManager.dlog("adding UID "+obj.getUID()+"for deletion to container");
+        //AreaManager.dlog("adding UID "+obj.getUID()+"for deletion to container");
         deleteUIDs.add(obj.getUID());
     }
     public DummyArea getTree() {
@@ -115,7 +115,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
     public void onDeserialize(PacketReadBuffer b) {
         try {
             this.UID = b.readLong();
-            AreaManager.dlog("read "+ UID+ " as current UID from buffer");
+            //AreaManager.dlog("read "+ UID+ " as current UID from buffer");
             updateObjects = new LinkedList<>();
             deleteUIDs = new LinkedList<>();
             if (b.readBoolean())
@@ -134,10 +134,10 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
 
             deleteUIDs.addAll(b.readLongList());
             if (!deleteUIDs.isEmpty()) {
-                AreaManager.dlog("delete UIDs after deseraialize container:");
+                //AreaManager.dlog("delete UIDs after deseraialize container:");
             }
             for (long UID: deleteUIDs) {
-                AreaManager.dlog(""+UID);
+                //AreaManager.dlog(""+UID);
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -156,7 +156,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
         System.out.println("}");
         try {
             b.writeLong(UID);
-            AreaManager.dlog("wrote "+ UID+ " as current UID to buffer");
+            //AreaManager.dlog("wrote "+ UID+ " as current UID to buffer");
 
             b.writeBoolean(newObjectTree != null);
             if (newObjectTree != null)
@@ -175,11 +175,11 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             }
 
             b.writeLongList(deleteUIDs);
-            AreaManager.dlog("wrote delete UIDs from container:");
+            //AreaManager.dlog("wrote delete UIDs from container:");
             for (long UID: deleteUIDs) {
-                AreaManager.dlog(""+UID);
+                //AreaManager.dlog(""+UID);
             }
-            AreaManager.dlog("------ container serialization done");
+            //AreaManager.dlog("------ container serialization done");
         } catch ( IOException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }

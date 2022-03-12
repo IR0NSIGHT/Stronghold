@@ -60,7 +60,7 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
     }
 
     protected boolean removeChildObject(SendableUpdateable child) {
-        AreaManager.dlog("remove child object" + child +" from " +this);
+        //AreaManager.dlog("remove child object" + child +" from " +this);
         boolean out = children.remove(child);
         if (out) {
             onChildChanged(this, child, true);

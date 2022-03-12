@@ -53,8 +53,7 @@ public class VoidShield extends ActivateableAreaEffect implements IAreaEvent {
     public void synch(SendableUpdateable origin) {
         super.synch(origin);
         if (origin instanceof VoidShield) {
-            VoidShield v = (VoidShield) origin;
-            lastUpdate = v.lastUpdate;
+            lastUpdate =((VoidShield)  origin).lastUpdate;
         }
     }
 

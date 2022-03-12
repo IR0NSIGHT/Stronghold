@@ -29,9 +29,9 @@ public class UpdatePacket extends Packet {
 
     @Override
     public void writePacketData(PacketWriteBuffer packetWriteBuffer) throws IOException {
-        AreaManager.dlog("writing packet data");
+        //AreaManager.dlog("writing packet data");
         container.onSerialize(packetWriteBuffer); //FIXME server dies here.
-        AreaManager.dlog("done writing packet data");
+        //AreaManager.dlog("done writing packet data");
         container = null;
     }
 
@@ -46,11 +46,11 @@ public class UpdatePacket extends Packet {
     }
 
     public void sendToAll() {
-        AreaManager.dlog("send update packet to all");
+        //AreaManager.dlog("send update packet to all");
         for( PlayerState p: GameServerState.instance.getPlayerStatesByName().values()) {
             PacketUtil.sendPacket(p,this);
         }
-        AreaManager.dlog("done sent update packet to all");
+        //AreaManager.dlog("done sent update packet to all");
 
     }
 }
