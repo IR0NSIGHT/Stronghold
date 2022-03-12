@@ -20,7 +20,7 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
             onInactiveUpdate(timer);
     }
 
-    boolean active;
+    private boolean active; //TODO is saved but not loaded. why?
 
     /**
      * can this effect be set to x
@@ -65,6 +65,7 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
             else
                 onDeactivate(this);
         }
+        AreaManager.dlog("set active"+active+" on effect "+this);
     }
 
     @Override
@@ -75,10 +76,11 @@ public class ActivateableAreaEffect extends AbstractAreaEffect {
 
     @Override
     protected void synch(SendableUpdateable origin) {
-        super.synch(origin);
+       super.synch(origin);
         if (origin instanceof ActivateableAreaEffect) {
-            setActive (((ActivateableAreaEffect) origin).isActive());
+            this.active = ((ActivateableAreaEffect) origin).active;
         }
+        AreaManager.dlog("synched Act.Effect from:\n"+origin+" \nto:\n"+this);
     }
 
     @Override

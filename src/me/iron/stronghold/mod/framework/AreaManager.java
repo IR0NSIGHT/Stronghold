@@ -111,7 +111,8 @@ public class AreaManager extends AbstractControllableArea {
     @Override
     protected void destroy() {
         super.destroy();
-        updater.cancel();
+        if (updater != null)
+            updater.cancel();
         StarLoader.unregisterListener(PlayerJoinWorldEvent.class,listener);
         clear(); //will destroy all children too
     }
