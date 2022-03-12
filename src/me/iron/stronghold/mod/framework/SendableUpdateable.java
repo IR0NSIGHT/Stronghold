@@ -114,6 +114,7 @@ public abstract class SendableUpdateable implements Serializable {
         return getClass().getSimpleName() +"{" +
                 "UID=" + getUID() +
                 ", name='" + getName() + '\''+
-                ", parent='"+(getParent()!=null?getParent().getName():"NULL")+"\'";
+                ", parent='"+(getParent()!=null?getParent().getName():"NULL")+"\'"+
+                ", p/r="+(firstUpdatePersistent?"T":"F")+"/"+(firstUpdateRuntime?"T":"F");
     }
 }
