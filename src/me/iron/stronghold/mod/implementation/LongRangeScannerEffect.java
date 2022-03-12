@@ -121,7 +121,7 @@ public class LongRangeScannerEffect extends ActivateableAreaEffect implements Ma
 
     private boolean isAlliedOrOwn(int faction) {
         FactionRelation r = FactionRelation.getRelation(faction,((AbstractControllableArea)getParent()).getOwnerFaction(),GameClientState.instance.getFactionManager());
-        return r.equals(FactionRelation.OWN)|| r.equals(FactionRelation.ALLY);
+        return faction != 0 && (r.equals(FactionRelation.OWN)|| r.equals(FactionRelation.ALLY));
     }
     //TODO allow mapdrawables to decide when to update the markers.
     @Override

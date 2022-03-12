@@ -107,6 +107,8 @@ public class AreaMapDrawer extends AbstractMapDrawer implements IAreaEvent {
         //draw indications and markers for the ones where camera is at
         Vector3i currentPos = gameMapDrawer.getGameMapPosition().get(new Vector3i());
         for (StellarControllableArea sc : ModMain.areaManager.getAreaFromSector(currentPos)) {
+            if (!sc.isVisibleOnMap())
+                continue;
             for(SimpleMapMarker m: ((MapDrawable) sc).getMarkers()) {
                 addMarker(m);
             }

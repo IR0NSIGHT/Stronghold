@@ -159,7 +159,7 @@ public class StellarControllableArea extends AbstractControllableArea implements
     public LinkedList<SimpleMapMarker> getMarkers() {
         LinkedList<SimpleMapMarker> out = new LinkedList<>();
         for (SendableUpdateable u: children) {
-            if (u instanceof MapDrawable)
+            if (u instanceof MapDrawable && ((MapDrawable) u).isVisibleOnMap())
                 out.addAll(((MapDrawable) u).getMarkers());
         }
         return out;
@@ -169,7 +169,7 @@ public class StellarControllableArea extends AbstractControllableArea implements
     public LinkedList<MapLine> getLines() {
         LinkedList<MapLine> out = new LinkedList<>();
         for (SendableUpdateable u: children) {
-            if (u instanceof MapDrawable)
+            if (u instanceof MapDrawable && ((MapDrawable) u).isVisibleOnMap())
                 out.addAll(((MapDrawable) u).getLines());
         }
         assert getDimensionsStart() != null && getDimensionsEnd() != null;
@@ -187,7 +187,7 @@ public class StellarControllableArea extends AbstractControllableArea implements
         Transform t = new Transform(); t.setIdentity(); t.origin.set(AbstractMapDrawer.posFromSector(getDimensionsStart().toVector3f(),true));
         out.add(new ConstantIndication(t,getName()+"["+ AbstractMapDrawer.getFactionName(getOwnerFaction())+"]"));
         for (SendableUpdateable u: children) {
-            if (u instanceof MapDrawable)
+            if (u instanceof MapDrawable && ((MapDrawable) u).isVisibleOnMap())
                 out.addAll(((MapDrawable) u).getIndications());
         }
         return out;
@@ -195,6 +195,6 @@ public class StellarControllableArea extends AbstractControllableArea implements
 
     @Override
     public boolean isVisibleOnMap() {
-        return false;
+        return true;
     }
 }
