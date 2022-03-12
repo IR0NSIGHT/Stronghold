@@ -12,6 +12,12 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
         dlog("NEXT UID REQUESTED:"+(nextID));
         return nextID++;
     }
+    public static long getCurrentUID() {
+        return nextID;
+    }
+    public static void setCurrentUID(long UID) {
+        nextID = UID;
+    }
 
     protected boolean canBeConquered;
     protected int ownerFaction;
@@ -244,6 +250,7 @@ public abstract class AbstractControllableArea extends SendableUpdateable implem
      */
     @Override
     public void synch(SendableUpdateable a) {
+        super.synch(a);
         if (a instanceof AbstractControllableArea) {
             AbstractControllableArea area = (AbstractControllableArea)a;
             setName(area.getName());
