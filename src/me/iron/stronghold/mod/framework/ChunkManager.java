@@ -67,12 +67,20 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
 
     @Override
     protected void destroy() {
-        super.destroy();
+        //super.destroy();
         StarLoader.unregisterListener(PlayerChangeSectorEvent.class,listener);
+        AreaManager.dlog("unregistered sector change EH");
         for (int i = 0; i < chunks.length; i++) {
             if (chunks[i]!=null)
                 chunks[i].destroy();
         }
+        AreaManager.dlog("destroyed all chunks");
+
+    }
+
+    @Override
+    public void requestSynchToClient(SendableUpdateable area) {
+        //dont pass bubbling events.
     }
 
     @Override

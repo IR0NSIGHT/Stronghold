@@ -68,6 +68,7 @@ public abstract class SendableUpdateable implements Serializable {
     };
 
     protected void destroy() {
+        AreaManager.dlog("destroy SU "+ this);
         requestSynchToClient(this);
     }
 

@@ -40,6 +40,7 @@ public class UpdatePacket extends Packet {
     }
 
     public void sendToAll() {
+        AreaManager.dlog("send update packet to all");
         for( PlayerState p: GameServerState.instance.getPlayerStatesByName().values()) {
             PacketUtil.sendPacket(p,this);
         }

@@ -44,9 +44,9 @@ public class PveArea extends StellarControllableArea{
 
             hi.setGeneratorLeave("You are no longer in the PVE area '"+this.getName()+"'.");
             addChildObject(hi);
-            LongRangeScannerEffect radar = new LongRangeScannerEffect("LongRangeScanner for "+getName());
-            radar.setActive(true);
-            addChildObject(radar);
+            //LongRangeScannerEffect radar = new LongRangeScannerEffect("LongRangeScanner for "+getName());
+            //radar.setActive(true);
+            //addChildObject(radar);
         }
     }
 

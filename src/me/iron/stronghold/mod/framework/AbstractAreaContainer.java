@@ -77,6 +77,7 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
     }
 
     public void addForDeletion(SendableUpdateable obj) {
+        AreaManager.dlog("adding UID "+obj.getUID()+"for deletion to container");
         deleteUIDs.add(obj.getUID());
     }
     public DummyArea getTree() {
@@ -120,6 +121,12 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             }
 
             deleteUIDs.addAll(b.readLongList());
+            if (!deleteUIDs.isEmpty()) {
+                AreaManager.dlog("delete UIDs after deseraialize container:");
+            }
+            for (long UID: deleteUIDs) {
+                AreaManager.dlog(""+UID);
+            }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -153,10 +160,11 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
             }
 
             b.writeLongList(deleteUIDs);
-            //deleteUIDs.clear();
-            //updateObjects.clear();
-            //newObjectTree = null;
-
+            AreaManager.dlog("wrote delete UIDs from container:");
+            for (long UID: deleteUIDs) {
+                AreaManager.dlog(""+UID);
+            }
+            AreaManager.dlog("------ container serialization done");
         } catch ( IOException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }

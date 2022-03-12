@@ -141,27 +141,28 @@ public class AreaManager extends AbstractControllableArea {
      * clear Manager. DOES NOT SYNCH!
      */
     public void clear() {
-        for (SendableUpdateable c: UID_to_object.values()) {
-            c.destroy();
+        dlog("clear AM");
+        LinkedList<SendableUpdateable> all = new LinkedList<>(getChildren());
+        for (SendableUpdateable c: all) {
+            dlog("AM clear, rm child: " + c);
+            removeObject(c.getUID());
         }
-        UID_to_object.clear();
-        children.clear();
-        chunkManager.destroy();
-        chunkManager = new ChunkManager(this);
-        addListener(chunkManager);
+   //    chunkManager.destroy(); //TODO re-enable after found out whats causing the delete issue
+   //    chunkManager = new ChunkManager(this);
+   //    addListener(chunkManager);
     }
 
     protected void loadFromContainer(AbstractAreaContainer container) {
-        log("load from container.");
+        dlog("load from container.");
         //instantiate tree structure of empty object
         if (container.getTree() != null) {
-            log("instantiate from tree, start with"+container.getTree().className);
+                dlog("instantiate from tree, start with"+container.getTree().className);
             this.instantiateArea(container.getTree(),null);
         }
         else
-            log("nothing to instantiate from container.");
+                dlog("nothing to instantiate from container.");
 
-        log("Loading: after instantiation:\n"+printObject(this));
+        dlog("Loading: after instantiation:\n"+printObject(this));
 
         //update objects with values
         Iterator<SendableUpdateable> it = container.getSynchObjectIterator();
@@ -170,14 +171,16 @@ public class AreaManager extends AbstractControllableArea {
             this.updateObject(o2);
         }
 
-        log("Loading: After synching:\n"+printObject(this));
-
+       dlog("Loading: After synching:\n"+printObject(this));
+        dlog("Delete UIDs: ");
         Iterator<Long> delete = container.getDeleteUIDIterator();
         while (delete.hasNext()) {
-            this.removeObject(delete.next());
+            long UID = delete.next();
+            dlog("yeet UID="+ UID);
+            this.removeObject(UID);
         }
 
-        log("Loading: After deletion:\n"+printObject(this));
+        dlog("Loading: After deletion:\n"+printObject(this));
 
     }
 
@@ -325,6 +328,7 @@ public class AreaManager extends AbstractControllableArea {
      */
     public void removeObject(long UID) {
         SendableUpdateable obj = UID_to_object.get(UID);
+        dlog("remove object with UID="+UID+(obj==null?"NULL":obj));
         if (obj != null) {
             if (obj instanceof AbstractControllableArea) {
                 Collection<SendableUpdateable> children = new ArrayList<> (((AbstractControllableArea) obj).getChildren());
