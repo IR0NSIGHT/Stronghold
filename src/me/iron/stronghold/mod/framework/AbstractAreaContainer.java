@@ -139,9 +139,9 @@ public class AbstractAreaContainer extends SimpleSerializerWrapper {
         //System.out.println("DELETE UIDS: {");
         Iterator<Long> it = deleteUIDs.iterator();
         while (it.hasNext()) {
-            //System.out.println("\t"+it.next());
+            System.out.println("\t"+it.next());
         }
-        //System.out.println("}");
+        System.out.println("}");
         try {
             b.writeBoolean(newObjectTree != null);
             if (newObjectTree != null)

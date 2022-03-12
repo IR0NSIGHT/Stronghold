@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.util.Iterator;
 
 public class UpdatePacket extends Packet {
+    public UpdatePacket() {
+
+    }
 
     AbstractAreaContainer container;
     public void addContainer(AbstractAreaContainer container) {
@@ -26,7 +29,10 @@ public class UpdatePacket extends Packet {
 
     @Override
     public void writePacketData(PacketWriteBuffer packetWriteBuffer) throws IOException {
-        container.onSerialize(packetWriteBuffer);
+        AreaManager.dlog("writing packet data");
+        container.onSerialize(packetWriteBuffer); //FIXME server dies here.
+        AreaManager.dlog("done writing packet data");
+
     }
 
     @Override
@@ -44,5 +50,7 @@ public class UpdatePacket extends Packet {
         for( PlayerState p: GameServerState.instance.getPlayerStatesByName().values()) {
             PacketUtil.sendPacket(p,this);
         }
+        AreaManager.dlog("done sent update packet to all");
+
     }
 }

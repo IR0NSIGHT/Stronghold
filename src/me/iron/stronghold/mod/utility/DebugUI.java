@@ -146,6 +146,8 @@ public class DebugUI implements CommandInterface {
         if (strings.length==1&&strings[0].contains("print")) {
             String o = ModMain.areaManager.printObject(ModMain.areaManager);
             o = o.replace("\t","__");
+            o+=" \nUIDMAP\n";
+            o+= ModMain.areaManager.printUIDMap("\n");
             echo("\n"+o,playerState);
             return true;
         }

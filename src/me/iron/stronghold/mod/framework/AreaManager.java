@@ -411,6 +411,14 @@ public class AreaManager extends AbstractControllableArea {
         return UID_to_object.values();
     }
 
+    public String printUIDMap(String separator) {
+        StringBuilder b = new StringBuilder();
+        for (SendableUpdateable s: UID_to_object.values()) {
+            b.append(s).append(separator);
+        }
+        return b.toString();
+    }
+
     public String printObject(long UID) {
         SendableUpdateable su= UID_to_object.get(UID);
         if (su != null)

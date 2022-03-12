@@ -92,6 +92,7 @@ public class AreaMapDrawer extends AbstractMapDrawer implements IAreaEvent {
         indications.clear();
         //draw outlines for ALL areas
         for (SendableUpdateable su: ModMain.areaManager.getAllObjects()) {
+
             if (su instanceof MapDrawable && ((MapDrawable) su).isVisibleOnMap()) {
                 LinkedList<MapLine> linesS = ((MapDrawable) su).getLines();
                 if (su instanceof StellarControllableArea && !((StellarControllableArea) su).isSectorInArea(gameMapDrawer.getGameMapPosition().get(new Vector3i()))) {
