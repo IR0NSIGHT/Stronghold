@@ -9,7 +9,6 @@ import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.server.data.GameServerState;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 public class UpdatePacket extends Packet {
     public UpdatePacket() {
@@ -32,7 +31,6 @@ public class UpdatePacket extends Packet {
         //AreaManager.dlog("writing packet data");
         container.onSerialize(packetWriteBuffer); //FIXME server dies here.
         //AreaManager.dlog("done writing packet data");
-        container = null;
     }
 
     @Override
