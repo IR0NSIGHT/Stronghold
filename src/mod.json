@@ -2,7 +2,7 @@
   "name": "Stronghold",
   "author": "IR0NSIGHT",
   "description": "Framework for conquering and defending space",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "starmade_version": "0.202.110",
   "client_mod": false,
   "server_mod": false,
