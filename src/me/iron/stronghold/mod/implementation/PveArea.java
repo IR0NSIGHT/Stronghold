@@ -53,13 +53,13 @@ public class PveArea extends StellarControllableArea{
     @Override
     public void onAreaEntered(StellarControllableArea area, Vector3i enteredSector, Ship object) {
         super.onAreaEntered(area, enteredSector, object);
-        //DebugFile.log("[PVE AREA ENTERED]"+object.getUniqueIdentifier()+"["+object.getFactionId()+"]");
+        DebugFile.log("[PVE AREA ENTERED]"+object.getUniqueIdentifier()+"["+object.getFactionId()+"]");
     }
 
     @Override
     public void onAreaLeft(StellarControllableArea area, Vector3i leftSector, Ship object) {
         super.onAreaLeft(area, leftSector, object);
-        //DebugFile.log("[PVE AREA LEFT]"+object.getUniqueIdentifier()+"["+object.getFactionId()+"]");
+        DebugFile.log("[PVE AREA LEFT]"+object.getUniqueIdentifier()+"["+object.getFactionId()+"]");
     }
 
     @Override

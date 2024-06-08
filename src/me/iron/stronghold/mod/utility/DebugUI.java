@@ -11,7 +11,6 @@ import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.common.data.world.VoidSystem;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -207,7 +206,7 @@ public class DebugUI implements CommandInterface {
     }
 
     @Override
-    public void serverAction(@Nullable PlayerState playerState, String[] strings) {
+    public void serverAction(PlayerState playerState, String[] strings) {
 
     }
 

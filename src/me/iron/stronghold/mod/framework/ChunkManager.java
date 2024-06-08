@@ -6,13 +6,9 @@ import api.mod.StarLoader;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.implementation.StellarControllableArea;
 import org.schema.common.util.linAlg.Vector3i;
-import org.schema.game.common.controller.Ship;
-import org.schema.game.common.data.world.Sector;
-import org.schema.game.common.data.world.SimpleTransformableSendableObject;
+import org.schema.game.mod.Mod;
 import org.schema.game.server.data.Galaxy;
-import org.schema.game.server.data.GameServerState;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 
 public class ChunkManager extends SendableUpdateable implements IAreaEvent {
@@ -22,52 +18,16 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
     private Listener<PlayerChangeSectorEvent> listener;
     public ChunkManager(AreaManager am) {
         manager = am;
+        //one index for each chunk. Each chunk holds x Systems ("systemsPerGrid")
         chunks = new AreaChunk[128*128*128/(systemsPerGrid*systemsPerGrid*systemsPerGrid)];
 
-        //if (am.isServer()) {
-            //add sector change Listener
-        listener = new Listener<PlayerChangeSectorEvent>() {
-            @Override
-            public void onEvent(PlayerChangeSectorEvent event) {
-                if (GameServerState.instance==null || GameServerState.instance.getUniverse() == null)
-                    return;
-                //generate info, get chunks
-                Vector3i start = new Vector3i(), end = new Vector3i();
-                Sector s1=GameServerState.instance.getUniverse().getSector(event.getOldSectorId()),s2=GameServerState.instance.getUniverse().getSector(event.getNewSectorId());
-                if (s1==null || s2==null)
-                    return;
-                start.set(s1.pos);
-                end.set(s2.pos);
-                AreaChunk startC = getChunkFromSector(start), endC = getChunkFromSector(end);
-
-                //get intruding ship
-                SimpleTransformableSendableObject s= event.getPlayerState().getFirstControlledTransformableWOExc();
-                if (!(s instanceof Ship))
-                    return;
-                Ship ship = (Ship)s;
-
-                //notify areas in relevant chunks //TODO jumping to warp causes wrong chunk maybe bc %arraylength??
-                HashSet<StellarControllableArea> areas = new HashSet<>(10);
-                if (startC!=null) {
-                    for (SendableUpdateable c: startC.children)
-                        areas.add((StellarControllableArea) c);
-                }
-                if (endC!=null && (startC==null || !startC.equals(endC))) {
-                    for (SendableUpdateable c: endC.children)
-                        areas.add((StellarControllableArea) c);
-                }
-                for (StellarControllableArea c: areas)
-                    c.onShipChangeSector(start,end,ship);
-
-            }
-        };
-
+        listener = new ChunkPlayerSectorChangeListener(this);
         StarLoader.registerListener(PlayerChangeSectorEvent.class, listener, ModMain.instance);
     }
 
     @Override
     protected void destroy() {
-        //super.destroy();
+        super.destroy();
         StarLoader.unregisterListener(PlayerChangeSectorEvent.class,listener);
         //AreaManager.dlog("unregistered sector change EH");
         for (int i = 0; i < chunks.length; i++) {
@@ -175,11 +135,15 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
         assert area != null;
         LinkedList<Vector3i> grids = getChunkGridsForArea(area);
         for (Vector3i gridP: grids) {
-            AreaChunk c = getChunkFromGrid(gridP);
-            if (c != null) { //remove area from chunk
-                c.removeChildObject(area);
-                if (c.isEmpty())
-                    removeChunk(c);
+            try {
+                AreaChunk c = getChunkFromGrid(gridP);
+                if (c != null) { //remove area from chunk
+                    c.removeChildObject(area);
+                    if (c.isEmpty())
+                        removeChunk(c);
+                }
+            } catch (IllegalArgumentException ex) {
+                ModMain.LogError("could not find chunk for area to remove", ex);
             }
         }
     }
@@ -263,14 +227,17 @@ public class ChunkManager extends SendableUpdateable implements IAreaEvent {
      * @param sector will be mutated to gridpos
      * @return
      */
-    private AreaChunk getChunkFromSector(Vector3i sector) {
+    AreaChunk getChunkFromSector(Vector3i sector) {
         sector = new Vector3i(sector);
         mutateToGrid(sector);
         return getChunkFromGrid(sector);
     }
 
-    private AreaChunk getChunkFromGrid(Vector3i grid) {
-        return chunks[Math.abs(getIndexFromGridPos(grid)% chunks.length)];
+    private AreaChunk getChunkFromGrid(Vector3i grid) throws IllegalArgumentException {
+        int idx = getIndexFromGridPos(grid);
+        if (idx >= chunks.length)
+            throw new IllegalArgumentException("No chunk exists for this grid coordinate: " + grid + " at chunk index " + idx);
+        return chunks[idx];
     }
 
     protected void printChunks() {

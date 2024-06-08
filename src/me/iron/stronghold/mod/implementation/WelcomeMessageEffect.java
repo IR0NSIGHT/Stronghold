@@ -1,8 +1,11 @@
 package me.iron.stronghold.mod.implementation;
 
+import api.DebugFile;
+import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.framework.AbstractAreaEffect;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
+import me.iron.stronghold.mod.utility.DebugUI;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.Ship;
 import org.schema.game.server.data.GameServerState;
@@ -52,7 +55,9 @@ public class WelcomeMessageEffect extends AbstractAreaEffect implements AreaShip
 
     @Override
     public void onAreaInnerMovement(StellarControllableArea area, Vector3i leftSector, Vector3i enteredSector, Ship object) {
-
+        DebugFile.log(
+                "Inner movement in area" + area.getName() + " from " + leftSector + " to "+ enteredSector + " by object " + object.getName() + " faction " + object.getFactionId(),
+                ModMain.instance);
     }
 
     @Override
