@@ -11,12 +11,15 @@ import org.schema.game.common.controller.elements.StationaryManagerContainer;
 import org.schema.game.common.controller.elements.warpgate.WarpgateCollectionManager;
 import org.schema.game.common.data.ManagedSegmentController;
 import org.schema.game.common.data.player.PlayerState;
+import org.schema.game.common.data.player.faction.Faction;
+import org.schema.game.server.data.GameServerState;
 import org.schema.schine.network.objects.Sendable;
 
 import javax.annotation.Nullable;
 import javax.vecmath.Vector3f;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static me.iron.stronghold.mod.utility.DebugUI.echo;
 import static me.iron.stronghold.mod.utility.SimpleTools.moveObjectToInSectorPosition;
@@ -38,7 +41,8 @@ public class WarpgateCommand implements CommandInterface {
                 "/warpgate target # sets warpgate free target destination to your navigation-selection sector and activates gate.\n" +
                 "/warpgate shift <center,east,west,north,south> # will move station to this position in sector, 2km from center.\n" +
                 "/warpgate name myName # renames station to myName.\n" +
-                "/warpgate info # display information about gate";
+                "/warpgate info # display information about gate.\n" +
+                "/warpgate protect # sets users faction mode to PROTECTED => can not be hurt.";
     }
 
     @Override
@@ -166,6 +170,13 @@ public class WarpgateCommand implements CommandInterface {
                                     " powered:" + c.getPowered() + "\n" +
                                     c.toString()
                             , playerState);
+                    return true;
+                case "protect":
+                    boolean active = (strings.length == 1 || !Objects.equals(strings[1], "off"));
+
+                    Faction f = GameServerState.instance.getFactionManager().getFaction(playerState.getFactionId());
+                    f.setFactionMode(Faction.MODE_SPECTATORS, active);
+                    echo("faction " + f.getName() + " " + f.getIdFaction() + " is now faction mode " +  f.getFactionMode() + "(0 = default, 4 = spectator)", playerState);
                     return true;
                 default:
                     echo("could not match subcommand " + strings[0], playerState);
