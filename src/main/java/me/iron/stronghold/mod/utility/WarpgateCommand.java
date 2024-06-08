@@ -16,7 +16,7 @@ import org.schema.schine.network.objects.Sendable;
 import javax.annotation.Nullable;
 import javax.vecmath.Vector3f;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.List;
 
 import static me.iron.stronghold.mod.utility.DebugUI.echo;
 import static me.iron.stronghold.mod.utility.SimpleTools.moveObjectToInSectorPosition;
@@ -34,7 +34,11 @@ public class WarpgateCommand implements CommandInterface {
 
     @Override
     public String getDescription() {
-        return "Modify warpgates: /warpgate x y z";
+        return "Modify warpgates: " +
+                "/warpgate target # sets warpgate free target destination to your navigation-selection sector and activates gate.\n" +
+                "/warpgate shift <center,east,west,north,south> # will move station to this position in sector, 2km from center.\n" +
+                "/warpgate name myName # renames station to myName.\n" +
+                "/warpgate info # display information about gate";
     }
 
     @Override
@@ -45,25 +49,34 @@ public class WarpgateCommand implements CommandInterface {
     public boolean targetAndActivate(PlayerState playerState, String[] strings) {
         try {
             int entityId = playerState.getSelectedEntityId();
-            long fromIndex = 68722294787l;   //read from live debugger, is that a constant somewhere?
-            int toX = Integer.parseInt(strings[1]);
-            int toY = Integer.parseInt(strings[2]);
-            int toZ = Integer.parseInt(strings[3]);
-
-
+            long fromIndex = 68722294787L;   //read from live debugger, is that a constant somewhere?
+            Vector3i target = playerState.getNetworkObject().waypoint.getVector();
             Sendable sendable = playerState.getState().getLocalAndRemoteObjectContainer().getLocalObjects().get(entityId);
 
             if (sendable != null && sendable instanceof ManagedSegmentController<?> && ((ManagedSegmentController<?>) sendable).getManagerContainer() instanceof StationaryManagerContainer<?>) {
                 StationaryManagerContainer<?> m = (StationaryManagerContainer<?>) ((ManagedSegmentController<?>) sendable).getManagerContainer();
                 //TODO what is fromIndex?
-                WarpgateCollectionManager c = m.getWarpgate().getCollectionManagersMap().get(fromIndex);
+                List<WarpgateCollectionManager> managers = m.getWarpgate().getCollectionManagers();
+                WarpgateCollectionManager c = managers.get(0);// .getCollectionManagersMap().get(fromIndex);
 
                 if (c != null) {
-                    String directUID = FTLTable.DIRECT_PREFIX + toX + "_" + toY + "_" + toZ + "_" + DatabaseEntry.removePrefixWOException(m.getSegmentController().getUniqueIdentifier());
+                    String directUID = FTLTable.DIRECT_PREFIX + target.x + "_" + target.y + "_" + target.z + "_" + DatabaseEntry.removePrefixWOException(m.getSegmentController().getUniqueIdentifier());
+
+                    Vector3f targetDirection = target.toVector3f();
+                    targetDirection.sub(playerState.getCurrentSector().toVector3f());
+                    float targetDistance = targetDirection.length();
+                    float wantedDistance = Math.min(targetDistance, c.getMaxDistance() * 0.95f);
+                    targetDirection.normalize();
+                    targetDirection.scale(wantedDistance);
+                    float actualDistance = targetDirection.length();
+                    targetDirection.add(playerState.getCurrentSector().toVector3f());
+                    target = new Vector3i(targetDirection);
+
                     c.setDestination(
-                            directUID, new Vector3i(toX, toY, toZ));
+                            directUID, target);
                     c.setActive(true);
-                    echo("Successfully set warp gate target to %s!" + toX + ", " + toY + ", " + toZ, playerState);
+
+                    echo("Successfully set warp gate target to %s!" + c.getLocalDestination() + ", " + actualDistance + " sectors away, max distance = " + c.getMaxDistance(), playerState);
                 } else {
                     echo("Warp Gate not found!", playerState);
                 }
@@ -133,14 +146,30 @@ public class WarpgateCommand implements CommandInterface {
     @Override
     public boolean onCommand(PlayerState playerState, String[] strings) {
         try {
-            if (Objects.equals(strings[0], "target")) {
-                return targetAndActivate(playerState, strings);
-            } else if (Objects.equals(strings[0], "name")) {
-                return nameStation(playerState, strings);
-            } else if (Objects.equals(strings[0], "shift")) {
-                return shiftStation(playerState, strings);
-            } else {
-                return false;
+            switch (strings[0]) {
+                case "target":
+                    return targetAndActivate(playerState, strings);
+                case "name":
+                    return nameStation(playerState, strings);
+                case "shift":
+                    return shiftStation(playerState, strings);
+                case "info":
+                    int entityId = playerState.getSelectedEntityId();
+                    SegmentController sendable = (SegmentController) playerState.getState().getLocalAndRemoteObjectContainer().getLocalObjects().get(entityId);
+                    StationaryManagerContainer<?> m = (StationaryManagerContainer<?>) ((ManagedSegmentController<?>) sendable).getManagerContainer();
+                    List<WarpgateCollectionManager> managers = m.getWarpgate().getCollectionManagers();
+                    WarpgateCollectionManager c = managers.get(0);
+                    echo("Warpgate" + sendable.getRealName() + ":\n" + (c.isActive() ? "active" : "inactive") + "\n" +
+                                    " target: " + c.getLocalDestination() + "\n" +
+                                    " max distance: " + c.getMaxDistance() + "\n" +
+                                    " valid:" + c.isValid() + "\n" +
+                                    " powered:" + c.getPowered() + "\n" +
+                                    c.toString()
+                            , playerState);
+                    return true;
+                default:
+                    echo("could not match subcommand " + strings[0], playerState);
+                    return false;
             }
         } catch (Exception ex) {
             echo("unable to execute command, likely syntax error", playerState);
