@@ -1,0 +1,25 @@
+# AI generated stuff
+# User-specific stuff:
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/dictionaries
+.idea/tasks.xml
+.idea/shelf
+.idea/vcs.xml
+
+# Module files
+*.iml
+
+# Logs
+.idea/*.log
+
+# Other
+.idea/dataSources/
+.idea/dataSources.ids
+.idea/dataSources.local/
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+
+# IntelliJ out directory
+out/
