@@ -4,6 +4,7 @@ import api.mod.StarMod;
 import api.utils.game.chat.CommandInterface;
 import me.iron.stronghold.mod.ModMain;
 import org.schema.common.util.linAlg.Vector3i;
+import org.schema.game.common.controller.SegmentController;
 import org.schema.game.common.controller.database.DatabaseEntry;
 import org.schema.game.common.controller.database.tables.FTLTable;
 import org.schema.game.common.controller.elements.StationaryManagerContainer;
@@ -13,10 +14,12 @@ import org.schema.game.common.data.player.PlayerState;
 import org.schema.schine.network.objects.Sendable;
 
 import javax.annotation.Nullable;
+import javax.vecmath.Vector3f;
 import java.util.Arrays;
 import java.util.Objects;
 
 import static me.iron.stronghold.mod.utility.DebugUI.echo;
+import static me.iron.stronghold.mod.utility.SimpleTools.moveObjectToInSectorPosition;
 
 public class WarpgateCommand implements CommandInterface {
     @Override
@@ -46,6 +49,7 @@ public class WarpgateCommand implements CommandInterface {
             int toX = Integer.parseInt(strings[1]);
             int toY = Integer.parseInt(strings[2]);
             int toZ = Integer.parseInt(strings[3]);
+
 
             Sendable sendable = playerState.getState().getLocalAndRemoteObjectContainer().getLocalObjects().get(entityId);
 
@@ -90,6 +94,42 @@ public class WarpgateCommand implements CommandInterface {
         return false;
     }
 
+
+    public boolean shiftStation(PlayerState playerState, String[] strings) {
+        String dir = strings[1];
+        Vector3f target = new Vector3f();
+        switch (dir) {
+            case "center":
+                target.set(0, 0, 0);
+                break;
+            case "west":
+                target.set(0, 0, -2000);
+                break;
+            case "east":
+                target.set(0, 0, 2000);
+                break;
+            case "north":
+                target.set(2000, 0, 0);
+                break;
+            case "south":
+                target.set(-2000, 0, 0);
+                break;
+        }
+
+        int entityId = playerState.getSelectedEntityId();
+        Sendable sendable = playerState.getState().getLocalAndRemoteObjectContainer().getLocalObjects().get(entityId);
+
+        if (sendable instanceof ManagedSegmentController) {
+            ManagedSegmentController msc = ((ManagedSegmentController) sendable);
+            echo("shift station " + msc.getSegmentController().getRealName() + " to " + target.toString(), playerState);
+            SegmentController sc = msc.getSegmentController();
+            moveObjectToInSectorPosition(sc, target);
+            return true;
+        }
+        echo("unable to shift object", playerState);
+        return false;
+    }
+
     @Override
     public boolean onCommand(PlayerState playerState, String[] strings) {
         try {
@@ -97,6 +137,8 @@ public class WarpgateCommand implements CommandInterface {
                 return targetAndActivate(playerState, strings);
             } else if (Objects.equals(strings[0], "name")) {
                 return nameStation(playerState, strings);
+            } else if (Objects.equals(strings[0], "shift")) {
+                return shiftStation(playerState, strings);
             } else {
                 return false;
             }
