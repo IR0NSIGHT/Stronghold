@@ -14,6 +14,7 @@ import me.iron.stronghold.mod.framework.AreaManager;
 import me.iron.stronghold.mod.framework.GenericNewsCollector;
 import me.iron.stronghold.mod.framework.UpdatePacket;
 import me.iron.stronghold.mod.utility.DebugUI;
+import me.iron.stronghold.mod.utility.WarpgateCommand;
 import org.schema.schine.resource.ResourceLoader;
 
 public class ModMain extends StarMod {
@@ -46,6 +47,7 @@ public class ModMain extends StarMod {
         super.onServerCreated(serverInitializeEvent);
         areaManager.setServer(this);
         StarLoader.registerCommand(new DebugUI());
+        StarLoader.registerCommand(new WarpgateCommand());
     }
 
     @Override

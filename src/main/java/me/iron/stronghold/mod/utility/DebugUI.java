@@ -215,7 +215,7 @@ public class DebugUI implements CommandInterface {
         return null;
     }
 
-    private void echo(String mssg, PlayerState p) {
+    public static void echo(String mssg, PlayerState p) {
         //System.out.println("[TO:"+p.getName()+"]"+ mssg);
         PlayerUtils.sendMessage(p,mssg);
     }
