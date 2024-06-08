@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 /**
- * The area manager is the central manager/container that controls all areas and all effect objects => SendableUpdatable (SU).
+ * The area manager is the central manager/container that controls all areas and all effect objects (SendableUpdatable (SU)).
  * All objects build a single, non-cyclic tree with unlimited children, the area manager is the root. The AM calls operations on its children, which cascades into the whole tree.
  * The AM is the Interface to access specific SUs. The AM has a chunkmanager, a supporting datastructure (grid system) to improve performance when finding all areas a player is in.
  * The AM manages loading and saving to Persistence.

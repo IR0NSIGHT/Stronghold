@@ -1,13 +1,7 @@
 package me.iron.stronghold.mod.implementation;
 
-import api.DebugFile;
-import api.listener.Listener;
-import api.listener.events.player.PlayerChangeSectorEvent;
-import api.mod.StarLoader;
 import com.bulletphysics.linearmath.Transform;
 import libpackage.markers.SimpleMapMarker;
-import me.iron.stronghold.mod.ModMain;
-
 import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
 import me.iron.stronghold.mod.effects.map.FactionRelation;
 import me.iron.stronghold.mod.effects.map.MapUtilLib_NEW.AbstractMapDrawer;
@@ -22,7 +16,6 @@ import org.schema.game.client.view.effects.ConstantIndication;
 import org.schema.game.client.view.effects.Indication;
 import org.schema.game.common.controller.Ship;
 
-import javax.vecmath.Vector4f;
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -47,7 +40,7 @@ public class StellarControllableArea extends AbstractControllableArea implements
     }
 
     /**
-     * stets the dimensions of the area in sector coordinates. start must be <= in all fields than end.
+     * stets the dimensions of the area in sector coordinates. start must be less or equal in all fields than end.
      * @param start
      * @param end
      */

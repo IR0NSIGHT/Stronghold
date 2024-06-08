@@ -36,11 +36,8 @@ dependencies {
     implementation files(starmade_root + "StarMade.jar")
     implementation fileTree(dir: starmade_root + "lib", include: ['*.jar'])
     implementation fileTree(dir: "${projectDir}/lib", include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
 
-    // Test dependencies
-    testImplementation 'junit:junit:4.13.2'
-
-    // Runtime dependencies
 
 }
 
