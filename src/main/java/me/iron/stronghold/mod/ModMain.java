@@ -21,7 +21,7 @@ public class ModMain extends StarMod {
     public static AreaManager areaManager;
     public static ModMain instance;
     public static RadarMapDrawer radarMapDrawer;
-
+    private WarpgateCommand warpgateCommand;
     @Override
     public void onEnable() {
         super.onEnable();
@@ -35,6 +35,7 @@ public class ModMain extends StarMod {
     public void onDisable() {
         super.onDisable();
         areaManager.onShutdown();
+        warpgateCommand.onShutdown();
     }
 
     @Override
@@ -47,7 +48,8 @@ public class ModMain extends StarMod {
         super.onServerCreated(serverInitializeEvent);
         areaManager.setServer(this);
         StarLoader.registerCommand(new DebugUI());
-        StarLoader.registerCommand(new WarpgateCommand());
+        warpgateCommand = new WarpgateCommand();
+        StarLoader.registerCommand(warpgateCommand);
     }
 
     @Override
