@@ -65,7 +65,7 @@ public class WarpgateCommand implements CommandInterface {
                 "/warpgate protect [off] # sets faction of selected object to mode spectator => can not be hurt or hurt others.\n" +
                 "/warpgate <name> <east|west> # applies target, shift and name to selected station.\n" +
                 "/warpgate follow # jump to warpgates destination.\n" +
-                "/warpgate list <add|remove|show> # add/remove selected object to internal list of stations or show list.\n";
+                "/warpgate list <add|remove|show> HansPeter # add/remove selected object to internal list of stations, calling this sector HansPeter or show list.\n";
     }
 
     @Override
@@ -175,19 +175,20 @@ public class WarpgateCommand implements CommandInterface {
         return false;
     }
 
-    public boolean listStation(PlayerState playerState, String action) {
+    public boolean listStation(PlayerState playerState, String action, String gateNodeTitle) {
         switch (action) {
             case "add": {
                 SegmentController sendable = (SegmentController) getSelectedObject(playerState);
-                container.add(new WarpgateContainer.SaveableGate((SpaceStation) sendable, getSelectedGate(playerState).getLocalDestination()));
+                container.add(new WarpgateContainer.SaveableGate((SpaceStation) sendable, getSelectedGate(playerState).getLocalDestination(), gateNodeTitle));
                 echo("add this station to tracker list:" + sendable.getRealName(), playerState);
-
+                container.save();
                 break;
             }
             case "remove": {
                 SegmentController sendable = (SegmentController) getSelectedObject(playerState);
                 container.remove(sendable.getUniqueIdentifier());
                 echo("remove this station to tracker list", playerState);
+                container.save();
                 break;
             }
             case "show": {
@@ -217,10 +218,10 @@ public class WarpgateCommand implements CommandInterface {
                     .02f,
                     new Vector4f(0, 1, 0, .5f),
                     SynchIconManager.ANIMATION_NONE,
-                    new String[]{"root", "public", "warpgates"},
+                    new String[]{"root", "public", "warpgates", gate.positionName},
                     -1,
                     false,
-                    gate.realName));
+                    gate.positionName));
         }
         return gateIcons;
     }
@@ -278,15 +279,15 @@ public class WarpgateCommand implements CommandInterface {
                     return true;
                 }
                 case "list": {
-                    return listStation(playerState, strings[1]);
+                    return listStation(playerState, strings[1], strings[2]);
                 }
                 default: {         //    /warpgate <name> <east|west>
-                    if (strings.length != 2)
-                        throw new IllegalArgumentException("default command requires 2 argumetns, was given " + strings.length);
+                    if (strings.length != 3)
+                        throw new IllegalArgumentException("default command requires 3 argumetns, was given " + strings.length);
                     targetAndActivate(playerState);
                     nameStation(playerState, strings[0]);
                     shiftStation(playerState, Objects.equals(strings[1], "away") ? "west" : "east");
-                    listStation(playerState, "add");
+                    listStation(playerState, "add", strings[2]);
                     printInfo(playerState);
                     return true;
                 }

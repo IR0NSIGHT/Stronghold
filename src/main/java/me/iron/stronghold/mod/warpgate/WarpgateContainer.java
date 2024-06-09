@@ -53,14 +53,15 @@ public class WarpgateContainer implements Serializable {
         public Vector3i position;
         public Vector3i destination;
         public String UID;
-        public String realName;
+        //what this gate node should be called on the map
+        public String positionName;
         public int factionId;
 
-        public SaveableGate(SpaceStation station, Vector3i destination) {
+        public SaveableGate(SpaceStation station, Vector3i destination, String gateNodeTitle) {
             this.position = station.getSector(new Vector3i());
             this.destination = destination;
             this.UID = station.getUniqueIdentifier();
-            this.realName = station.getRealName();
+            this.positionName = gateNodeTitle;
             this.factionId = station.getFactionId();
         }
 
@@ -70,7 +71,7 @@ public class WarpgateContainer implements Serializable {
                     "position=" + position +
                     ", destination=" + destination +
                     ", UID='" + UID + '\'' +
-                    ", realName='" + realName + '\'' +
+                    ", realName='" + positionName + '\'' +
                     ", factionId=" + factionId +
                     '}';
         }

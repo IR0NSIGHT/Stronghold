@@ -6,10 +6,7 @@ import me.iron.stronghold.mod.ModMain;
 import org.schema.game.common.data.player.PlayerState;
 import org.schema.game.server.data.GameServerState;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * core class for the SynchIcon utiltity
@@ -79,10 +76,27 @@ public class SynchIconManager {
         }
     }
 
+    private boolean categoryMatch(SynchMapIcon icon1, SynchMapIcon icon2) {
+        for (int i= 0; i < Math.min(icon1.category.length, icon2.category.length); i++) {
+            if (!Objects.equals(icon1.category[i], icon2.category[i]))
+                return false;
+        }
+        return true;
+    }
 
     //add these icons on this client machine
     public void AddIconsLocal(SynchMapIcon[] icons) {
-        Collections.addAll(this.icons, icons);
+        for (SynchMapIcon newIcon: icons) {
+            //remove all existing entries
+            Iterator<SynchMapIcon> iterator = this.icons.iterator();
+            while (iterator.hasNext()) {
+                SynchMapIcon existingIcon = iterator.next();
+                if (categoryMatch(newIcon, existingIcon)) {
+                    iterator.remove();
+                }
+            }
+            this.icons.add(newIcon);
+        }
         flagRedraw = true;
     }
 
