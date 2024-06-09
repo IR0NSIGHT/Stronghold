@@ -34,6 +34,6 @@ public class AddIconsPacket extends Packet {
 
     @Override
     public void processPacketOnServer(PlayerState playerState) {
-        SynchIconManager.instance.UpdateClient(playerState);
+        SynchIconManager.instance.remoteUpdateFor(playerState);
     }
 }

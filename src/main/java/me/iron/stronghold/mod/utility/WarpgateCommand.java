@@ -3,6 +3,8 @@ package me.iron.stronghold.mod.utility;
 import api.mod.StarMod;
 import api.utils.game.chat.CommandInterface;
 import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.effects.map.SynchIcon.SynchIconManager;
+import me.iron.stronghold.mod.effects.map.SynchIcon.SynchMapIcon;
 import me.iron.stronghold.mod.warpgate.WarpgateContainer;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.SegmentController;
@@ -20,6 +22,8 @@ import org.schema.schine.network.objects.Sendable;
 
 import javax.annotation.Nullable;
 import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,6 +38,7 @@ public class WarpgateCommand implements CommandInterface {
 
     public WarpgateCommand() {
         this.container = WarpgateContainer.load();
+        updateGateIconsAndBroadcast(false);
     }
 
     public void onShutdown() {
@@ -177,13 +182,13 @@ public class WarpgateCommand implements CommandInterface {
                 container.add(new WarpgateContainer.SaveableGate((SpaceStation) sendable, getSelectedGate(playerState).getLocalDestination()));
                 echo("add this station to tracker list:" + sendable.getRealName(), playerState);
 
-                return true;
+                break;
             }
             case "remove": {
                 SegmentController sendable = (SegmentController) getSelectedObject(playerState);
                 container.remove(sendable.getUniqueIdentifier());
                 echo("remove this station to tracker list", playerState);
-                return true;
+                break;
             }
             case "show": {
                 StringBuilder b = new StringBuilder("all tracked gate stations:\n");
@@ -191,10 +196,39 @@ public class WarpgateCommand implements CommandInterface {
                     b.append(gate.toString()).append("\n");
                 }
                 echo(b.toString(), playerState);
-                return true;
+                break;
             }
+            default:
+                return false;
+
         }
-        return false;
+
+
+        updateGateIconsAndBroadcast(true);
+        return true;
+    }
+
+    private LinkedList<SynchMapIcon> getIconsFromGateList(WarpgateContainer gates) {
+        LinkedList<SynchMapIcon> gateIcons = new LinkedList<>();
+        for (WarpgateContainer.SaveableGate gate : container.gates) {
+            gateIcons.add(new SynchMapIcon(
+                    SynchIconManager.DEFAULT_ICON,
+                    gate.position,
+                    .02f,
+                    new Vector4f(0, 1, 0, .5f),
+                    SynchIconManager.ANIMATION_NONE,
+                    new String[]{"root", "public", "warpgates"},
+                    -1,
+                    false,
+                    gate.realName));
+        }
+        return gateIcons;
+    }
+
+    private void updateGateIconsAndBroadcast(boolean broadcast) {
+        SynchIconManager.instance.setPublicIcons(getIconsFromGateList(container));
+        if (broadcast)
+            SynchIconManager.instance.remoteUpdateEveryone();
     }
 
     public boolean printInfo(PlayerState playerState) {

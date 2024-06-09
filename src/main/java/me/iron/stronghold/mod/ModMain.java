@@ -50,11 +50,11 @@ public class ModMain extends StarMod {
     @Override
     public void onServerCreated(ServerInitializeEvent serverInitializeEvent) {
         super.onServerCreated(serverInitializeEvent);
+        new SynchIconManager(true);
         areaManager.setServer(this);
         StarLoader.registerCommand(new DebugUI());
         warpgateCommand = new WarpgateCommand();
         StarLoader.registerCommand(warpgateCommand);
-        new SynchIconManager(true);
     }
 
     @Override

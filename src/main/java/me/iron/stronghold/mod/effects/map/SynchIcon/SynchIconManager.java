@@ -3,11 +3,13 @@ package me.iron.stronghold.mod.effects.map.SynchIcon;
 import api.network.packets.PacketUtil;
 import api.utils.StarRunnable;
 import me.iron.stronghold.mod.ModMain;
-import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.data.player.PlayerState;
+import org.schema.game.server.data.GameServerState;
 
-import javax.vecmath.Vector4f;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  * core class for the SynchIcon utiltity
@@ -26,16 +28,7 @@ public class SynchIconManager {
     public SynchIconManager(boolean onServer) {
         instance = this;
         if (onServer) {
-            //DEBUG
-            setPublicIcons(new LinkedList<>(Arrays.asList(
-                    new SynchMapIcon(DEFAULT_ICON,
-                            new Vector3i(100, 100, 100),
-                            1,
-                            new Vector4f(1, 1, 1, 1),
-                            ANIMATION_NONE,
-                            root,
-                            -1,
-                            false))));
+          //
         } else {
             this.mapDrawer = new SynchIconMapDrawer(ModMain.instance);
 
@@ -46,8 +39,7 @@ public class SynchIconManager {
                     new StarRunnable() {
                         @Override
                         public void run() {
-
-                            instance.updateClient();
+                            instance.localUpdate();
                         }
                     }.runTimer(ModMain.instance, 100);
                 }
@@ -55,11 +47,15 @@ public class SynchIconManager {
         }
     }
 
-    public void UpdateClient(PlayerState playerState) {
+    public void remoteUpdateEveryone() {
+        for (PlayerState p: GameServerState.instance.getPlayerStatesByName().values())
+            remoteUpdateFor(p);
+    }
+    public void remoteUpdateFor(PlayerState playerState) {
         AddIconsToClients(icons.toArray(new SynchMapIcon[0]), Collections.singletonList(playerState));
     }
 
-    private void updateClient() {
+    private void localUpdate() {
         removeExpiredIcons();
 
         if (flagRedraw)
@@ -110,5 +106,7 @@ public class SynchIconManager {
     public void RequestIconsFromServer() {
         PacketUtil.sendPacketToServer(new AddIconsPacket());
     }
+
+
 
 }
