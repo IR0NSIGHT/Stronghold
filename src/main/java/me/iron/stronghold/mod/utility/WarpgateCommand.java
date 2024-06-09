@@ -209,7 +209,7 @@ public class WarpgateCommand implements CommandInterface {
         return true;
     }
 
-    private LinkedList<SynchMapIcon> getIconsFromGateList(WarpgateContainer gates) {
+    private LinkedList<SynchMapIcon> getIconsFromGateList(WarpgateContainer container) {
         LinkedList<SynchMapIcon> gateIcons = new LinkedList<>();
         for (WarpgateContainer.SaveableGate gate : container.gates) {
             gateIcons.add(new SynchMapIcon(

@@ -32,10 +32,11 @@ public class SynchIconManager {
             new StarRunnable() {
                 @Override
                 public void run() {
-                    RequestIconsFromServer(); //TODO dont always run
+                    RequestIconsFromServer(); //request once on server join
                     new StarRunnable() {
                         @Override
                         public void run() {
+                            //localized update for timed icons
                             instance.localUpdate();
                         }
                     }.runTimer(ModMain.instance, 100);
