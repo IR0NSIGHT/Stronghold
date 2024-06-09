@@ -45,12 +45,14 @@ public class SynchIconManager {
         }
     }
 
+
     public void remoteUpdateEveryone() {
         for (PlayerState p: GameServerState.instance.getPlayerStatesByName().values())
             remoteUpdateFor(p);
     }
+
     public void remoteUpdateFor(PlayerState playerState) {
-        AddIconsToClients(icons.toArray(new SynchMapIcon[0]), Collections.singletonList(playerState));
+        SynchIconsToClient(icons.toArray(new SynchMapIcon[0]), Collections.singletonList(playerState));
     }
 
     private void localUpdate() {
@@ -77,22 +79,33 @@ public class SynchIconManager {
         }
     }
 
-    private boolean categoryMatch(SynchMapIcon icon1, SynchMapIcon icon2) {
-        for (int i= 0; i < Math.min(icon1.category.length, icon2.category.length); i++) {
-            if (!Objects.equals(icon1.category[i], icon2.category[i]))
+    private boolean categoryMatch(String[] icon1, String[] icon2) {
+        for (int i = 0; i < Math.min(icon1.length, icon2.length); i++) {
+            if (!Objects.equals(icon1[i], icon2[i]))
                 return false;
         }
         return true;
     }
 
     //add these icons on this client machine
-    public void AddIconsLocal(SynchMapIcon[] icons) {
-        for (SynchMapIcon newIcon: icons) {
-            //remove all existing entries
+    public void AddIconsLocal(SynchMapIcon[] icons, String[][] deleteCategories) {
+        //remove all items with categoreis that match the kill list
+        for (String[] category : deleteCategories) {
             Iterator<SynchMapIcon> iterator = this.icons.iterator();
             while (iterator.hasNext()) {
                 SynchMapIcon existingIcon = iterator.next();
-                if (categoryMatch(newIcon, existingIcon)) {
+                if (categoryMatch(category, existingIcon.category)) {
+                    iterator.remove();
+                }
+            }
+        }
+
+        //remove all existing entries that clash with new icons => overwrites old icons with same category
+        for (SynchMapIcon newIcon: icons) {
+            Iterator<SynchMapIcon> iterator = this.icons.iterator();
+            while (iterator.hasNext()) {
+                SynchMapIcon existingIcon = iterator.next();
+                if (categoryMatch(newIcon.category, existingIcon.category)) {
                     iterator.remove();
                 }
             }
@@ -107,9 +120,21 @@ public class SynchIconManager {
      *
      * @param icons
      */
-    public void AddIconsToClients(SynchMapIcon[] icons, Collection<PlayerState> targetClients) {
-        SynchIconsPacket packet = new SynchIconsPacket(icons);
+    public void SynchIconsToClient(SynchMapIcon[] icons, Collection<PlayerState> targetClients) {
+        SynchIconsPacket packet = new SynchIconsPacket(icons, new String[0][]);
         for (PlayerState client : targetClients) {
+            PacketUtil.sendPacket(client, packet);
+        }
+    }
+
+    /**
+     * deletes these icon categories on all connected clients
+     *
+     * @param deleteCategories
+     */
+    public void RemoveCategoriesOnClients(String[][] deleteCategories) {
+        SynchIconsPacket packet = new SynchIconsPacket(new SynchMapIcon[0], deleteCategories);
+        for (PlayerState client : GameServerState.instance.getPlayerStatesByName().values()) {
             PacketUtil.sendPacket(client, packet);
         }
     }
