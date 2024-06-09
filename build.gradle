@@ -128,7 +128,7 @@ task runSP(type: JavaExec) {
     classpath = sourceSets.main.compileClasspath
     main = 'me.jakev.starloader.LaunchClassLoader'
     systemProperty 'java.library.path', "${starmade_root}native/${starmade_root}native/windows/x64/${starmade_root}native/solaris/x64"
-    args = ["-force"]
+    args = ["-force","-client"]
     doFirst {
         workingDir = file(starmade_root)
         def jarFile = tasks.createFatJar.archiveFile.get().asFile
