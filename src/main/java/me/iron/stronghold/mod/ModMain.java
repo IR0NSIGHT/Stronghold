@@ -10,11 +10,14 @@ import glossar.GlossarEntry;
 import glossar.GlossarInit;
 import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
 import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
+import me.iron.stronghold.mod.effects.map.SynchIcon.AddIconsPacket;
+import me.iron.stronghold.mod.effects.map.SynchIcon.SynchIconManager;
 import me.iron.stronghold.mod.framework.AreaManager;
 import me.iron.stronghold.mod.framework.GenericNewsCollector;
 import me.iron.stronghold.mod.framework.UpdatePacket;
 import me.iron.stronghold.mod.utility.DebugUI;
 import me.iron.stronghold.mod.utility.WarpgateCommand;
+import org.schema.schine.graphicsengine.core.ResourceException;
 import org.schema.schine.resource.ResourceLoader;
 
 public class ModMain extends StarMod {
@@ -26,6 +29,7 @@ public class ModMain extends StarMod {
     public void onEnable() {
         super.onEnable();
         PacketUtil.registerPacket(UpdatePacket.class);
+        PacketUtil.registerPacket(AddIconsPacket.class);
         areaManager = new AreaManager();
         areaManager.addListener(new GenericNewsCollector("[STRONGHOLD]"));
         instance = this;
@@ -50,6 +54,7 @@ public class ModMain extends StarMod {
         StarLoader.registerCommand(new DebugUI());
         warpgateCommand = new WarpgateCommand();
         StarLoader.registerCommand(warpgateCommand);
+        new SynchIconManager(true);
     }
 
     @Override
@@ -57,12 +62,17 @@ public class ModMain extends StarMod {
         super.onClientCreated(clientInitializeEvent);
         areaManager.setClient();
         addGlossar();
+        new SynchIconManager(false);
     }
 
     @Override
     public void onResourceLoad(ResourceLoader resourceLoader) {
         super.onResourceLoad(resourceLoader);
-        new AreaMapDrawer(this);
+        try {
+            new AreaMapDrawer(this);
+        } catch (ResourceException e) {
+            throw new RuntimeException(e);
+        }
 
         radarMapDrawer = new RadarMapDrawer(this);
 

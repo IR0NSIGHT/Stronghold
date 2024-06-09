@@ -26,6 +26,9 @@ import java.util.Objects;
 import static me.iron.stronghold.mod.utility.DebugUI.echo;
 import static me.iron.stronghold.mod.utility.SimpleTools.moveObjectToInSectorPosition;
 
+/**
+ * a command line tool to help with setting up invulnerable warpgate-highways as public infrastructure
+ */
 public class WarpgateCommand implements CommandInterface {
     private WarpgateContainer container;
 

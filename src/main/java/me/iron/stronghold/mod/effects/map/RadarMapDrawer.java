@@ -31,7 +31,7 @@ public class RadarMapDrawer extends MapDrawer {
     }
 
     public void loadSprites(StarMod mod) {
-        String folder = "me/iron/stronghold/mod/res/"; //starting at src to package.
+        String folder = "icons/"; //starting at src to package.
 
         //load sprite
         SpriteLoader msl = new SpriteLoader(folder,"radar_dot.png",512,512,2,2);

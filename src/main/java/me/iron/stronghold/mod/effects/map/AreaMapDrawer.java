@@ -19,6 +19,7 @@ import org.schema.game.client.view.effects.Indication;
 import org.schema.game.client.view.gamemap.GameMapDrawer;
 import org.schema.game.client.view.gui.shiphud.HudIndicatorOverlay;
 import org.schema.schine.graphicsengine.core.GlUtil;
+import org.schema.schine.graphicsengine.core.ResourceException;
 import org.schema.schine.graphicsengine.forms.Sprite;
 
 import javax.vecmath.Vector3f;
@@ -38,14 +39,16 @@ public class AreaMapDrawer extends AbstractMapDrawer implements IAreaEvent {
     private LinkedList<MapLine> lines = new LinkedList<>(); //only access in graphics thread!
     private LinkedList<Indication> indications = new LinkedList<>();
     private boolean updateFlag;
-    public AreaMapDrawer(StarMod mod) {
+    public AreaMapDrawer(StarMod mod) throws ResourceException {
         super(mod);
-        String folder = "me/iron/stronghold/mod/res/"; //starting at src to package.
+        String folder = "icons/"; //starting at src to package.
 
         //load sprite
         SpriteLoader msl = new SpriteLoader(folder,"area_map.png",512,512,2,2);
         msl.loadSprite(mod);
         areaSprite = msl.getSprite();
+        if (areaSprite == null)
+            throw new ResourceException("could not load sprite");
         ModMain.areaManager.addListener(this);
     }
 
