@@ -1,0 +1,16 @@
+{
+  "name": "Stronghold",
+  "author": "IR0NSIGHT",
+  "description": "Framework for conquering and defending space",
+  "version": "2.4.1",
+  "starmade_version": "0.202.110",
+  "client_mod": false,
+  "server_mod": false,
+  "main_class": "me.iron.stronghold.mod.ModMain",
+  "smd_resource_id": 8356,
+  "dependencies": [
+    -1
+  ],
+  "core_mod": true,
+  "requires_class_resize": true
+}
