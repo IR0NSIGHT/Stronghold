@@ -1,11 +1,11 @@
-package me.iron.stronghold.mod.utility;
+package me.iron.stronghold.mod.warpgate;
 
 import api.mod.StarMod;
 import api.utils.game.chat.CommandInterface;
 import me.iron.stronghold.mod.ModMain;
 import me.iron.stronghold.mod.effects.map.SynchIcon.SynchIconManager;
 import me.iron.stronghold.mod.effects.map.SynchIcon.SynchMapIcon;
-import me.iron.stronghold.mod.warpgate.WarpgateContainer;
+import me.iron.stronghold.mod.utility.SimpleTools;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.SegmentController;
 import org.schema.game.common.controller.SpaceStation;
@@ -73,13 +73,8 @@ public class WarpgateCommand implements CommandInterface {
         return true;
     }
 
-    Sendable getSelectedObject(PlayerState playerState) {
-        int entityId = playerState.getSelectedEntityId();
-        return playerState.getState().getLocalAndRemoteObjectContainer().getLocalObjects().get(entityId);
-    }
-
     public WarpgateCollectionManager getSelectedGate(PlayerState playerState) throws IllegalArgumentException {
-        Sendable sendable = getSelectedObject(playerState);
+        Sendable sendable = SimpleTools.getSelectedObject(playerState);
 
         if (sendable != null && sendable instanceof ManagedSegmentController<?> && ((ManagedSegmentController<?>) sendable).getManagerContainer() instanceof StationaryManagerContainer<?>) {
             StationaryManagerContainer<?> m = (StationaryManagerContainer<?>) ((ManagedSegmentController<?>) sendable).getManagerContainer();
@@ -178,14 +173,14 @@ public class WarpgateCommand implements CommandInterface {
     public boolean listStation(PlayerState playerState, String action, String gateNodeTitle) {
         switch (action) {
             case "add": {
-                SegmentController sendable = (SegmentController) getSelectedObject(playerState);
+                SegmentController sendable = (SegmentController) SimpleTools.getSelectedObject(playerState);
                 container.add(new WarpgateContainer.SaveableGate((SpaceStation) sendable, getSelectedGate(playerState).getLocalDestination(), gateNodeTitle));
                 echo("add this station to tracker list:" + sendable.getRealName(), playerState);
                 container.save();
                 break;
             }
             case "remove": {
-                SegmentController sendable = (SegmentController) getSelectedObject(playerState);
+                SegmentController sendable = (SegmentController) SimpleTools.getSelectedObject(playerState);
                 container.remove(sendable.getUniqueIdentifier());
                 echo("remove this station to tracker list", playerState);
                 container.save();

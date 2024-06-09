@@ -16,7 +16,7 @@ import me.iron.stronghold.mod.framework.AreaManager;
 import me.iron.stronghold.mod.framework.GenericNewsCollector;
 import me.iron.stronghold.mod.framework.UpdatePacket;
 import me.iron.stronghold.mod.utility.DebugUI;
-import me.iron.stronghold.mod.utility.WarpgateCommand;
+import me.iron.stronghold.mod.warpgate.WarpgateCommand;
 import org.schema.schine.graphicsengine.core.ResourceException;
 import org.schema.schine.resource.ResourceLoader;
 
