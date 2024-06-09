@@ -7,13 +7,13 @@ import org.schema.game.common.data.player.PlayerState;
 
 import java.io.IOException;
 
-public class AddIconsPacket extends Packet {
+public class SynchIconsPacket extends Packet {
     SynchMapIcon[] icons = new SynchMapIcon[0];
 
-    public AddIconsPacket() {
+    public SynchIconsPacket() {
     }
 
-    public AddIconsPacket(SynchMapIcon[] icons) {
+    public SynchIconsPacket(SynchMapIcon[] icons) {
         this.icons = icons;
     }
 

@@ -10,7 +10,7 @@ import glossar.GlossarEntry;
 import glossar.GlossarInit;
 import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
 import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
-import me.iron.stronghold.mod.effects.map.SynchIcon.AddIconsPacket;
+import me.iron.stronghold.mod.effects.map.SynchIcon.SynchIconsPacket;
 import me.iron.stronghold.mod.effects.map.SynchIcon.SynchIconManager;
 import me.iron.stronghold.mod.framework.AreaManager;
 import me.iron.stronghold.mod.framework.GenericNewsCollector;
@@ -29,7 +29,7 @@ public class ModMain extends StarMod {
     public void onEnable() {
         super.onEnable();
         PacketUtil.registerPacket(UpdatePacket.class);
-        PacketUtil.registerPacket(AddIconsPacket.class);
+        PacketUtil.registerPacket(SynchIconsPacket.class);
         areaManager = new AreaManager();
         areaManager.addListener(new GenericNewsCollector("[STRONGHOLD]"));
         instance = this;

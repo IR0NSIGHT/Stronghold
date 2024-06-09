@@ -108,7 +108,7 @@ public class SynchIconManager {
      * @param icons
      */
     public void AddIconsToClients(SynchMapIcon[] icons, Collection<PlayerState> targetClients) {
-        AddIconsPacket packet = new AddIconsPacket(icons);
+        SynchIconsPacket packet = new SynchIconsPacket(icons);
         for (PlayerState client : targetClients) {
             PacketUtil.sendPacket(client, packet);
         }
@@ -119,7 +119,7 @@ public class SynchIconManager {
     }
 
     public void RequestIconsFromServer() {
-        PacketUtil.sendPacketToServer(new AddIconsPacket());
+        PacketUtil.sendPacketToServer(new SynchIconsPacket());
     }
 
 
