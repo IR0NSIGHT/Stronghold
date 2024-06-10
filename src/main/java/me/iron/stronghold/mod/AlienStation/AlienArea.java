@@ -8,6 +8,8 @@ import me.iron.stronghold.mod.implementation.StellarControllableArea;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.Ship;
 import org.schema.game.common.controller.SpaceStation;
+import org.schema.game.common.data.element.ElementInformation;
+import org.schema.game.common.data.element.ElementKeyMap;
 import org.schema.game.common.data.player.inventory.Inventory;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.common.language.Lng;
@@ -48,7 +50,10 @@ public class AlienArea extends StellarControllableArea {
 
         ObjectCollection<Inventory> cargoCollectionManagers = station.getManagerContainer().getInventories().values();
         for (Inventory cm : cargoCollectionManagers) {
-            cm.incExistingOrNextFreeSlotWithoutException((short) (Math.random() * 1700), 10);
+            ElementInformation info = ElementKeyMap.getInfoArray()[(short)(Math.random()*ElementKeyMap.getInfoArray().length-1)];
+            if (info == null)
+                continue;
+            cm.incExistingOrNextFreeSlotWithoutException(info.id, 10);
             cm.sendAll();
         }
     }

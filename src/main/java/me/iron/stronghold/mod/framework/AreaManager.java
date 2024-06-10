@@ -217,7 +217,6 @@ public class AreaManager extends AbstractControllableArea {
 
     @Override
     public void update(Timer timer) {
-        super.update(timer);
         timer.lastUpdate = timer.currentTime;
         timer.currentTime = System.currentTimeMillis();
         updateLoaded(timer);
