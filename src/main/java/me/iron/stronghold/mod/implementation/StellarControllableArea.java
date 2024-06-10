@@ -15,6 +15,8 @@ import org.schema.game.client.data.GameClientState;
 import org.schema.game.client.view.effects.ConstantIndication;
 import org.schema.game.client.view.effects.Indication;
 import org.schema.game.common.controller.Ship;
+import org.schema.game.common.data.player.PlayerState;
+import org.schema.game.server.data.GameServerState;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -74,6 +76,14 @@ public class StellarControllableArea extends AbstractControllableArea implements
                 getDimensionsStart().y<=sector.y && sector.y <= getDimensionsEnd().y &&
                 getDimensionsStart().z<=sector.z && sector.z <= getDimensionsEnd().z
         );
+    }
+
+    public LinkedList<PlayerState> getPlayersInArea() {
+        LinkedList<PlayerState> found = new LinkedList<>();
+        for (PlayerState p: GameServerState.instance.getPlayerStatesByName().values())
+            if (isSectorInArea(p.getCurrentSector()))
+                found.add(p);
+        return found;
     }
 
     @Override

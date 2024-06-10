@@ -39,6 +39,10 @@ public class AlienAreaCommand implements CommandInterface {
     public boolean onCommand(PlayerState playerState, String[] strings) {
         switch (strings[0]) {
             case "create": {
+                if (strings.length == 1) {
+                    echo("expected more argumetns",playerState);
+                    return false;
+                }
                 Sendable s = SimpleTools.getSelectedObject(playerState);
                 if (!(s instanceof SpaceStation)) {
                     echo("selected object must be a space station.", playerState);

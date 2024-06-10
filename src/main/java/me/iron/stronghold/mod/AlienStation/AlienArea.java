@@ -1,9 +1,15 @@
 package me.iron.stronghold.mod.AlienStation;
 
+import api.ModPlayground;
+import it.unimi.dsi.fastutil.objects.ObjectCollection;
+import me.iron.stronghold.mod.framework.AbstractControllableArea;
+import me.iron.stronghold.mod.framework.SendableUpdateable;
 import me.iron.stronghold.mod.implementation.StellarControllableArea;
 import org.schema.common.util.linAlg.Vector3i;
 import org.schema.game.common.controller.Ship;
 import org.schema.game.common.controller.SpaceStation;
+import org.schema.game.common.data.player.inventory.Inventory;
+import org.schema.game.server.data.GameServerState;
 import org.schema.schine.common.language.Lng;
 import org.schema.schine.network.server.ServerMessage;
 
@@ -21,6 +27,38 @@ public class AlienArea extends StellarControllableArea {
                 new Vector3i(center.x + radius, center.y + radius, center.z + radius));
         area.centerStationUID = station.getUniqueIdentifier();
         return area;
+    }
+
+    @Override
+    public void onUpdate(AbstractControllableArea area) {
+        super.onUpdate(area);
+        if (this != area)
+            return;
+
+        ModPlayground.broadcastMessage("hobbitses lurking in my swamp!");
+        setLoot();
+    }
+
+    private void setLoot() {
+        //check if statios is loaded
+        Object o = GameServerState.instance.getSegmentControllersByName().get(centerStationUID);
+        if (!(o instanceof SpaceStation))
+            return;
+        SpaceStation station = (SpaceStation) o;
+
+        ObjectCollection<Inventory> cargoCollectionManagers = station.getManagerContainer().getInventories().values();
+        for (Inventory cm : cargoCollectionManagers) {
+            cm.incExistingOrNextFreeSlotWithoutException((short) (Math.random() * 1700), 10);
+            cm.sendAll();
+        }
+    }
+
+    @Override
+    public void synch(SendableUpdateable a) {
+        super.synch(a);
+        assert a instanceof AlienArea;
+        this.centerStationUID = ((AlienArea) a).centerStationUID;
+        this.detectionRadius = ((AlienArea) a).detectionRadius;
     }
 
     @Override
