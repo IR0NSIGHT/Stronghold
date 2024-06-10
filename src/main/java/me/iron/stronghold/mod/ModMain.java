@@ -8,6 +8,7 @@ import api.network.packets.PacketUtil;
 import glossar.GlossarCategory;
 import glossar.GlossarEntry;
 import glossar.GlossarInit;
+import me.iron.stronghold.mod.AlienStation.AlienAreaCommand;
 import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
 import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
 import me.iron.stronghold.mod.effects.map.SynchIcon.SynchIconsPacket;
@@ -33,6 +34,8 @@ public class ModMain extends StarMod {
         areaManager = new AreaManager();
         areaManager.addListener(new GenericNewsCollector("[STRONGHOLD]"));
         instance = this;
+
+        StarLoader.registerCommand(new AlienAreaCommand());
     }
 
     @Override
