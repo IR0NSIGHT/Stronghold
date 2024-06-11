@@ -20,6 +20,10 @@ public class AlienArea extends StellarControllableArea {
     private final static String noStation = ":(";
     private String centerStationUID = noStation;
     private int detectionRadius;
+    public static float lootFrequencyMinutes = 0.1f;
+    private long nextLootFillUnix = 0;
+    private long lastLootFillUnix = System.currentTimeMillis();
+    private int amountLootPerUpdate = 1;
     public static AlienArea aroundSpaceStation(SpaceStation station, int radius) {
         AlienArea area = new AlienArea();
         Vector3i center = station.getSector(new Vector3i());
@@ -38,24 +42,49 @@ public class AlienArea extends StellarControllableArea {
             return;
 
         ModPlayground.broadcastMessage("hobbitses lurking in my swamp!");
-        setLoot();
+        long currentTimeMillis = System.currentTimeMillis();
+        if (currentTimeMillis > nextLootFillUnix) {
+            SpaceStation station = getStation();
+            if (station == null)
+                return;
+
+            setLoot(getLootForTimeframe(currentTimeMillis-lastLootFillUnix), station);
+            nextLootFillUnix = getNextLootFillUnix();
+            lastLootFillUnix = currentTimeMillis;
+        }
+
     }
 
-    private void setLoot() {
-        //check if statios is loaded
+
+    private static long getNextLootFillUnix() {
+        return System.currentTimeMillis() + (long)(Math.random() * 1000 * 60 * lootFrequencyMinutes) ;
+    }
+
+    private SpaceStation getStation() {
         Object o = GameServerState.instance.getSegmentControllersByName().get(centerStationUID);
         if (!(o instanceof SpaceStation))
-            return;
+            return null;
         SpaceStation station = (SpaceStation) o;
+        return station;
+    }
+
+    private void setLoot(int amount, SpaceStation station) {
+        //check if station is loaded
+
 
         ObjectCollection<Inventory> cargoCollectionManagers = station.getManagerContainer().getInventories().values();
         for (Inventory cm : cargoCollectionManagers) {
-            ElementInformation info = ElementKeyMap.getInfoArray()[(short)(Math.random()*ElementKeyMap.getInfoArray().length-1)];
+            ElementInformation info = ElementKeyMap.getInfoArray()[ElementKeyMap.CORE_ID];
             if (info == null)
                 continue;
-            cm.incExistingOrNextFreeSlotWithoutException(info.id, 10);
+            cm.incExistingOrNextFreeSlotWithoutException(info.id, amount);
             cm.sendAll();
         }
+    }
+
+    protected int getLootForTimeframe(long millisSinceRefill) {
+        //TODO write a unit test for this, im to tired to be smart
+        return (int)Math.ceil(amountLootPerUpdate * millisSinceRefill  / (float)(lootFrequencyMinutes* 60 * 1000));
     }
 
     @Override
@@ -64,6 +93,9 @@ public class AlienArea extends StellarControllableArea {
         assert a instanceof AlienArea;
         this.centerStationUID = ((AlienArea) a).centerStationUID;
         this.detectionRadius = ((AlienArea) a).detectionRadius;
+        this.nextLootFillUnix = ((AlienArea) a).nextLootFillUnix;
+        this.lastLootFillUnix = ((AlienArea) a).lastLootFillUnix;
+        this.amountLootPerUpdate =  ((AlienArea) a).amountLootPerUpdate;
     }
 
     @Override
