@@ -15,15 +15,18 @@ import org.schema.game.server.data.GameServerState;
 import org.schema.schine.common.language.Lng;
 import org.schema.schine.network.server.ServerMessage;
 
+import java.util.Random;
+
 public class AlienArea extends StellarControllableArea {
     public static boolean debugVisibleArea = true;
     private final static String noStation = ":(";
     private String centerStationUID = noStation;
     private int detectionRadius;
-    public static float lootFrequencyMinutes = 0.1f;
+    public static float lootFrequencyMinutes = 60f;
     private long nextLootFillUnix = 0;
     private long lastLootFillUnix = System.currentTimeMillis();
-    private int amountLootPerUpdate = 1;
+    private float meanLootPerChest = 1f;
+    private float stdLootPerChest = 1;
     public static AlienArea aroundSpaceStation(SpaceStation station, int radius) {
         AlienArea area = new AlienArea();
         Vector3i center = station.getSector(new Vector3i());
@@ -52,7 +55,6 @@ public class AlienArea extends StellarControllableArea {
             nextLootFillUnix = getNextLootFillUnix();
             lastLootFillUnix = currentTimeMillis;
         }
-
     }
 
 
@@ -70,21 +72,30 @@ public class AlienArea extends StellarControllableArea {
 
     private void setLoot(int amount, SpaceStation station) {
         //check if station is loaded
-
-
         ObjectCollection<Inventory> cargoCollectionManagers = station.getManagerContainer().getInventories().values();
+        // Create an instance of Random
+        Random random = new Random();
+
+        //each chest gets a random amount of ship cores in them. amount is gauss controlled
         for (Inventory cm : cargoCollectionManagers) {
+            cm.clear();
+
             ElementInformation info = ElementKeyMap.getInfoArray()[ElementKeyMap.CORE_ID];
             if (info == null)
                 continue;
-            cm.incExistingOrNextFreeSlotWithoutException(info.id, amount);
+
+            cm.incExistingOrNextFreeSlotWithoutException(info.id, Math.max(0,getGaussNumber(random, stdLootPerChest, meanLootPerChest)));
             cm.sendAll();
         }
     }
 
+    private static int getGaussNumber(Random random, float standardDeviation, float mean) {
+        return (int) (random.nextGaussian() * standardDeviation + mean);
+    }
+
     protected int getLootForTimeframe(long millisSinceRefill) {
         //TODO write a unit test for this, im to tired to be smart
-        return (int)Math.ceil(amountLootPerUpdate * millisSinceRefill  / (float)(lootFrequencyMinutes* 60 * 1000));
+        return 1; // (int)Math.ceil(amountLootPerUpdate * millisSinceRefill  / (float)(lootFrequencyMinutes* 60 * 1000));
     }
 
     @Override
@@ -95,7 +106,8 @@ public class AlienArea extends StellarControllableArea {
         this.detectionRadius = ((AlienArea) a).detectionRadius;
         this.nextLootFillUnix = ((AlienArea) a).nextLootFillUnix;
         this.lastLootFillUnix = ((AlienArea) a).lastLootFillUnix;
-        this.amountLootPerUpdate =  ((AlienArea) a).amountLootPerUpdate;
+        this.stdLootPerChest =  ((AlienArea) a).stdLootPerChest;
+        this.meanLootPerChest =  ((AlienArea) a).meanLootPerChest;
     }
 
     @Override
