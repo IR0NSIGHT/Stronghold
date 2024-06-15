@@ -267,7 +267,7 @@ public class AlienArea extends StellarControllableArea {
         }
     }
 
-    private static int getGaussNumber(Random random, float standardDeviation, float mean) {
+    protected static int getGaussNumber(Random random, float standardDeviation, float mean) {
         return (int) (random.nextGaussian() * standardDeviation + mean);
     }
 

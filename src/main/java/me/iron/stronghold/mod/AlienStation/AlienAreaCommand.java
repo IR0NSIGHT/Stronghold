@@ -7,14 +7,17 @@ import me.iron.stronghold.mod.framework.SendableUpdateable;
 import me.iron.stronghold.mod.utility.SimpleTools;
 import org.schema.game.common.controller.SpaceStation;
 import org.schema.game.common.data.player.PlayerState;
+import org.schema.game.common.data.player.catalog.CatalogPermission;
 import org.schema.game.common.data.player.faction.Faction;
 import org.schema.game.common.data.player.faction.FactionManager;
+import org.schema.game.common.data.player.faction.FactionRelation;
 import org.schema.game.common.data.player.faction.FactionRoles;
 import org.schema.game.server.data.GameServerState;
 import org.schema.schine.network.objects.Sendable;
 
 import javax.annotation.Nullable;
-
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Objects;
 
 import static me.iron.stronghold.mod.utility.DebugUI.echo;
@@ -35,7 +38,8 @@ public class AlienAreaCommand implements CommandInterface {
         return "/AlienArea create 6 # creates an area with radius 6 sectors around the selected station \n" +
                 "/AlienArea list # list all regions of type AlienArea\n" +
                 "/AlienArea faction \"<name>\" \"<description>\" \"leadername\"# add a non-public faction with this name, faction leader will be ADMIN_alien\n" +
-                "/AlienArea lootFreq <set|get> <minutes> # set/get  the frequency at which loot regenerates in stations to this value\n";
+                "/AlienArea lootFreq <set|get> <minutes> # set/get  the frequency at which loot regenerates in stations to this value\n" +
+                "/AlienArea guardian_blueprint_add expression # add all blueprints that match the regex expression";
     }
 
     @Override
@@ -109,7 +113,40 @@ public class AlienAreaCommand implements CommandInterface {
                 echo("AlienArea lootFrequencyMinutes = " + AlienArea.lootFrequencyMinutes, playerState);
                 return true;
             }
+            case "guardian_blueprint_add": {
+                String expression = strings[1];
+
+                LinkedList<CatalogPermission> matches = new LinkedList<>();
+                Collection<CatalogPermission> bps = GameServerState.instance.getCatalogManager().getCatalog();
+                for (CatalogPermission p : bps) {
+                    String uid = p.getUid();
+                    if (uid.toLowerCase().matches(expression.toLowerCase()))
+                        matches.add(p);
+                }
+                echo("expression matched these blueprints:", playerState);
+
+                AlienGuardian container = AlienGuardian.getInstance();
+                container.guardianFaction = 10003;
+                GameServerState.instance.getFactionManager().getFaction(container.guardianFaction).setAttackNeutral(false);
+                for (CatalogPermission p : matches) {
+                    echo(p.getUid() + " : " + p.description, playerState);
+                    container.catalogNames.add(p.getUid());
+                }
+
+                if (!container.catalogNames.isEmpty())
+                    for (int i = 0; i < 2; i++) {
+                        container.spawnGuardian(playerState.getCurrentSector());
+                    }
+
+
+                return true;
+            }
+            case "peace": {
+                GameServerState.instance.getFactionManager().setRelationServer(AlienGuardian.getInstance().guardianFaction, playerState.getFactionId(), FactionRelation.RType.NEUTRAL.code);
+                echo("made peace between player and guardian",playerState);
+            }
         }
+
         echo("unknown subcommand.", playerState);
         return false;
     }
