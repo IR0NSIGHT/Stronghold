@@ -113,6 +113,15 @@ public class AlienAreaCommand implements CommandInterface {
                 echo("AlienArea lootFrequencyMinutes = " + AlienArea.lootFrequencyMinutes, playerState);
                 return true;
             }
+            case "guardian_init": {
+                if (AlienGuardian.instance != null) {
+                    echo("a guardian is already active.", playerState);
+                    return false;
+                }
+                AlienGuardian container = new AlienGuardian("AlienGuardian");
+                ModMain.areaManager.addChildObject(container);
+                return true;
+            }
             case "guardian_blueprint_add": {
                 String expression = strings[1];
 
@@ -125,7 +134,11 @@ public class AlienAreaCommand implements CommandInterface {
                 }
                 echo("expression matched these blueprints:", playerState);
 
-                AlienGuardian container = AlienGuardian.getInstance();
+                AlienGuardian container = AlienGuardian.instance;
+                if (container == null) {
+                    echo("No guardian manager is active!", playerState);
+                    return false;
+                }
                 container.guardianFaction = 10003;
                 GameServerState.instance.getFactionManager().getFaction(container.guardianFaction).setAttackNeutral(false);
                 container.catalogNames.clear();
@@ -139,11 +152,11 @@ public class AlienAreaCommand implements CommandInterface {
                         container.spawnGuardian(playerState.getCurrentSector());
                     }
 
-
+                ModMain.areaManager.requestSynchToClient(container);
                 return true;
             }
             case "peace": {
-                GameServerState.instance.getFactionManager().setRelationServer(AlienGuardian.getInstance().guardianFaction, playerState.getFactionId(), FactionRelation.RType.NEUTRAL.code);
+                GameServerState.instance.getFactionManager().setRelationServer(AlienGuardian.instance.guardianFaction, playerState.getFactionId(), FactionRelation.RType.NEUTRAL.code);
                 echo("made peace between player and guardian",playerState);
             }
         }

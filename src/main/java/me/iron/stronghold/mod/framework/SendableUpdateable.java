@@ -76,6 +76,18 @@ public abstract class SendableUpdateable implements Serializable {
         synch(origin);//gets overritten by descendendats
     }
 
+    /**
+     * ran once per object after its instantiated on the client.
+     */
+    protected void onClientAfterInstantiate() {
+
+    }
+
+    /**
+     * ran once per object after its instantiated on the server.
+     */
+    protected void onServerAfterInstantiate() {}
+
     protected boolean isServer() {
         return ModMain.areaManager.isServer();
     }

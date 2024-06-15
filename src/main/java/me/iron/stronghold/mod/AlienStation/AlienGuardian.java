@@ -3,61 +3,78 @@ package me.iron.stronghold.mod.AlienStation;
 import api.listener.Listener;
 import api.listener.events.systems.ShieldHitEvent;
 import api.listener.events.weapon.AnyWeaponDamageCalculateEvent;
-import api.listener.fastevents.CannonProjectileHitListener;
-import api.listener.fastevents.DamageBeamHitListener;
-import api.listener.fastevents.FastListenerCommon;
 import api.mod.StarLoader;
 import com.bulletphysics.linearmath.Transform;
 import me.iron.stronghold.mod.ModMain;
+import me.iron.stronghold.mod.framework.AbstractAreaEffect;
+import me.iron.stronghold.mod.framework.SendableUpdateable;
 import org.schema.common.util.linAlg.Vector3i;
-import org.schema.game.common.controller.BeamHandlerContainer;
-import org.schema.game.common.controller.damage.Damager;
-import org.schema.game.common.controller.damage.beam.DamageBeamHitHandlerSegmentController;
-import org.schema.game.common.controller.damage.projectile.ProjectileController;
-import org.schema.game.common.controller.damage.projectile.ProjectileHandlerSegmentController;
-import org.schema.game.common.controller.damage.projectile.ProjectileParticleContainer;
-import org.schema.game.common.controller.elements.BeamState;
-import org.schema.game.common.data.SegmentPiece;
-import org.schema.game.common.data.physics.CubeRayCastResult;
-import org.schema.game.common.data.world.Segment;
 import org.schema.game.server.controller.BluePrintController;
 import org.schema.game.server.controller.EntityAlreadyExistsException;
 import org.schema.game.server.controller.EntityNotFountException;
 import org.schema.game.server.data.GameServerState;
-import org.schema.schine.graphicsengine.core.Timer;
 
-import javax.vecmath.Vector3f;
 import java.io.IOException;
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Random;
 
-public class AlienGuardian implements Serializable {
+public class AlienGuardian extends AbstractAreaEffect {
     public LinkedList<String> catalogNames = new LinkedList<>();
     public int guardianFaction = -1;
     public float countMedian = 2;
     public float countStd = 1;
+
+    private transient Listener<ShieldHitEvent> shieldHitEventListener;
+
     private transient Random random = new Random();
+    protected static AlienGuardian instance;
 
-    private static AlienGuardian instance;
 
-    protected static AlienGuardian getInstance() {
-        if (instance == null)
-            return new AlienGuardian();
-        else
-            return instance;
+    @Override
+    protected void synch(SendableUpdateable origin) {
+        super.synch(origin);
+        if (origin instanceof AlienGuardian) {
+            this.catalogNames = ((AlienGuardian) origin).catalogNames;
+            this.guardianFaction = ((AlienGuardian) origin).guardianFaction;
+            this.countMedian = ((AlienGuardian) origin).countMedian;
+            this.countStd = ((AlienGuardian) origin).countStd;
+        }
     }
 
+    //TODO run initListeners on client after instantiation.
+
     public AlienGuardian() {
-        instance = this;
+
+    }
+
+    public AlienGuardian(String name) {
+        super("AlienGuardian");
+    }
+
+    @Override
+    protected void destroy() {
+        super.destroy();
+        if (shieldHitEventListener != null)
+            StarLoader.unregisterListener(ShieldHitEvent.class, shieldHitEventListener);
+        if (this == instance)
+            instance = null;
+    }
+
+    @Override
+    protected void onClientAfterInstantiate() {
+        super.onClientAfterInstantiate();
+        initListener();
+    }
+
+    @Override
+    protected void onServerAfterInstantiate() {
+        super.onClientAfterInstantiate();
         initListener();
     }
 
     protected void initListener() {
         //will catch cannon shots but NOT missile or beam.
-        StarLoader.registerListener(ShieldHitEvent.class, new Listener<ShieldHitEvent>() {
+        shieldHitEventListener = new Listener<ShieldHitEvent>() {
             @Override
             public void onEvent(ShieldHitEvent shieldHitEvent) {
                 //guardians are invulnerable
@@ -65,14 +82,15 @@ public class AlienGuardian implements Serializable {
                 int attackerFaction = shieldHitEvent.getShieldHit().damager.getFactionId();
                 if (victimFaction == guardianFaction)
                     shieldHitEvent.setCanceled(true);
-                //guardians one hit shields
+                    //guardians one hit shields
                 else if (attackerFaction == guardianFaction) {
                     shieldHitEvent.getShieldHit().setDamage(Double.MAX_VALUE);
                 }
             }
-        }, ModMain.instance);
+        };
+        StarLoader.registerListener(ShieldHitEvent.class, shieldHitEventListener, ModMain.instance);
 
-        FastListenerCommon.damageBeamHitListeners.add(new DamageBeamHitListener() {
+   /*     FastListenerCommon.damageBeamHitListeners.add(new DamageBeamHitListener() {
             @Override
             public void handle(BeamState beamState, int i, BeamHandlerContainer<?> beamHandlerContainer, SegmentPiece segmentPiece, Vector3f vector3f, Vector3f vector3f1, Timer timer, Collection<Segment> collection, DamageBeamHitHandlerSegmentController damageBeamHitHandlerSegmentController) {
                 int attackerFaction = beamHandlerContainer.getFactionId();
@@ -137,7 +155,7 @@ public class AlienGuardian implements Serializable {
 
         });
 
-
+        */
 
         StarLoader.registerListener(AnyWeaponDamageCalculateEvent.class, new Listener<AnyWeaponDamageCalculateEvent>() {
             @Override
@@ -165,4 +183,13 @@ public class AlienGuardian implements Serializable {
         }
     }
 
+    @Override
+    public String toString() {
+        return "AlienGuardian{" + super.toString() +
+                "catalogNames=" + catalogNames +
+                ", guardianFaction=" + guardianFaction +
+                ", countMedian=" + countMedian +
+                ", countStd=" + countStd +
+                '}';
+    }
 }

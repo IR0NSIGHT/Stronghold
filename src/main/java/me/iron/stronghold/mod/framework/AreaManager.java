@@ -290,7 +290,14 @@ public class AreaManager extends AbstractControllableArea {
 
     @Override
     public void addChildObject(SendableUpdateable child) {
+        if (UID_to_object.containsKey(child.getUID()))
+            throw new IllegalArgumentException("can not add an area with an existing UID: new=" + child.toString() + " existing =" + UID_to_object.get(child.getUID()));
+
         super.addChildObject(child);
+        if (isClient())
+            child.onClientAfterInstantiate();
+        if (isServer())
+            child.onServerAfterInstantiate();
     }
 
     @Override

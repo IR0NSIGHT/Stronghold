@@ -3,6 +3,9 @@ package me.iron.stronghold.mod.framework;
 import org.schema.schine.graphicsengine.core.Timer;
 
 public abstract class AbstractAreaEffect extends SendableUpdateable{
+    /**
+     * do NOT use this constructor for creating new areas. only used by IO
+     */
     public AbstractAreaEffect(){
         super();
     }//for deserializing
