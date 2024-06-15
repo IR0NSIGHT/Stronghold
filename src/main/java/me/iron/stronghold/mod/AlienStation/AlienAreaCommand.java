@@ -156,8 +156,24 @@ public class AlienAreaCommand implements CommandInterface {
                 return true;
             }
             case "peace": {
-                GameServerState.instance.getFactionManager().setRelationServer(AlienGuardian.instance.guardianFaction, playerState.getFactionId(), FactionRelation.RType.NEUTRAL.code);
-                echo("made peace between player and guardian",playerState);
+                if (strings.length != 2) {
+                    echo("invalid params", playerState);
+                    return false;
+                }
+                int factionId = Integer.parseInt(strings[1]);
+                GameServerState.instance.getFactionManager().setRelationServer(AlienGuardian.instance.guardianFaction, factionId, FactionRelation.RType.NEUTRAL.code);
+                echo("made peace between this faction and guardian",playerState);
+                return true;
+            }
+            case "war": {
+                if (strings.length != 2) {
+                    echo("invalid params", playerState);
+                    return false;
+                }
+                int factionId = Integer.parseInt(strings[1]);
+                GameServerState.instance.getFactionManager().setRelationServer(AlienGuardian.instance.guardianFaction, factionId, FactionRelation.RType.ENEMY.code);
+                echo("made peace between this faction and guardian",playerState);
+                return true;
             }
         }
 

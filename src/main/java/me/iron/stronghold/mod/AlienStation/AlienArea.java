@@ -19,6 +19,13 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class AlienArea extends StellarControllableArea {
+    public AlienArea() {
+    }
+
+    public AlienArea(Vector3i start, Vector3i end, String name) {
+        super(start, end, name);
+    }
+
     public static float lootFrequencyMinutes = 0.1f;
 
     public static boolean debugVisibleArea = true;
@@ -31,12 +38,13 @@ public class AlienArea extends StellarControllableArea {
     private float meanLootPerChest = 1f;
     private float stdLootPerChest = 1;
     public static AlienArea aroundSpaceStation(SpaceStation station, int radius) {
-        AlienArea area = new AlienArea();
         Vector3i center = station.getSector(new Vector3i());
-        area.detectionRadius = radius;
-        area.setDimensions(
+        AlienArea area = new AlienArea(
                 new Vector3i(center.x - radius, center.y - radius, center.z - radius),
-                new Vector3i(center.x + radius, center.y + radius, center.z + radius));
+                new Vector3i(center.x + radius, center.y + radius, center.z + radius),
+                "AlienArea");
+
+        area.detectionRadius = radius;
         area.centerStationUID = station.getUniqueIdentifier();
         return area;
     }
@@ -113,12 +121,16 @@ public class AlienArea extends StellarControllableArea {
         super.onUpdate(area);
         if (this != area)
             return;
+        SpaceStation station = getStation();
+        if (station == null)
+            return;
+
+        if (Math.random() < 0.01f)
+            if (AlienGuardian.instance != null) AlienGuardian.instance.spawnGuardian(station.getSector(new Vector3i()));
 
         long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis > nextLootFillUnix) {
-            SpaceStation station = getStation();
-            if (station == null)
-                return;
+
             //add newly set blocks marked with "[lore]"
             addLoreTextBlocks(station, loreKeys);
 

@@ -40,6 +40,8 @@ strongholds with sufficient defense points can protect their stations with a voi
   - centralized update for all areas through areaManager
   - specific update for loaded chunks through chunkManager <<
   
+  - !!! areamanager handles distribution of UIDs, so that users cant on accident insantiate without a UID!
+
   - welcome message when entering an area
     - effect 
     - list of welcome messages/message generator
