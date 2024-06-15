@@ -9,6 +9,7 @@ import glossar.GlossarCategory;
 import glossar.GlossarEntry;
 import glossar.GlossarInit;
 import me.iron.stronghold.mod.AlienStation.AlienAreaCommand;
+import me.iron.stronghold.mod.AlienStation.AlienGuardian;
 import me.iron.stronghold.mod.effects.map.AreaMapDrawer;
 import me.iron.stronghold.mod.effects.map.RadarMapDrawer;
 import me.iron.stronghold.mod.effects.map.SynchIcon.SynchIconsPacket;
@@ -29,6 +30,10 @@ public class ModMain extends StarMod {
     @Override
     public void onEnable() {
         super.onEnable();
+
+        //both machines get a guardian instance that listens to shieldevents.
+        new AlienGuardian();
+
         PacketUtil.registerPacket(UpdatePacket.class);
         PacketUtil.registerPacket(SynchIconsPacket.class);
         areaManager = new AreaManager();

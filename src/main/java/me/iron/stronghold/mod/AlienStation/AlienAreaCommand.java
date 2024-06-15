@@ -128,6 +128,7 @@ public class AlienAreaCommand implements CommandInterface {
                 AlienGuardian container = AlienGuardian.getInstance();
                 container.guardianFaction = 10003;
                 GameServerState.instance.getFactionManager().getFaction(container.guardianFaction).setAttackNeutral(false);
+                container.catalogNames.clear();
                 for (CatalogPermission p : matches) {
                     echo(p.getUid() + " : " + p.description, playerState);
                     container.catalogNames.add(p.getUid());
