@@ -1,6 +1,5 @@
 package me.iron.stronghold.mod.AlienStation;
 
-import api.ModPlayground;
 import it.unimi.dsi.fastutil.objects.ObjectCollection;
 import me.iron.stronghold.mod.framework.AbstractControllableArea;
 import me.iron.stronghold.mod.framework.SendableUpdateable;
@@ -15,9 +14,8 @@ import org.schema.game.common.data.player.inventory.Inventory;
 import org.schema.game.network.objects.remote.RemoteTextBlockPair;
 import org.schema.game.network.objects.remote.TextBlockPair;
 import org.schema.game.server.data.GameServerState;
-import org.schema.schine.common.language.Lng;
-import org.schema.schine.network.server.ServerMessage;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class AlienArea extends StellarControllableArea {
@@ -43,13 +41,9 @@ public class AlienArea extends StellarControllableArea {
         return area;
     }
 
-    public static void main(String[] args) {
-        System.out.println(join("\n", splitString("Input string cannot be null\nmaxLength must be greater than 0", 8)));
-    }
-
-
     private static long getNextLootFillUnix() {
-        return System.currentTimeMillis() + (long)(Math.random() * 1000 * 60 * lootFrequencyMinutes) ;
+        Random random = new Random();
+        return System.currentTimeMillis() + (long) (getGaussNumber(random, 1, 1) * 1000 * 60 * lootFrequencyMinutes);
     }
 
     private SpaceStation getStation() {
@@ -134,7 +128,7 @@ public class AlienArea extends StellarControllableArea {
             nextLootFillUnix = getNextLootFillUnix();
             lastLootFillUnix = currentTimeMillis;
 
-            ModPlayground.broadcastMessage("updated alien area station with lore and loot!");
+            //    ModPlayground.broadcastMessage("updated alien area station with lore and loot!");
         }
     }
 
@@ -298,19 +292,16 @@ public class AlienArea extends StellarControllableArea {
     @Override
     public void onAreaEntered(StellarControllableArea area, Vector3i enteredSector, Ship object) {
         super.onAreaEntered(area, enteredSector, object);
-        object.sendControllingPlayersServerMessage(Lng.astr("you have entered an alien area"), ServerMessage.MESSAGE_TYPE_WARNING);
     }
 
     @Override
     public void onAreaInnerMovement(StellarControllableArea area, Vector3i leftSector, Vector3i enteredSector, Ship object) {
         super.onAreaInnerMovement(area, leftSector, enteredSector, object);
-        object.sendControllingPlayersServerMessage(Lng.astr("the alien can sense you moving"), ServerMessage.MESSAGE_TYPE_INFO);
     }
 
     @Override
     public void onAreaLeft(StellarControllableArea area, Vector3i leftSector, Ship object) {
         super.onAreaLeft(area, leftSector, object);
-        object.sendControllingPlayersServerMessage(Lng.astr("you have left an alien area"), ServerMessage.MESSAGE_TYPE_INFO);
     }
 
     @Override
@@ -321,5 +312,21 @@ public class AlienArea extends StellarControllableArea {
     @Override
     public boolean isVisibleOnMap() {
         return debugVisibleArea;    //DEBUG: FOR NOW
+    }
+
+    @Override
+    public String toString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
+
+        return "AlienArea{" + "\n" +
+                super.toString() +
+                "centerStationUID='" + centerStationUID + '\'' + "\n" +
+                ", detectionRadius=" + detectionRadius + "\n" +
+                ", nextLootFillUnix=" + sdf.format(new Date(nextLootFillUnix)) + "\n" +
+                ", lastLootFillUnix=" + sdf.format(new Date(lastLootFillUnix)) + "\n" +
+                ", meanLootPerChest=" + meanLootPerChest + "\n" +
+                ", stdLootPerChest=" + stdLootPerChest + "\n" +
+                ", lootFrequencyMinutes=" + lootFrequencyMinutes + "\n" +
+                '}';
     }
 }
